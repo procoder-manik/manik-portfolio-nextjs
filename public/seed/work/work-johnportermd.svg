@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="Dr. John Porter">
+<defs>
+  <linearGradient id="gjohnportermd" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#38BDF8"/>
+  </linearGradient>
+  <radialGradient id="rjohnportermd" cx="20%" cy="20%" r="90%">
+    <stop offset="0%" stop-color="#0284C7" stop-opacity="0.9"/>
+    <stop offset="55%" stop-color="#071B2E" stop-opacity="0.55"/>
+    <stop offset="100%" stop-color="#071B2E" stop-opacity="1"/>
+  </radialGradient>
+  <linearGradient id="fadejohnportermd" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#071B2E" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#071B2E" stop-opacity="0.55"/>
+  </linearGradient>
+</defs>
+<rect width="1200" height="800" fill="#071B2E"/>
+<rect width="1200" height="800" fill="url(#rjohnportermd)"/>
+<g clip-path="url(#clipjohnportermd)"><line x1="-40" y1="760" x2="280" y2="550" stroke="#7DD3FC" stroke-width="1" opacity="0.100"/><line x1="-40" y1="734" x2="244" y2="524" stroke="#7DD3FC" stroke-width="1" opacity="0.086"/><line x1="-40" y1="708" x2="208" y2="498" stroke="#7DD3FC" stroke-width="1" opacity="0.072"/><line x1="-40" y1="682" x2="172" y2="472" stroke="#7DD3FC" stroke-width="1" opacity="0.058"/><line x1="-40" y1="656" x2="136" y2="446" stroke="#7DD3FC" stroke-width="1" opacity="0.044"/></g>
+<clipPath id="clipjohnportermd"><rect width="1200" height="800"/></clipPath>
+<circle cx="978" cy="240" r="108" fill="none" stroke="#7DD3FC" stroke-width="2" opacity="0.55"/><circle cx="978" cy="240" r="80" fill="url(#gjohnportermd)"/><text x="978" y="270" text-anchor="middle" font-family="Sora, Inter, sans-serif" font-size="67" font-weight="700" fill="#0A0D12">JP</text>
+<rect x="0" y="496" width="1200" height="304" fill="url(#fadejohnportermd)"/>
+<text x="72" y="640" font-family="Sora, Inter, sans-serif" font-size="46" font-weight="700" fill="#FFFFFF">Dr. John Porter</text>
+<text x="72" y="674" font-family="'JetBrains Mono', monospace" font-size="16" letter-spacing="2.6" fill="#38BDF8">MEDICAL PRACTICE</text>
+</svg>

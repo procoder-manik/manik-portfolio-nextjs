@@ -1,0 +1,394 @@
+'use client';
+import { useEffect, useRef, useState, createContext, useContext } from 'react';
+import InfoTip from '@/components/site/InfoTip';
+import { fieldInfo } from '@/lib/field-info';
+import { Upload, X, Plus, ChevronUp, ChevronDown, Trash2, Image as ImageIcon, Bold, Italic, Heading2, Heading3, Link2, List, ListOrdered, Quote, Code, Eye, PenLine, Loader2, FolderOpen } from 'lucide-react';
+import { get, set, slugify, cn } from '@/lib/utils';
+import { renderMarkdown } from '@/lib/markdown';
+import { api, upload } from './api';
+import { BLOCKS, BLOCK_DEFAULTS, blockFields } from '@/lib/blocks';
+import * as Lucide from 'lucide-react';
+
+const optList = (o = []) => o.map((x) => (typeof x === 'string' ? { value: x, label: x } : x));
+
+export function FieldList({ fields, value, onChange, slugFrom }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-5 gap-y-6">
+      {fields.map((f, i) => {
+        if (f.showIf && !f.showIf(value || {})) return null;
+        return (
+          <div key={`${f.name}-${i}`} className={f.half ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
+            <Field f={f} value={get(value, f.name)} doc={value} slugFrom={slugFrom} onChange={(v) => onChange(set(value, f.name, v))} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* The admin section (projects, payments, referrals...) so each field finds its own explanation. */
+export const InfoScope = createContext('');
+
+function Label({ f, htmlFor }) {
+  const info = fieldInfo(f, useContext(InfoScope));
+  return (
+    <div className="mb-1.5 flex items-center gap-1.5">
+      <label htmlFor={htmlFor} className="text-sm font-medium text-ink">{f.label}{f.required && <span className="text-bad"> *</span>}</label>
+      <InfoTip text={info} label={`About ${f.label || 'this field'}`} />
+    </div>
+  );
+}
+const Hint = ({ f }) => (f.hint ? <p className="mt-1.5 text-xs text-muted">{f.hint}</p> : null);
+
+export function Field({ f, value, onChange, doc, slugFrom }) {
+  const scope = useContext(InfoScope);
+  const id = `f-${f.name.replace(/\W/g, '-')}`;
+  const T = f.type;
+  if (T === 'seo') return <SerpPreview f={f} doc={doc || {}} />;
+  if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
+  if (T === 'switch') return (
+    <div>
+      <label htmlFor={id} className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-base/50 px-4 py-3">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-ink">{f.label}<InfoTip text={fieldInfo(f, scope)} label={`About ${f.label || 'this switch'}`} /></span>
+        <button id={id} type="button" role="switch" aria-checked={!!value} onClick={() => onChange(!value)} className={cn('relative h-6 w-11 shrink-0 rounded-full transition', value ? 'bg-signal' : 'bg-line')}>
+          <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition', value ? 'left-[22px]' : 'left-0.5')} />
+        </button>
+      </label>
+      <Hint f={f} />
+    </div>
+  );
+  return (
+    <div>
+      {T !== 'repeater' && <Label f={f} htmlFor={id} />}
+      {T === 'text' || T === 'url' || T === 'email' ? <input id={id} type={T === 'text' ? 'text' : T} value={value || ''} placeholder={f.placeholder} onChange={(e) => onChange(e.target.value)} className="field" required={f.required} />
+        : T === 'number' ? <input id={id} type="number" step="any" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} className="field" required={f.required} />
+        : T === 'date' ? <input id={id} type="date" value={value ? String(value).slice(0, 10) : ''} onChange={(e) => onChange(e.target.value || null)} className="field" />
+        : T === 'textarea' ? <textarea id={id} rows={3} value={value || ''} placeholder={f.placeholder} onChange={(e) => onChange(e.target.value)} className="field resize-y" />
+        : T === 'slug' ? <SlugInput id={id} value={value} onChange={onChange} source={doc?.[slugFrom]} />
+        : T === 'select' ? (
+          <select id={id} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="field">
+            <option value="">Choose…</option>{optList(f.options).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>)
+        : T === 'segmented' ? (
+          <div className="inline-flex flex-wrap gap-1 rounded-xl border border-line bg-base/50 p-1">
+            {optList(f.options).map((o) => <button type="button" key={o.value} onClick={() => onChange(o.value)} className={cn('rounded-lg px-3.5 py-2 text-sm font-medium transition', value === o.value ? 'bg-signal text-white' : 'text-body hover:bg-raised')}>{o.label}</button>)}
+          </div>)
+        : T === 'color' ? (
+          <div className="flex items-center gap-3"><input type="color" value={value || '#5B8CFF'} onChange={(e) => onChange(e.target.value)} className="h-11 w-14 cursor-pointer rounded-lg border border-line bg-transparent" /><input id={id} value={value || ''} onChange={(e) => onChange(e.target.value)} className="field" /></div>)
+        : T === 'multiselect' ? <MultiSelect value={value || []} options={f.options} onChange={onChange} />
+        : T === 'tags' ? <Tags value={value || []} onChange={onChange} />
+        : T === 'list' ? <ListInput value={value || []} onChange={onChange} />
+        : T === 'image' ? <MediaInput value={value} onChange={onChange} accept="image/*" />
+        : T === 'file' ? <MediaInput value={value} onChange={onChange} accept={f.accept} file />
+        : T === 'images' ? <Images value={value || []} onChange={onChange} />
+        : T === 'markdown' ? <Markdown value={value || ''} onChange={onChange} />
+        : T === 'ref' ? <RefSelect id={id} f={f} value={value} onChange={onChange} />
+        : T === 'repeater' ? <Repeater f={f} value={value || []} onChange={onChange} />
+        : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} />
+        : <input id={id} value={value || ''} onChange={(e) => onChange(e.target.value)} className="field" />}
+      {T !== 'repeater' && <Hint f={f} />}
+    </div>
+  );
+}
+
+function SlugInput({ id, value, onChange, source }) {
+  return (
+    <div className="flex gap-2">
+      <input id={id} value={value || ''} onChange={(e) => onChange(slugify(e.target.value))} placeholder="auto from the title" className="field font-mono text-sm" />
+      <button type="button" onClick={() => onChange(slugify(source || ''))} className="btn-ghost btn-sm shrink-0">From title</button>
+    </div>
+  );
+}
+
+function MultiSelect({ value, options = [], onChange }) {
+  const [add, setAdd] = useState('');
+  const all = [...new Set([...options, ...value])];
+  const toggle = (o) => onChange(value.includes(o) ? value.filter((x) => x !== o) : [...value, o]);
+  return (
+    <div className="rounded-xl border border-line bg-base/50 p-3">
+      <div className="flex flex-wrap gap-1.5">
+        {all.map((o) => <button type="button" key={o} onClick={() => toggle(o)} className={cn('rounded-full border px-3 py-1 text-xs font-medium transition', value.includes(o) ? 'border-signal bg-signal text-white' : 'border-line text-body hover:border-ink/40')}>{o}</button>)}
+      </div>
+      <div className="mt-3 flex gap-2">
+        <input value={add} onChange={(e) => setAdd(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (add.trim()) { onChange([...new Set([...value, add.trim()])]); setAdd(''); } } }} placeholder="Add another and press Enter" className="field py-2 text-sm" />
+      </div>
+    </div>
+  );
+}
+
+function Tags({ value, onChange }) {
+  const [t, setT] = useState('');
+  const push = () => { const v = t.trim(); if (v && !value.includes(v)) onChange([...value, v]); setT(''); };
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-line bg-base/50 p-2">
+      {value.map((v) => <span key={v} className="inline-flex items-center gap-1 rounded-full bg-raised px-2.5 py-1 text-xs text-ink">{v}<button type="button" onClick={() => onChange(value.filter((x) => x !== v))} aria-label={`Remove ${v}`}><X size={12} /></button></span>)}
+      <input value={t} onChange={(e) => setT(e.target.value)} onBlur={push} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); push(); } else if (e.key === 'Backspace' && !t && value.length) onChange(value.slice(0, -1)); }}
+        placeholder={value.length ? '' : 'Type and press Enter'} className="min-w-[140px] flex-1 bg-transparent px-2 py-1 text-sm text-ink outline-none" />
+    </div>
+  );
+}
+
+const move = (arr, i, d) => { const a = [...arr]; const j = i + d; if (j < 0 || j >= a.length) return a; [a[i], a[j]] = [a[j], a[i]]; return a; };
+
+function ListInput({ value, onChange }) {
+  return (
+    <div className="space-y-2">
+      {value.map((v, i) => (
+        <div key={i} className="flex gap-2">
+          <input value={v} onChange={(e) => onChange(value.map((x, k) => (k === i ? e.target.value : x)))} className="field py-2.5" />
+          <div className="flex shrink-0">
+            <IconBtn label="Move up" onClick={() => onChange(move(value, i, -1))}><ChevronUp size={15} /></IconBtn>
+            <IconBtn label="Move down" onClick={() => onChange(move(value, i, 1))}><ChevronDown size={15} /></IconBtn>
+            <IconBtn label="Remove" onClick={() => onChange(value.filter((_, k) => k !== i))}><X size={15} /></IconBtn>
+          </div>
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange([...value, ''])} className="btn-ghost btn-sm"><Plus size={14} />Add line</button>
+    </div>
+  );
+}
+
+const IconBtn = ({ label, onClick, children }) => <button type="button" aria-label={label} title={label} onClick={onClick} className="grid h-10 w-9 place-items-center rounded-lg text-muted hover:bg-raised hover:text-ink">{children}</button>;
+
+export function MediaLibrary({ open, onClose, onPick, accept }) {
+  const [items, setItems] = useState(null);
+  useEffect(() => { if (open) api('/api/admin/media').then((j) => setItems(j.items)).catch(() => setItems([])); }, [open]);
+  if (!open) return null;
+  const isImg = (t) => t?.startsWith('image');
+  const list = (items || []).filter((m) => !accept || accept === '*' || (accept.startsWith('image') ? isImg(m.type) : accept.startsWith('video') ? m.type?.startsWith('video') : true));
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-line bg-surface" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-4"><h3 className="font-semibold">Media library</h3><button onClick={onClose} aria-label="Close"><X size={18} /></button></div>
+        <div className="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-5 sm:grid-cols-5">
+          {items === null && <p className="col-span-full text-sm text-muted">Loading…</p>}
+          {items && !list.length && <p className="col-span-full text-sm text-muted">Nothing uploaded yet. Use the Upload button instead.</p>}
+          {list.map((m) => (
+            <button key={m._id} type="button" onClick={() => { onPick(m.url); onClose(); }} className="group overflow-hidden rounded-xl border border-line bg-raised text-left hover:border-signal">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {isImg(m.type) ? <img src={m.url} alt="" className="aspect-square w-full object-cover object-top" /> : <div className="grid aspect-square place-items-center text-xs text-muted">{m.type}</div>}
+              <p className="truncate px-2 py-1.5 text-xs text-muted">{m.name}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MediaInput({ value, onChange, accept = 'image/*', file }) {
+  const ref = useRef(); const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [lib, setLib] = useState(false);
+  const go = async (files) => { if (!files?.length) return; setBusy(true); setErr(''); try { const [r] = await upload(files); onChange(r.url); } catch (e) { setErr(e.message); } setBusy(false); };
+  const isImg = !file || /\.(png|jpe?g|webp|gif|svg|avif)(\?|$)/i.test(value || '');
+  return (
+    <div className="rounded-xl border border-dashed border-line bg-base/40 p-3" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); go(e.dataTransfer.files); }}>
+      <div className="flex gap-4">
+        {!file && (
+          <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-raised">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {value && isImg ? <img src={value} alt="" className="h-full w-full object-cover object-top" /> : <div className="grid h-full place-items-center text-muted"><ImageIcon size={22} /></div>}
+          </div>
+        )}
+        <div className="min-w-0 flex-1 space-y-2">
+          <input value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder="Paste a link, or upload" className="field py-2 text-sm" />
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => ref.current?.click()} className="btn-ghost btn-sm" disabled={busy}>{busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}{busy ? 'Uploading…' : 'Upload'}</button>
+            <button type="button" onClick={() => setLib(true)} className="btn-ghost btn-sm"><FolderOpen size={14} />Library</button>
+            {value && <button type="button" onClick={() => onChange('')} className="btn-ghost btn-sm text-bad"><X size={14} />Remove</button>}
+          </div>
+          {err && <p className="text-xs text-bad">{err}</p>}
+          <p className="text-xs text-muted">You can also drop a file here.</p>
+        </div>
+      </div>
+      <input ref={ref} type="file" accept={accept} hidden onChange={(e) => go(e.target.files)} />
+      <MediaLibrary open={lib} onClose={() => setLib(false)} onPick={onChange} accept={accept} />
+    </div>
+  );
+}
+
+function Images({ value, onChange }) {
+  const ref = useRef(); const [busy, setBusy] = useState(false); const [lib, setLib] = useState(false);
+  const go = async (files) => { if (!files?.length) return; setBusy(true); try { const r = await upload(files); onChange([...value, ...r.map((x) => x.url)]); } catch (e) { alert(e.message); } setBusy(false); };
+  return (
+    <div className="rounded-xl border border-dashed border-line bg-base/40 p-3" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); go(e.dataTransfer.files); }}>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {value.map((v, i) => (
+          <div key={v + i} className="group relative aspect-square overflow-hidden rounded-lg border border-line bg-raised">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={v} alt="" className="h-full w-full object-cover object-top" />
+            <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/60 opacity-0 transition group-hover:opacity-100">
+              <IconBtn label="Move left" onClick={() => onChange(move(value, i, -1))}><ChevronUp size={14} className="-rotate-90 text-white" /></IconBtn>
+              <IconBtn label="Remove" onClick={() => onChange(value.filter((_, k) => k !== i))}><Trash2 size={14} className="text-white" /></IconBtn>
+            </div>
+          </div>
+        ))}
+        <button type="button" onClick={() => ref.current?.click()} className="grid aspect-square place-items-center rounded-lg border border-line text-muted hover:border-signal hover:text-ink">{busy ? <Loader2 className="animate-spin" size={18} /> : <Plus size={20} />}</button>
+      </div>
+      <button type="button" onClick={() => setLib(true)} className="btn-ghost btn-sm mt-3"><FolderOpen size={14} />Pick from library</button>
+      <input ref={ref} type="file" accept="image/*" multiple hidden onChange={(e) => go(e.target.files)} />
+      <MediaLibrary open={lib} onClose={() => setLib(false)} onPick={(u) => onChange([...value, u])} accept="image/*" />
+    </div>
+  );
+}
+
+function Markdown({ value, onChange }) {
+  const ta = useRef(); const file = useRef(); const [preview, setPreview] = useState(false); const [busy, setBusy] = useState(false);
+  const wrap = (before, after = before, ph = 'text') => {
+    const el = ta.current; const s = el.selectionStart, e = el.selectionEnd; const sel = value.slice(s, e) || ph;
+    onChange(value.slice(0, s) + before + sel + after + value.slice(e));
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(s + before.length, s + before.length + sel.length); });
+  };
+  const line = (prefix) => {
+    const el = ta.current; const s = el.selectionStart; const start = value.lastIndexOf('\n', s - 1) + 1;
+    onChange(value.slice(0, start) + prefix + value.slice(start));
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(s + prefix.length, s + prefix.length); });
+  };
+  const img = async (files) => { if (!files?.length) return; setBusy(true); try { const [r] = await upload(files); wrap('![', `](${r.url})`, 'image description'); } catch (e) { alert(e.message); } setBusy(false); };
+  const tools = [[Bold, 'Bold', () => wrap('**')], [Italic, 'Italic', () => wrap('_')], [Heading2, 'Heading', () => line('## ')], [Heading3, 'Subheading', () => line('### ')],
+    [Link2, 'Link', () => wrap('[', '](https://)', 'link text')], [List, 'Bullet list', () => line('- ')], [ListOrdered, 'Numbered list', () => line('1. ')], [Quote, 'Quote', () => line('> ')], [Code, 'Code', () => wrap('`')]];
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-base/50 focus-within:border-signal">
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-line bg-surface px-2 py-1.5">
+        {tools.map(([I, l, fn]) => <button key={l} type="button" title={l} aria-label={l} onClick={fn} disabled={preview} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-raised hover:text-ink disabled:opacity-40"><I size={15} /></button>)}
+        <button type="button" title="Insert image" onClick={() => file.current?.click()} disabled={preview || busy} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-raised hover:text-ink">{busy ? <Loader2 size={15} className="animate-spin" /> : <ImageIcon size={15} />}</button>
+        <span className="flex-1" />
+        <button type="button" onClick={() => setPreview(!preview)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-body hover:bg-raised">{preview ? <><PenLine size={13} />Write</> : <><Eye size={13} />Preview</>}</button>
+      </div>
+      {preview
+        ? <div className="prose-site min-h-[320px] p-5" dangerouslySetInnerHTML={{ __html: renderMarkdown(value).html }} />
+        : <textarea ref={ta} value={value} onChange={(e) => onChange(e.target.value)} rows={16} className="block w-full resize-y bg-transparent p-4 font-mono text-[0.9rem] leading-relaxed text-ink outline-none" placeholder="Write here. Use ## for headings, - for lists." />}
+      <input ref={file} type="file" accept="image/*" hidden onChange={(e) => img(e.target.files)} />
+    </div>
+  );
+}
+
+function RefSelect({ id, f, value, onChange }) {
+  const [opts, setOpts] = useState([]);
+  useEffect(() => { api(`/api/admin/${f.source}`).then((j) => setOpts(j.items)).catch(() => {}); }, [f.source]);
+  return (
+    <select id={id} value={value || ''} onChange={(e) => onChange(e.target.value)} className="field" required={f.required}>
+      <option value="">Choose…</option>
+      {opts.map((o) => <option key={o._id} value={o[f.valueKey]}>{o[f.labelKey]}</option>)}
+    </select>
+  );
+}
+
+function Repeater({ f, value, onChange }) {
+  const [open, setOpen] = useState(() => (value.length <= 3 ? value.map((_, i) => i) : []));
+  const titleOf = (item) => { const k = f.fields.find((x) => ['text', 'textarea'].includes(x.type))?.name; return (k && item?.[k]) || `Item`; };
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium text-ink">{f.label} <span className="font-normal text-muted">({value.length})</span></p>
+      <div className="space-y-2">
+        {value.map((item, i) => {
+          const isOpen = open.includes(i);
+          return (
+            <div key={i} className="rounded-xl border border-line bg-base/40">
+              <div className="flex items-center gap-1 px-3 py-2">
+                <button type="button" onClick={() => setOpen(isOpen ? open.filter((x) => x !== i) : [...open, i])} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-medium text-ink">
+                  <ChevronDown size={15} className={cn('shrink-0 text-muted transition', isOpen ? '' : '-rotate-90')} /><span className="truncate">{String(titleOf(item)).slice(0, 80)}</span>
+                </button>
+                <IconBtn label="Move up" onClick={() => onChange(move(value, i, -1))}><ChevronUp size={15} /></IconBtn>
+                <IconBtn label="Move down" onClick={() => onChange(move(value, i, 1))}><ChevronDown size={15} /></IconBtn>
+                <IconBtn label="Remove" onClick={() => { if (confirm('Remove this item?')) onChange(value.filter((_, k) => k !== i)); }}><Trash2 size={15} /></IconBtn>
+              </div>
+              {isOpen && <div className="border-t border-line p-4"><FieldList fields={f.fields} value={item || {}} onChange={(v) => onChange(value.map((x, k) => (k === i ? v : x)))} /></div>}
+            </div>
+          );
+        })}
+      </div>
+      <button type="button" onClick={() => { onChange([...value, {}]); setOpen([...open, value.length]); }} className="btn-ghost btn-sm mt-3"><Plus size={14} />Add {f.label.toLowerCase().replace(/s$/, '')}</button>
+      {f.hint && <p className="mt-1.5 text-xs text-muted">{f.hint}</p>}
+    </div>
+  );
+}
+
+/* Page builder: add pre-built sections, reorder, duplicate, hide and edit them. */
+function BlocksField({ value, onChange }) {
+  const [picker, setPicker] = useState(false);
+  const [open, setOpen] = useState(null);
+  const add = (type) => { onChange([...value, { type, ...(BLOCK_DEFAULTS[type] || {}) }]); setOpen(value.length); setPicker(false); };
+  const upd = (i, v) => onChange(value.map((x, k) => (k === i ? v : x)));
+  const BI = ({ name, size = 16 }) => { const C = Lucide[name] || Lucide.Square; return <C size={size} />; };
+  const summary = (b) => b.heading || b.content?.slice(0, 60) || b.caption || BLOCKS[b.type]?.desc || '';
+  return (
+    <div>
+      <div className="space-y-2">
+        {value.map((b, i) => (
+          <div key={i} className={cn('rounded-xl border bg-base/40', open === i ? 'border-signal' : 'border-line', b.hidden && 'opacity-60')}>
+            <div className="flex items-center gap-1 px-3 py-2">
+              <button type="button" onClick={() => setOpen(open === i ? null : i)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-signal/15 text-signal"><BI name={BLOCKS[b.type]?.icon} /></span>
+                <span className="min-w-0"><span className="block text-sm font-semibold text-ink">{BLOCKS[b.type]?.label || b.type}{b.hidden ? ' (hidden)' : ''}</span><span className="block truncate text-xs text-muted">{String(summary(b)).slice(0, 80)}</span></span>
+              </button>
+              <IconBtn label="Move up" onClick={() => onChange(move(value, i, -1))}><ChevronUp size={15} /></IconBtn>
+              <IconBtn label="Move down" onClick={() => onChange(move(value, i, 1))}><ChevronDown size={15} /></IconBtn>
+              <IconBtn label={b.hidden ? 'Show' : 'Hide'} onClick={() => upd(i, { ...b, hidden: !b.hidden })}>{b.hidden ? <Lucide.EyeOff size={15} /> : <Eye size={15} />}</IconBtn>
+              <IconBtn label="Duplicate" onClick={() => { const a = [...value]; a.splice(i + 1, 0, JSON.parse(JSON.stringify(b))); onChange(a); }}><Lucide.Copy size={15} /></IconBtn>
+              <IconBtn label="Delete" onClick={() => { if (confirm('Delete this section?')) onChange(value.filter((_, k) => k !== i)); }}><Trash2 size={15} /></IconBtn>
+            </div>
+            {open === i && <div className="border-t border-line p-4"><FieldList fields={blockFields(b.type)} value={b} onChange={(v) => upd(i, v)} /></div>}
+          </div>
+        ))}
+        {!value.length && <p className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">No sections yet. Add your first one.</p>}
+      </div>
+      {picker ? (
+        <div className="mt-3 rounded-2xl border border-line bg-base/60 p-3">
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold text-ink">Pick a section</p><button type="button" onClick={() => setPicker(false)} aria-label="Close"><X size={16} /></button></div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.entries(BLOCKS).map(([k, d]) => (
+              <button type="button" key={k} onClick={() => add(k)} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-signal">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-signal/15 text-signal"><BI name={d.icon} /></span>
+                <span><span className="block text-sm font-semibold text-ink">{d.label}</span><span className="block text-xs text-muted">{d.desc}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : <button type="button" onClick={() => setPicker(true)} className="btn-primary btn-sm mt-3"><Plus size={14} />Add section</button>}
+    </div>
+  );
+}
+
+
+/* Google-style preview with length meters for the SEO tab. */
+let seoCtx = null;
+function SerpPreview({ f, doc }) {
+  const [ctx, setCtx] = useState(seoCtx); const [host, setHost] = useState('yoursite.com');
+  useEffect(() => {
+    setHost(window.location.host);
+    if (seoCtx) return;
+    Promise.all([api('/api/admin/settings/integrations').catch(() => ({})), api('/api/admin/settings/site').catch(() => ({}))])
+      .then(([i, s]) => { seoCtx = { template: i.item?.seo?.titleTemplate || '%s', name: s.item?.name || '', home: s.item?.seoTitle || '', homeDesc: s.item?.seoDescription || '' }; setCtx(seoCtx); });
+  }, []);
+  const base = f.base ? get(doc, f.base) || {} : doc;
+  const own = String(base.seoTitle || '').trim();
+  const fallbackTitle = f.titleFrom ? doc[f.titleFrom] : '';
+  const title = own || (f.exact ? '' : fallbackTitle ? (ctx?.template || '%s').replace('%s', fallbackTitle) : '') || ctx?.home || 'Untitled';
+  const desc = String(base.seoDescription || '').trim() || (f.descFrom ? doc[f.descFrom] : '') || '';
+  let path = '/'; try { path = f.path ? f.path(doc) : '/'; } catch {}
+  const Meter = ({ n, lo, hi, label }) => {
+    const tone = !n ? 'bg-line' : n < lo ? 'bg-amber' : n <= hi ? 'bg-good' : 'bg-bad';
+    return (
+      <div className="flex items-center gap-3 text-xs text-muted">
+        <span className="w-24">{label}</span>
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"><span className={cn('block h-full rounded-full transition-all', tone)} style={{ width: `${Math.min(100, (n / (hi * 1.15)) * 100)}%` }} /></span>
+        <span className={cn('w-20 text-right tabular-nums', n > hi && 'text-bad')}>{n} / {hi}</span>
+      </div>
+    );
+  };
+  return (
+    <div>
+      {f.label && <p className="mb-2 text-sm font-semibold text-ink">{f.label}</p>}
+      <div className="rounded-2xl border border-line bg-white p-4 font-[arial,sans-serif] shadow-sm">
+        <p className="truncate text-[13px] text-[#4d5156]">{host}{path === '/' ? '' : ` › ${path.replace(/^\//, '').split('/').filter(Boolean).join(' › ')}`}</p>
+        <p className="mt-1 line-clamp-1 text-[19px] leading-snug text-[#1a0dab]">{title}</p>
+        <p className="mt-1 line-clamp-2 text-[13.5px] leading-relaxed text-[#4d5156]">{desc || <span className="italic text-[#9aa0a6]">No description yet. Google will pick text from the page.</span>}</p>
+        {base.seoNoindex && <p className="mt-2 text-xs font-medium text-[#b3261e]">Hidden from Google (noindex)</p>}
+      </div>
+      <div className="mt-3 space-y-1.5">
+        <Meter n={title.length} lo={30} hi={60} label="Title length" />
+        <Meter n={desc.length} lo={70} hi={160} label="Description" />
+      </div>
+    </div>
+  );
+}
