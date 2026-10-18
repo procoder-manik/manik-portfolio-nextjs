@@ -8,6 +8,12 @@ import { renderMarkdown } from '@/lib/markdown';
 import { api, upload } from './api';
 import { BLOCKS, BLOCK_DEFAULTS, blockFields } from '@/lib/blocks';
 import * as Lucide from 'lucide-react';
+import { analyzeDoc } from '@/lib/seo-analysis';
+import { POPUP_TEMPLATES, POPUP_DEFAULTS } from '@/lib/popups';
+import { deepMerge } from '@/lib/utils';
+import PopupView from '@/components/site/PopupView';
+import Cards, { Card } from '@/components/site/cards/Cards';
+import { CARD_TEMPLATES, SAMPLE } from '@/lib/card-templates';
 
 const optList = (o = []) => o.map((x) => (typeof x === 'string' ? { value: x, label: x } : x));
 
@@ -18,7 +24,7 @@ export function FieldList({ fields, value, onChange, slugFrom }) {
         if (f.showIf && !f.showIf(value || {})) return null;
         return (
           <div key={`${f.name}-${i}`} className={f.half ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
-            <Field f={f} value={get(value, f.name)} doc={value} slugFrom={slugFrom} onChange={(v) => onChange(set(value, f.name, v))} />
+            <Field f={f} value={get(value, f.name)} doc={value} slugFrom={slugFrom} setDoc={onChange} onChange={(v) => onChange(set(value, f.name, v))} />
           </div>
         );
       })}
@@ -40,11 +46,16 @@ function Label({ f, htmlFor }) {
 }
 const Hint = ({ f }) => (f.hint ? <p className="mt-1.5 text-xs text-muted">{f.hint}</p> : null);
 
-export function Field({ f, value, onChange, doc, slugFrom }) {
+export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   const scope = useContext(InfoScope);
   const id = `f-${f.name.replace(/\W/g, '-')}`;
   const T = f.type;
   if (T === 'seo') return <SerpPreview f={f} doc={doc || {}} />;
+  if (T === 'seoAnalysis') return <SeoAnalysis f={f} doc={doc || {}} />;
+  if (T === 'socialPreview') return <SocialPreview f={f} doc={doc || {}} />;
+  if (T === 'popupTemplates') return <PopupTemplates doc={doc || {}} setDoc={setDoc} />;
+  if (T === 'popupPreview') return <PopupPreviewBox doc={doc || {}} />;
+  if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
   if (T === 'switch') return (
     <div>
@@ -85,6 +96,10 @@ export function Field({ f, value, onChange, doc, slugFrom }) {
         : T === 'ref' ? <RefSelect id={id} f={f} value={value} onChange={onChange} />
         : T === 'repeater' ? <Repeater f={f} value={value || []} onChange={onChange} />
         : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} />
+        : T === 'cardTemplate' ? <CardTemplatePicker value={value || 'service'} onChange={onChange} />
+        : T === 'datetime' ? <input id={id} type="datetime-local" value={value ? String(value).slice(0, 16) : ''} onChange={(e) => onChange(e.target.value || null)} className="field" />
+        : T === 'code' ? <textarea id={id} rows={8} spellCheck={false} value={value || ''} placeholder={f.placeholder || ''} onChange={(e) => onChange(e.target.value)} className="field resize-y font-mono text-[0.85rem] leading-relaxed" />
+        : T === 'json' ? <JsonInput id={id} value={value} onChange={onChange} />
         : <input id={id} value={value || ''} onChange={(e) => onChange(e.target.value)} className="field" />}
       {T !== 'repeater' && <Hint f={f} />}
     </div>
@@ -357,8 +372,8 @@ function SerpPreview({ f, doc }) {
   useEffect(() => {
     setHost(window.location.host);
     if (seoCtx) return;
-    Promise.all([api('/api/admin/settings/integrations').catch(() => ({})), api('/api/admin/settings/site').catch(() => ({}))])
-      .then(([i, s]) => { seoCtx = { template: i.item?.seo?.titleTemplate || '%s', name: s.item?.name || '', home: s.item?.seoTitle || '', homeDesc: s.item?.seoDescription || '' }; setCtx(seoCtx); });
+    Promise.all([api('/api/admin/settings/seo').catch(() => ({})), api('/api/admin/settings/site').catch(() => ({}))])
+      .then(([i, s]) => { seoCtx = { template: i.item?.titleTemplate || '%s', name: s.item?.name || '', home: s.item?.seoTitle || '', homeDesc: s.item?.seoDescription || '' }; setCtx(seoCtx); });
   }, []);
   const base = f.base ? get(doc, f.base) || {} : doc;
   const own = String(base.seoTitle || '').trim();
@@ -389,6 +404,149 @@ function SerpPreview({ f, doc }) {
         <Meter n={title.length} lo={30} hi={60} label="Title length" />
         <Meter n={desc.length} lo={70} hi={160} label="Description" />
       </div>
+    </div>
+  );
+}
+
+
+function JsonInput({ id, value, onChange }) {
+  const text = typeof value === 'string' ? value : value ? JSON.stringify(value, null, 2) : '';
+  let err = '';
+  if (text.trim()) { try { JSON.parse(text); } catch (e) { err = 'This is not valid JSON yet: ' + e.message; } }
+  return (
+    <div>
+      <textarea id={id} rows={9} spellCheck={false} value={text} onChange={(e) => onChange(e.target.value)} placeholder={'{ "@type": "Organization", "name": "..." }'} className="field resize-y font-mono text-[0.85rem] leading-relaxed" />
+      {err ? <p className="mt-1.5 text-xs text-bad">{err}</p> : text.trim() ? <p className="mt-1.5 text-xs text-good">Valid JSON</p> : null}
+    </div>
+  );
+}
+
+let seoTpl = null;
+/* Rank Math style checklist: score ring and grouped pass, warn, fail rows. Updates while you type. */
+function SeoAnalysis({ f, doc }) {
+  const [tpl, setTpl] = useState(seoTpl || '%s'); const [open, setOpen] = useState({});
+  useEffect(() => { if (seoTpl) return; api('/api/admin/settings/seo').then((j) => { seoTpl = j.item?.titleTemplate || '%s'; setTpl(seoTpl); }).catch(() => {}); }, []);
+  let path = '/'; try { path = f.path ? f.path(doc) : '/'; } catch {}
+  const r = analyzeDoc(doc, { path, titleFrom: f.titleFrom, descFrom: f.descFrom, template: tpl, contentAware: f.contentAware });
+  const tone = { good: 'text-good', ok: 'text-amber', bad: 'text-bad' };
+  const bg = { good: 'bg-good', ok: 'bg-amber', bad: 'bg-bad' };
+  const groups = [...new Set(r.checks.map((c) => c.group))];
+  const circ = 2 * Math.PI * 26;
+  return (
+    <div className="rounded-2xl border border-line bg-base/40 p-4 sm:p-5">
+      <div className="flex items-center gap-4">
+        <svg width="64" height="64" viewBox="0 0 64 64" className="shrink-0 -rotate-90" aria-hidden>
+          <circle cx="32" cy="32" r="26" fill="none" strokeWidth="6" className="stroke-line" />
+          <circle cx="32" cy="32" r="26" fill="none" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${(r.score / 100) * circ} ${circ}`} className={r.tone === 'good' ? 'stroke-good' : r.tone === 'ok' ? 'stroke-amber' : 'stroke-bad'} />
+        </svg>
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">SEO score <span className={cn('text-lg font-bold tabular-nums', tone[r.tone])}>{r.score}</span><span className="text-muted">/ 100</span>
+            <InfoTip text="A guide, not a promise. It checks the page against the focus keyword and common on-page SEO rules, like Rank Math and Yoast. 80 and above is good. Writing for people first matters more than a perfect score." /></p>
+          <p className="mt-0.5 text-xs text-muted">{r.checks.filter((c) => c.status === 'good').length} passed, {r.checks.filter((c) => c.status === 'ok').length} to improve, {r.checks.filter((c) => c.status === 'bad').length} to fix. {r.words ? `${r.words} words.` : ''}</p>
+        </div>
+      </div>
+      <div className="mt-4 space-y-2">
+        {groups.map((g) => {
+          const list = r.checks.filter((c) => c.group === g); const bad = list.filter((c) => c.status !== 'good').length; const isOpen = open[g] ?? bad > 0;
+          return (
+            <div key={g} className="rounded-xl border border-line bg-surface/60">
+              <button type="button" onClick={() => setOpen({ ...open, [g]: !isOpen })} className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm font-medium text-ink">
+                <span>{g}</span><span className="flex items-center gap-2 text-xs text-muted">{bad ? `${bad} to review` : 'All good'}<ChevronDown size={14} className={cn('transition', isOpen ? '' : '-rotate-90')} /></span>
+              </button>
+              {isOpen && (
+                <ul className="space-y-1.5 border-t border-line px-3.5 py-3">
+                  {list.map((c) => (
+                    <li key={c.id} className="flex items-start gap-2.5 text-[0.84rem] text-body">
+                      <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', bg[c.status])} />
+                      <span>{c.label}<InfoTip className="ml-1 align-middle" size={12} text={c.tip} /></span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SocialPreview({ f, doc }) {
+  const [host, setHost] = useState('yoursite.com'); useEffect(() => setHost(window.location.host), []);
+  const title = doc.ogTitle || doc.seoTitle || doc[f.titleFrom] || 'Untitled';
+  const desc = doc.ogDescription || doc.seoDescription || (f.descFrom ? doc[f.descFrom] : '') || '';
+  const img = doc.seoImage || doc.cover || doc.scrollImage || doc.bannerImage || doc.image;
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold text-ink">How it looks when shared</p>
+      <div className="max-w-md overflow-hidden rounded-xl border border-[#dadde1] bg-white font-[arial,sans-serif] shadow-sm">
+        <div className="aspect-[1.91/1] w-full bg-[#f0f2f5]">{img ? <img src={img} alt="" className="h-full w-full object-cover object-top" /> : <div className="grid h-full place-items-center text-xs text-[#65676b]">No share image yet</div>}</div>
+        <div className="border-t border-[#dadde1] bg-[#f0f2f5] px-3 py-2.5">
+          <p className="text-[11px] uppercase text-[#65676b]">{host}</p>
+          <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#050505]">{title}</p>
+          <p className="line-clamp-1 text-[13px] text-[#65676b]">{desc}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PopupTemplates({ doc, setDoc }) {
+  const apply = (t) => {
+    if (doc._id && !confirm('Replace the design and content with this template? Your trigger and targeting rules stay the same.')) return;
+    const base = deepMerge(POPUP_DEFAULTS, t.doc);
+    setDoc({ ...doc, template: t.id, layout: base.layout, position: base.position, size: base.size, contentType: base.contentType, content: base.content, design: base.design, trigger: doc._id ? doc.trigger : base.trigger, frequency: doc._id ? doc.frequency : base.frequency });
+  };
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">Start from a template<InfoTip text="Pick a ready-made design, then change the text, image, colours and rules. You can change everything afterwards, or write your own HTML." /></p>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {POPUP_TEMPLATES.map((t) => (
+          <button type="button" key={t.id} onClick={() => apply(t)} className={cn('rounded-xl border p-3 text-left transition hover:border-signal', doc.template === t.id ? 'border-signal bg-signal/10' : 'border-line bg-base/40')}>
+            <span className="block text-sm font-semibold text-ink">{t.name}</span><span className="mt-0.5 block text-xs text-muted">{t.desc}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PopupPreviewBox({ doc }) {
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">Live preview<InfoTip text="This is how the popup looks. It updates as you change the settings. Bars, slide-ins and drawers are shown inside this box instead of on the page edge." /></p>
+      <div className="relative min-h-[420px] overflow-x-hidden rounded-2xl border border-line bg-[repeating-linear-gradient(45deg,rgb(var(--raised)/.5),rgb(var(--raised)/.5)_12px,transparent_12px,transparent_24px)]">
+        <PopupView popup={{ ...POPUP_DEFAULTS, ...doc, content: { ...POPUP_DEFAULTS.content, ...(doc.content || {}) }, design: { ...POPUP_DEFAULTS.design, ...(doc.design || {}) } }} preview />
+      </div>
+    </div>
+  );
+}
+
+
+function CardTemplatePicker({ value, onChange }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {CARD_TEMPLATES.map((t) => (
+        <button type="button" key={t.id} onClick={() => onChange(t.id)} aria-pressed={value === t.id} className={cn('overflow-hidden rounded-2xl border text-left transition hover:border-signal', value === t.id ? 'border-signal bg-signal/10 ring-2 ring-signal/30' : 'border-line bg-base/40')}>
+          <div className="pointer-events-none relative h-44 overflow-hidden border-b border-line bg-base p-3" aria-hidden>
+            <div style={{ width: '200%', transform: 'scale(.5)', transformOrigin: 'top left' }}>{t.id === 'custom' ? <div className="grid h-40 place-items-center rounded-2xl border border-dashed border-line text-2xl text-muted">{'</>'}</div> : <Card t={t.id} it={SAMPLE[t.id]} i={0} />}</div>
+          </div>
+          <div className="p-3"><p className="flex items-center justify-between text-sm font-semibold text-ink">{t.name}{value === t.id && <span className="rounded-full bg-signal px-2 py-0.5 text-[10px] font-medium text-white">Selected</span>}</p><p className="mt-0.5 text-xs text-muted">{t.desc}</p></div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CardsPreview({ doc }) {
+  const items = (doc.items || []).map((x) => ({ ...x, meta: x.meta || x.time }));
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">Live preview<InfoTip text="How the cards look on your page with the design, layout and cards you chose. It updates as you type." /></p>
+      <div className="max-h-[520px] overflow-auto rounded-2xl border border-line bg-base p-5">
+        <Cards cfg={{ ...doc, items: items.length ? items : [SAMPLE[doc.template || 'service'], SAMPLE[doc.template || 'service'], SAMPLE[doc.template || 'service']].map((x, i) => ({ ...x, title: `${x.title || 'Card'} ${i + 1}` })), columns: Math.min(Number(doc.columns) || 3, 3) }} />
+      </div>
+      {!items.length && <p className="mt-1.5 text-xs text-muted">Sample cards are shown until you add your own below.</p>}
     </div>
   );
 }

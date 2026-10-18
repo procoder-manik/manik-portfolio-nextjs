@@ -1,5 +1,10 @@
 import Link from 'next/link';
-export default function NotFound() {
+import { headers } from 'next/headers';
+import { logNotFound } from '@/lib/log404';
+
+export default async function NotFound() {
+  const h = await headers();
+  await logNotFound(h.get('x-pathname') || '', h.get('referer') || '', h.get('user-agent') || '');
   return (
     <main className="grid min-h-screen place-items-center px-6 text-center">
       <div>

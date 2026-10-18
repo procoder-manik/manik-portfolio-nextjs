@@ -23,7 +23,7 @@ export default async function CustomPage(props) {
   const faqs = blocks.filter((b) => b.type === 'faq' && !b.useSite).flatMap((b) => b.items || []);
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], [p.title, `/${p.slug}`]]), faqNode(faqs), { '@type': 'WebPage', name: p.seoTitle || p.title, description: p.seoDescription }])} />
+      <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], [p.title, `/${p.slug}`]]), faqNode(faqs), { '@type': 'WebPage', name: p.seoTitle || p.title, description: p.seoDescription }])} />
       {(showTitle || p.content?.trim()) && (
         <article className={showTitle ? 'pb-12 pt-36 sm:pt-44' : 'py-12'}>
           <div className="shell max-w-3xl">

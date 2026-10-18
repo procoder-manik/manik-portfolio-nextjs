@@ -1,13 +1,13 @@
 import { Mail, Phone, MessageCircle, CalendarDays, Clock3, MapPin } from 'lucide-react';
-import { pageMeta } from '@/lib/seo';
-import { getAllSettings, getServicesWithPackages, getSettings } from '@/lib/data';
+import { seoMeta } from '@/lib/seo';
+import { getAllSettings, getServicesWithPackages, getSettings , getPageSeo } from '@/lib/data';
 import ContactForm from '@/components/site/ContactForm';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
 export async function generateMetadata() {
-  return pageMeta(await getSettings('integrations'), 'contact', { title: 'Contact', description: 'Tell me about your website project. I reply within one working day.', path: '/contact' });
+  return seoMeta(await getPageSeo('contact'), { title: 'Contact', description: 'Tell me about your website project. I reply within one working day.', path: '/contact' });
 }
 
 export default async function ContactPage(props) {
@@ -20,7 +20,7 @@ export default async function ContactPage(props) {
   ];
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Contact', '/contact']]), { '@type': 'ContactPage', url: `${siteUrl()}/contact`, about: { '@id': `${siteUrl()}/#business` } }])} />
+      <JsonLd builtin="contact" data={buildGraph(site, [crumbs([['Home', '/'], ['Contact', '/contact']]), { '@type': 'ContactPage', url: `${siteUrl()}/contact`, about: { '@id': `${siteUrl()}/#business` } }])} />
       <section className="relative overflow-hidden pb-24 pt-36 sm:pt-44">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_20%_0%,#000,transparent)]" />
         <div className="shell relative grid gap-14 lg:grid-cols-[1fr_1.35fr]">

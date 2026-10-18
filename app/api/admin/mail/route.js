@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminRoute } from '@/lib/server-auth';
+import { adminRoute as guard } from '@/lib/server-auth';
+const adminRoute = (h) => guard(h, 'shop');
 import { dbConnect } from '@/lib/db';
 import { Order, Message, Contact } from '@/lib/models';
 import { sendInvoice, sendOrderEmail, sendCustom } from '@/lib/notifications';

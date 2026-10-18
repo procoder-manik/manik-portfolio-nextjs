@@ -23,6 +23,7 @@ export async function POST(req) {
       await dbConnect();
       const user = await User.findOne({ email: e });
       if (user) {
+        if (user.disabled) return NextResponse.json({ error: 'This account is blocked. Ask an administrator.' }, { status: 403 });
         if (user.lockUntil && user.lockUntil > new Date()) return NextResponse.json({ error: 'This account is locked for a few minutes after too many wrong passwords.' }, { status: 423 });
         ok = await bcrypt.compare(String(password), user.passwordHash);
         name = user.name || name;

@@ -1,19 +1,19 @@
-import { getProjects, getSettings } from '@/lib/data';
-import { pageMeta } from '@/lib/seo';
+import { getProjects, getSettings , getPageSeo } from '@/lib/data';
+import { seoMeta } from '@/lib/seo';
 import PortfolioGrid from '@/components/site/PortfolioGrid';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
 export async function generateMetadata() {
-  return pageMeta(await getSettings('integrations'), 'portfolio', { title: 'Portfolio', description: 'Websites I have designed and built on WordPress, Shopify, Webflow and custom code.', path: '/portfolio' });
+  return seoMeta(await getPageSeo('portfolio'), { title: 'Portfolio', description: 'Websites I have designed and built on WordPress, Shopify, Webflow and custom code.', path: '/portfolio' });
 }
 
 export default async function PortfolioPage() {
   const [projects, site] = await Promise.all([getProjects(), getSettings('site')]);
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Portfolio', '/portfolio']]), {
+      <JsonLd builtin="portfolio" data={buildGraph(site, [crumbs([['Home', '/'], ['Portfolio', '/portfolio']]), {
         '@type': 'CollectionPage', name: 'Portfolio', url: `${siteUrl()}/portfolio`,
         mainEntity: { '@type': 'ItemList', itemListElement: projects.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${siteUrl()}/portfolio/${p.slug}`, name: p.title })) },
       }])} />

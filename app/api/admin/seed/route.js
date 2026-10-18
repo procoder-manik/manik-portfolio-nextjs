@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { refreshContent } from '@/lib/revalidate';
-import { adminRoute } from '@/lib/server-auth';
+import { adminRoute as guard } from '@/lib/server-auth';
+const adminRoute = (h) => guard(h, 'system');
 import { hasDB } from '@/lib/db';
 import { runSeed } from '@/lib/seed-run';
 

@@ -5,13 +5,13 @@ dotenv.config({ path: '.env.local' });
 dotenv.config();
 import mongoose from 'mongoose';
 import * as seed from '../lib/seed-data.js';
-import { Project, Post, Category, Service, Package, Page, Setting, App, CaseStudy } from '../lib/models/index.js';
+import { Project, Post, Category, Service, Package, Page, Setting, App, CaseStudy, Form, Popup } from '../lib/models/index.js';
 
 const fresh = process.argv.includes('--fresh');
 if (!process.env.MONGODB_URI) { console.error('Set MONGODB_URI in .env first.'); process.exit(1); }
 await mongoose.connect(process.env.MONGODB_URI);
 
-const sets = [[Project, seed.projects], [Post, seed.posts], [Category, seed.categories], [Service, seed.services], [Package, seed.packages], [Page, seed.pages], [App, seed.apps], [CaseStudy, seed.caseStudies]];
+const sets = [[Project, seed.projects], [Post, seed.posts], [Category, seed.categories], [Service, seed.services], [Package, seed.packages], [Page, seed.pages], [App, seed.apps], [CaseStudy, seed.caseStudies], [Form, seed.forms], [Popup, seed.popups]];
 for (const [M, rows] of sets) {
   if (fresh) await M.deleteMany({});
   let added = 0;

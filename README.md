@@ -355,3 +355,8 @@ vercel.json            Vercel settings
 ## License
 
 © Manik Hossain. All rights reserved. Client names and screenshots belong to their owners.
+
+
+## New in version 3
+
+Per-page SEO with a Rank Math style checklist and schema, local business schema, automatic sitemap, robots.txt and llms.txt, a drag and drop form builder with payments and surveys, popups with templates, an announcement bar, redirects with a 404 log, user roles, and a Trash with Draft and permanent delete. See docs/PROJECT-BRIEF.md section 12h.

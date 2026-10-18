@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminRoute } from '@/lib/server-auth';
+import { adminRoute as guard } from '@/lib/server-auth';
+const adminRoute = (h) => guard(h, 'media');
 import { dbConnect, hasDB } from '@/lib/db';
 import { Media } from '@/lib/models';
 import { serialize } from '@/lib/utils';

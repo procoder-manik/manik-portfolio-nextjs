@@ -1,6 +1,6 @@
-import { pageMeta } from '@/lib/seo';
+import { seoMeta } from '@/lib/seo';
 import { notFound } from 'next/navigation';
-import { getCaseStudies, getAllSettings } from '@/lib/data';
+import { getCaseStudies, getAllSettings, getPageSeo } from '@/lib/data';
 import CaseStudyCard from '@/components/site/CaseStudyCard';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
@@ -10,8 +10,8 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 export async function generateMetadata() {
-  const { home, integrations } = await getAllSettings();
-  return pageMeta(integrations, 'caseStudies', { title: home.caseStudies?.heading || 'Case studies', description: home.caseStudies?.intro, path: '/case-studies' });
+  const [{ home }, own] = await Promise.all([getAllSettings(), getPageSeo('caseStudies')]);
+  return seoMeta(own, { title: home.caseStudies?.heading || 'Case studies', description: home.caseStudies?.intro, path: '/case-studies' });
 }
 
 export default async function CaseStudiesPage() {
@@ -20,7 +20,7 @@ export default async function CaseStudiesPage() {
   const [first, ...rest] = list;
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Case studies', '/case-studies']]), {
+      <JsonLd builtin="caseStudies" data={buildGraph(site, [crumbs([['Home', '/'], ['Case studies', '/case-studies']]), {
         '@type': 'CollectionPage', name: 'Case studies', url: `${siteUrl()}/case-studies`,
         mainEntity: { '@type': 'ItemList', itemListElement: list.map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: `${siteUrl()}/case-studies/${c.slug}`, name: c.title })) },
       }])} />

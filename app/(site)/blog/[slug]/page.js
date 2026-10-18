@@ -39,7 +39,7 @@ export default async function PostPage(props) {
   return (
     <article>
       <ReadingProgress />
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], ...(c ? [[c.name, `/blog/category/${c.slug}`]] : []), [p.title, `/blog/${p.slug}`]]), postNode(p)])} />
+      <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], ...(c ? [[c.name, `/blog/category/${c.slug}`]] : []), [p.title, `/blog/${p.slug}`]]), postNode(p)])} />
       <header className="pb-10 pt-32 sm:pt-40">
         <div className="shell max-w-4xl">
           <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink"><ArrowLeft size={15} />All posts</Link>

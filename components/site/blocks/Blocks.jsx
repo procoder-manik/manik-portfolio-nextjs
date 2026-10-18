@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Quote } from 'lucide-react';
-import { getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getSettings, getCaseStudies } from '@/lib/data';
+import { getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getSettings, getCaseStudies, getForm } from '@/lib/data';
 import CaseStudyCard from '../CaseStudyCard';
 import { caseStudiesOn } from '@/lib/features';
 import { renderMarkdown } from '@/lib/markdown';
@@ -11,6 +11,9 @@ import PricingTabs, { PackageCard } from '../PricingTabs';
 import Faq from '../Faq';
 import Marquee from '../Marquee';
 import ContactForm from '../ContactForm';
+import FormView from '../FormView';
+import Cards from '../cards/Cards';
+import Timeline from '../Timeline';
 import AppCard from '../AppCard';
 import Icon from '../Icon';
 import HtmlBlock from '../HtmlBlock';
@@ -73,32 +76,22 @@ async function Block({ b, first, ctx }) {
             <div className="mt-8"><Btn b={b.button} primary /></div>
           </div>
         </div>);
-    case 'features':
+    case 'cards': case 'features': case 'steps': {
+      const tmpl = b.template || (b.type === 'steps' ? 'numbered' : 'service');
+      const items = (b.items || []).map((x) => ({ ...x, meta: x.meta || x.time }));
       return wrap(<>
+        {b.eyebrow && <p className="mb-4 font-mono text-[0.78rem] uppercase tracking-[0.2em] text-signal">{b.eyebrow}</p>}
         <Head heading={b.heading} intro={b.intro} />
-        <div className={cn('grid gap-5 sm:grid-cols-2', { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4' }[b.columns || '3'])}>
-          {(b.items || []).map((it, k) => (
-            <Reveal key={k} delay={k * 0.05}>
-              <div className="card group h-full p-7 transition duration-500 hover:-translate-y-1 hover:border-signal/50">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-signal/15 text-signal transition group-hover:bg-signal group-hover:text-white"><Icon name={it.icon} size={21} /></span>
-                <h3 className="mt-6 text-xl font-semibold">{it.title}</h3>
-                <p className="mt-2 text-[0.95rem] text-muted">{it.body}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div></>);
+        <Cards cfg={{ ...b, template: tmpl, columns: b.columns || (b.type === 'steps' ? '4' : '3'), items }} /></>);
+    }
+    case 'timeline':
+      return wrap(<><Head heading={b.heading} intro={b.intro} /><Timeline items={b.items || []} className="mx-auto max-w-3xl" /></>);
     case 'stats':
       return wrap(<>
         <Head heading={b.heading} />
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[22px] border border-line bg-line md:grid-cols-4">
           {(b.items || []).map((s, k) => <div key={k} className="bg-base p-7"><dd className="font-display text-4xl font-bold tracking-tight text-ink">{s.value}</dd><dt className="mt-2 text-sm text-muted">{s.label}</dt></div>)}
         </dl></>);
-    case 'steps':
-      return wrap(<>
-        <Head heading={b.heading} />
-        <ol className="grid gap-px overflow-hidden rounded-[22px] border border-line bg-line md:grid-cols-2 xl:grid-cols-4">
-          {(b.items || []).map((s, k) => <li key={k} className="flex flex-col bg-base p-7"><span className="font-display text-5xl font-bold text-signal/80">{k + 1}</span><h3 className="mt-8 text-xl font-semibold">{s.title}</h3><p className="mt-3 flex-1 text-[0.95rem] text-muted">{s.body}</p>{s.time && <p className="mt-6 text-sm font-medium text-amber">{s.time}</p>}</li>)}
-        </ol></>);
     case 'projects': {
       const all = await getProjects(b.source === 'featured' ? { featured: true } : {});
       return wrap(<>
@@ -172,6 +165,12 @@ async function Block({ b, first, ctx }) {
     case 'contactForm': {
       const svcs = await getServicesWithPackages();
       return wrap(<div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]"><div><h2 className="h-section">{b.heading}</h2>{b.intro && <p className="lede mt-5">{b.intro}</p>}</div><ContactForm services={svcs.map((s) => s.name)} /></div>);
+    }
+    case 'form': {
+      const form = await getForm(b.form);
+      if (!form) return null;
+      const stacked = b.layout === 'stacked';
+      return wrap(<div className={cn('grid gap-12', !stacked && 'lg:grid-cols-[1fr_1.4fr]', stacked && 'mx-auto max-w-3xl')}>{(b.heading || b.intro) && <div>{b.heading && <h2 className="h-section">{b.heading}</h2>}{b.intro && <p className="lede mt-5">{b.intro}</p>}</div>}<FormView form={form} /></div>);
     }
     case 'spacer':
       return <div className={cn('shell', { sm: 'py-6', md: 'py-12', lg: 'py-20' }[b.size || 'md'])}>{b.divider && <hr className="border-line" />}</div>;

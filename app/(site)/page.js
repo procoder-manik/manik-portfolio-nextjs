@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Download, MapPin, MessageCircle, Clock3, Quote } from 'lucide-react';
-import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies } from '@/lib/data';
+import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies, getPageSeo } from '@/lib/data';
+import { seoMeta } from '@/lib/seo';
+import Cards from '@/components/site/cards/Cards';
+import TimelineAnim from '@/components/site/Timeline';
 import AppCard from '@/components/site/AppCard';
 import CaseStudyCard from '@/components/site/CaseStudyCard';
 import { caseStudiesOn } from '@/lib/features';
@@ -20,6 +23,14 @@ import { renderMarkdown } from '@/lib/markdown';
 import { buildGraph, faqNode, catalogNode } from '@/lib/schema';
 import { fmtDate } from '@/lib/utils';
 
+/* Home page SEO from Pages > Home (or the older Site and contact > Footer and SEO fields). */
+export async function generateMetadata() {
+  const own = await getPageSeo('home');
+  const m = seoMeta(own, { path: '/' });
+  if (!String(own.seoTitle || '').trim()) delete m.title; // keeps the default title from the root layout
+  return m;
+}
+
 export default async function Home() {
   const [{ site, home, resume }, featured, all, posts, updates, cats, services] = await Promise.all([
     getAllSettings(), getProjects({ featured: true }), getProjects({ limit: 8 }), getPosts({ kind: 'article', limit: home_count() }),
@@ -34,7 +45,7 @@ export default async function Home() {
 
   return (
     <>
-      <JsonLd data={buildGraph(site, [S.faq && faqNode(home.faq?.items), S.pricing && catalogNode(services)])} />
+      <JsonLd builtin="home" data={buildGraph(site, [S.faq && faqNode(home.faq?.items), S.pricing && catalogNode(services)])} />
 
       {/* Hero */}
       <section className="relative overflow-hidden pb-16 pt-32 sm:pt-40">
@@ -112,18 +123,11 @@ export default async function Home() {
         <section id="services" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.services.heading} intro={home.services.intro} />
-            <div className="divide-y divide-line border-y border-line">
+            <div className="space-y-14">
               {(home.services.groups || []).map((g) => (
-                <div key={g.title} className="grid gap-8 py-10 lg:grid-cols-[1fr_2.4fr]">
-                  <h3 className="text-2xl font-semibold">{g.title}</h3>
-                  <ul className="grid gap-x-8 gap-y-8 sm:grid-cols-3">
-                    {(g.items || []).map((it) => (
-                      <li key={it.title}>
-                        <p className="font-display text-[1.1rem] font-semibold text-ink">{it.title}</p>
-                        <p className="mt-2 text-[0.95rem] text-muted">{it.body}</p>
-                      </li>
-                    ))}
-                  </ul>
+                <div key={g.title}>
+                  {g.title && <p className="mb-6 font-mono text-[0.78rem] uppercase tracking-[0.2em] text-signal">{g.title}</p>}
+                  <Cards cfg={{ template: home.services.template || 'service', layout: home.services.layout || 'grid', columns: home.services.columns || '3', autoplay: home.services.autoplay, linkLabel: home.services.linkLabel || 'Learn more', html: home.services.html, css: home.services.css, items: (g.items || []).map((it) => ({ href: '/pricing', ...it, ...(home.services.showLinks === false ? { linkLabel: '-' } : {}) })) }} />
                 </div>
               ))}
             </div>
@@ -178,16 +182,7 @@ export default async function Home() {
         <section className="section border-t border-line bg-surface/40">
           <div className="shell">
             <SectionHead title={home.process.heading} />
-            <ol className="grid gap-px overflow-hidden rounded-[22px] border border-line bg-line md:grid-cols-2 xl:grid-cols-4">
-              {(home.process.steps || []).map((s, i) => (
-                <li key={s.title} className="flex flex-col bg-base p-7">
-                  <span className="font-display text-5xl font-bold text-signal/80">{i + 1}</span>
-                  <h3 className="mt-8 text-xl font-semibold">{s.title}</h3>
-                  <p className="mt-3 flex-1 text-[0.95rem] text-muted">{s.body}</p>
-                  <p className="mt-6 text-sm font-medium text-amber">{s.time}</p>
-                </li>
-              ))}
-            </ol>
+            <Cards cfg={{ template: home.process.template || 'numbered', layout: home.process.layout || 'grid', columns: home.process.columns || '3', items: (home.process.steps || []).map((x) => ({ ...x, meta: x.time })) }} />
           </div>
         </section>
       )}
@@ -200,9 +195,9 @@ export default async function Home() {
               <Link href="/resume" className="btn-ghost">Full resume <ArrowRight size={16} /></Link>
             </SectionHead>
             <div className="grid gap-12 lg:grid-cols-2">
-              <Timeline title="Experience" items={(resume.experience || []).slice(0, 5).map((e) => ({ when: range(e.start, e.end), title: e.role, sub: e.company }))} />
+              <TimelineAnim title="Experience" items={(resume.experience || []).slice(0, 5).map((e) => ({ when: range(e.start, e.end), title: e.role, sub: e.company }))} />
               <div>
-                <Timeline title="Education" items={(resume.education || []).map((e) => ({ when: range(e.start, e.end), title: e.degree, sub: e.school }))} />
+                <TimelineAnim title="Education" items={(resume.education || []).map((e) => ({ when: range(e.start, e.end), title: e.degree, sub: e.school }))} />
                 <div className="mt-12"><h3 className="mb-6 text-lg font-semibold">Core skills</h3><SkillBars items={(resume.topSkills?.length ? resume.topSkills : (resume.skills || []).map((x) => ({ name: x.group, level: x.level }))).slice(0, 6)} compact /></div>              </div>
             </div>
           </div>

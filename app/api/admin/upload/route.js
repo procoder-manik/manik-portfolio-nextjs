@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminRoute } from '@/lib/server-auth';
+import { adminRoute as guard } from '@/lib/server-auth';
+const adminRoute = (h) => guard(h, 'media');
 import { saveUpload, cloud, cloudinarySignature } from '@/lib/upload';
 import { dbConnect, hasDB } from '@/lib/db';
 import { Media } from '@/lib/models';

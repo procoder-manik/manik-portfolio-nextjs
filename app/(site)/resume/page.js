@@ -1,16 +1,17 @@
 import Link from 'next/link';
-import { pageMeta } from '@/lib/seo';
+import { seoMeta } from '@/lib/seo';
 import { Download, Mail, Phone, MapPin, ArrowRight, Briefcase, GraduationCap, Award, Languages, Wrench, Sparkles } from 'lucide-react';
-import { getAllSettings, getSettings } from '@/lib/data';
+import { getAllSettings, getSettings , getPageSeo } from '@/lib/data';
 import PrintButton from '@/components/site/PrintButton';
 import SkillBars from '@/components/site/SkillBars';
 import SocialIcon from '@/components/site/SocialIcon';
 import JsonLd from '@/components/site/JsonLd';
+import Timeline from '@/components/site/Timeline';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
 export async function generateMetadata() {
-  return pageMeta(await getSettings('integrations'), 'resume', { title: 'Resume', description: 'Experience, education and skills of Manik Hossain, web designer, WordPress expert and SEO specialist.', path: '/resume' });
+  return seoMeta(await getPageSeo('resume'), { title: 'Resume', description: 'Experience, education and skills of Manik Hossain, web designer, WordPress expert and SEO specialist.', path: '/resume' });
 }
 
 const range = (a, b) => (!b || a === b ? a : `${a} to ${b}`);
@@ -20,7 +21,7 @@ export default async function ResumePage() {
   const person = { '@id': `${siteUrl()}/#person` };
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Resume', '/resume']]), { '@type': 'ProfilePage', url: `${siteUrl()}/resume`, mainEntity: person },
+      <JsonLd builtin="resume" data={buildGraph(site, [crumbs([['Home', '/'], ['Resume', '/resume']]), { '@type': 'ProfilePage', url: `${siteUrl()}/resume`, mainEntity: person },
         ...(r.education || []).map((e) => ({ '@type': 'EducationalOccupationalCredential', name: e.degree, recognizedBy: { '@type': 'Organization', name: e.school }, about: person }))])} />
 
       <section className="relative overflow-hidden pb-14 pt-32 sm:pt-40 print:pb-6 print:pt-0">
@@ -65,35 +66,11 @@ export default async function ResumePage() {
             </Block>
 
             <Block icon={Briefcase} title="Experience">
-              <ol className="relative space-y-5 before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-line">
-                {(r.experience || []).map((e, i) => {
-                  const current = /present|now|current/i.test(e.end || '');
-                  return (
-                    <li key={i} className="relative pl-9">
-                      <span className={`absolute left-0 top-6 h-[15px] w-[15px] rounded-full border-[3px] border-base ${current ? 'bg-signal ring-4 ring-signal/20' : 'bg-line'}`} />
-                      <div className="card p-6 transition duration-500 hover:border-signal/40 print:border-0 print:p-0">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div><h3 className="text-lg font-semibold">{e.role}</h3><p className="text-[0.95rem] text-signal">{e.company}</p></div>
-                          <span className={`rounded-full px-3 py-1 text-xs font-medium ${current ? 'bg-signal/15 text-signal' : 'bg-raised text-muted'}`}>{range(e.start, e.end)}</span>
-                        </div>
-                        {e.bullets?.length > 0 && <ul className="mt-4 space-y-2 text-[0.95rem]">{e.bullets.map((b) => <li key={b} className="flex gap-3"><span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />{b}</li>)}</ul>}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
+              <Timeline items={(r.experience || []).map((e) => ({ when: range(e.start, e.end), title: e.role, sub: e.company, bullets: e.bullets }))} />
             </Block>
 
             <Block icon={GraduationCap} title="Education">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {(r.education || []).map((e, i) => (
-                  <div key={i} className="card p-5 print:border-0 print:p-0">
-                    <p className="text-xs font-medium text-muted">{range(e.start, e.end)}</p>
-                    <h3 className="mt-2 font-display text-[1.05rem] font-semibold text-ink">{e.degree}</h3>
-                    <p className="mt-1 text-sm text-muted">{e.school}</p>
-                  </div>
-                ))}
-              </div>
+              <Timeline items={(r.education || []).map((e) => ({ when: range(e.start, e.end), title: e.degree, sub: e.school }))} />
             </Block>
 
             {r.certifications?.length > 0 && (

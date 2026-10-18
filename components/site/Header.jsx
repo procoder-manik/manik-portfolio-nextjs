@@ -53,7 +53,7 @@ export default function Header({ site, links = [], cta = {}, account = false }) 
   const isActive = (n) => (home ? Boolean(n.hash) && active === n.hash : !n.hash && n.href !== '/' && !/^https?:/.test(n.href || '') && path.startsWith(n.href));
 
   return (
-    <header className={cn('no-print header-enter fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5', hidden && !open && 'header-hidden')}>
+    <header style={{ top: 'var(--bar-h, 0px)' }} className={cn('no-print header-enter fixed inset-x-0 z-50 px-3 pt-3 sm:px-5', hidden && !open && 'header-hidden')}>
       <div className={cn('mx-auto flex max-w-shell items-center justify-between gap-4 rounded-full px-3 py-2 transition-all duration-500 ease-out sm:px-4',
         scrolled || open ? 'border border-line bg-base/80 shadow-[0_20px_50px_-30px_rgba(0,0,0,.6)] backdrop-blur-xl' : 'border border-transparent')}>
         <Link href="/" className="group flex items-center gap-2.5" aria-label={`${site.name}, home`}>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { pageMeta } from '@/lib/seo';
+import { seoMeta } from '@/lib/seo';
 import { ArrowUpRight } from 'lucide-react';
-import { getServicesWithPackages, getAllSettings, getSettings } from '@/lib/data';
+import { getServicesWithPackages, getAllSettings, getSettings , getPageSeo } from '@/lib/data';
 import { PackageCard } from '@/components/site/PricingTabs';
 import Faq from '@/components/site/Faq';
 import Icon from '@/components/site/Icon';
@@ -10,7 +10,7 @@ import { buildGraph, crumbs, catalogNode, faqNode } from '@/lib/schema';
 import { PAYMENT_METHODS } from '@/lib/options';
 
 export async function generateMetadata() {
-  return pageMeta(await getSettings('integrations'), 'pricing', { title: 'Pricing and packages', description: 'Web design, SEO, automation and maintenance packages with clear starting prices. Pay by bKash, Nagad, Rocket, card, bank, PayPal or Payoneer.', path: '/pricing' });
+  return seoMeta(await getPageSeo('pricing'), { title: 'Pricing and packages', description: 'Web design, SEO, automation and maintenance packages with clear starting prices. Pay by bKash, Nagad, Rocket, card, bank, PayPal or Payoneer.', path: '/pricing' });
 }
 
 export default async function PricingPage() {
@@ -18,7 +18,7 @@ export default async function PricingPage() {
   const methods = PAYMENT_METHODS.filter((m) => payments[m.id]?.enabled);
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Pricing', '/pricing']]), catalogNode(services), faqNode(home.faq?.items)])} />
+      <JsonLd builtin="pricing" data={buildGraph(site, [crumbs([['Home', '/'], ['Pricing', '/pricing']]), catalogNode(services), faqNode(home.faq?.items)])} />
       <section className="relative overflow-hidden pb-10 pt-36 sm:pt-44">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_20%_0%,#000,transparent)]" />
         <div className="shell relative grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">

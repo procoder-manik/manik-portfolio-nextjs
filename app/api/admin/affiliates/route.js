@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { adminRoute } from '@/lib/server-auth';
+import { adminRoute as guard } from '@/lib/server-auth';
+const adminRoute = (h) => guard(h, 'shop');
 import { dbConnect, hasDB } from '@/lib/db';
 import { Customer, Commission, Payout } from '@/lib/models';
 import { serialize } from '@/lib/utils';

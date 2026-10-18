@@ -39,7 +39,7 @@ export default async function ProjectPage(props) {
 
   return (
     <article>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Portfolio', '/portfolio'], [p.title, `/portfolio/${p.slug}`]]), projectNode(p)])} />
+      <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], ['Portfolio', '/portfolio'], [p.title, `/portfolio/${p.slug}`]]), projectNode(p)])} />
       <header className="relative overflow-hidden pb-12 pt-32 sm:pt-40">
         <div className="pointer-events-none absolute -top-40 left-1/3 h-[480px] w-[480px] rounded-full blur-[130px]" style={{ background: `${p.accent || '#5B8CFF'}33` }} />
         <div className="shell relative">

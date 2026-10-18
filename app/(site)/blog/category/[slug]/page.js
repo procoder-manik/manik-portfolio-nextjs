@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { seoMeta, pageMeta } from '@/lib/seo';
+import { seoMeta } from '@/lib/seo';
 import { getPosts, getCategories, getSettings } from '@/lib/data';
 import BlogIndex from '@/components/site/BlogIndex';
 import JsonLd from '@/components/site/JsonLd';
@@ -7,8 +7,9 @@ import { buildGraph, crumbs } from '@/lib/schema';
 
 export async function generateMetadata(props) {
   const params = await props.params;
-  const c = (await getCategories()).find((x) => x.slug === params.slug);
-  return c ? seoMeta(c, { title: `${c.name} articles`, description: c.description, path: `/blog/category/${c.slug}` }) : {};
+  const [cats, seo] = await Promise.all([getCategories(), getSettings('seo')]);
+  const c = cats.find((x) => x.slug === params.slug);
+  return c ? seoMeta({ ...c, seoNoindex: c.seoNoindex || seo.defaults?.noindexCategories }, { title: `${c.name} articles`, description: c.description, path: `/blog/category/${c.slug}` }) : {};
 }
 
 export default async function CategoryPage(props) {
@@ -18,7 +19,7 @@ export default async function CategoryPage(props) {
   if (!c) notFound();
   return (
     <>
-      <JsonLd data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], [c.name, `/blog/category/${c.slug}`]])])} />
+      <JsonLd item={c} data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], [c.name, `/blog/category/${c.slug}`]])])} />
       <BlogIndex posts={posts} updates={updates} cats={cats} active={c.slug} title={c.name} intro={c.description} />
     </>
   );
