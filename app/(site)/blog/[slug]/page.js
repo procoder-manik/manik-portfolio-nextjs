@@ -8,6 +8,7 @@ import PostCard from '@/components/site/PostCard';
 import Blocks from '@/components/site/blocks/Blocks';
 import ReadingProgress from '@/components/site/ReadingProgress';
 import ShareLinks from '@/components/site/ShareLinks';
+import { DesktopToc, MobileToc } from '@/components/site/PostToc';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs, postNode, faqNode } from '@/lib/schema';
 import { fmtDate, readingTime, siteUrl } from '@/lib/utils';
@@ -65,17 +66,9 @@ export default async function PostPage(props) {
         </div>
       )}
       <div className="shell grid max-w-6xl gap-12 py-16 lg:grid-cols-[220px_1fr]">
-        <aside className="hidden lg:block">
-          {toc.length > 1 && (
-            <nav className="sticky top-28" aria-label="On this page">
-              <p className="text-sm font-semibold text-ink">On this page</p>
-              <ul className="mt-4 space-y-2 border-l border-line text-sm">
-                {toc.map((t) => <li key={t.id}><a href={`#${t.id}`} className={`-ml-px block border-l border-transparent py-0.5 text-muted hover:border-signal hover:text-ink ${t.depth === 3 ? 'pl-7' : 'pl-4'}`}>{t.text}</a></li>)}
-              </ul>
-            </nav>
-          )}
-        </aside>
+        <aside className="hidden lg:block"><DesktopToc items={toc} /></aside>
         <div className="min-w-0 max-w-[70ch]">
+          <MobileToc items={toc} />
           <div className="prose-site prose-lg" dangerouslySetInnerHTML={{ __html: html }} />
           {p.tags?.length > 0 && <div className="mt-12 flex flex-wrap gap-2">{p.tags.map((t) => <span key={t} className="chip">#{t}</span>)}</div>}
           <div className="mt-10 flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
