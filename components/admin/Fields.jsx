@@ -6,6 +6,7 @@ import { Upload, X, Plus, ChevronUp, ChevronDown, Trash2, Image as ImageIcon, Bo
 import { get, set, slugify, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/markdown';
 import { api, upload } from './api';
+import AiKeys from './AiKeys';
 import { BLOCKS, BLOCK_DEFAULTS, blockFields } from '@/lib/blocks';
 import * as Lucide from 'lucide-react';
 import { analyzeDoc } from '@/lib/seo-analysis';
@@ -57,6 +58,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'popupPreview') return <PopupPreviewBox doc={doc || {}} />;
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
+  if (T === 'aiKeys') return <AiKeys />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
   if (T === 'switch') return (
     <div>
@@ -561,10 +563,12 @@ function AiPlanView({ doc }) {
   return (
     <div className="space-y-4">
       {doc.aiScore != null && <p className="text-sm text-body">Content score when saved: <b className="text-ink">{doc.aiScore} / 100</b>. Open it again in the AI writer to rescore.</p>}
-      {(m.images || []).map((im) => (
+      {(m.images || []).filter((im) => im.role !== 'table').map((im) => (
         <div key={im.slot} className="rounded-xl border border-line bg-base/40 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">Image {im.slot}: {im.role}{im.ratio ? ` (${im.ratio})` : ''}</p><button type="button" onClick={() => copy(`p${im.slot}`, im.prompt)} className="btn-ghost btn-sm">{copied === `p${im.slot}` ? 'Copied' : 'Copy prompt'}</button></div>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-body">{im.prompt}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">Image {im.slot}: {im.role}{im.title ? `, ${im.title}` : ''}{im.ratio ? ` (${im.ratio})` : ''}</p>{im.prompt && <button type="button" onClick={() => copy(`p${im.slot}`, im.prompt)} className="btn-ghost btn-sm">{copied === `p${im.slot}` ? 'Copied' : 'Copy prompt'}</button>}</div>
+          {im.instructions && <p className="mt-2 text-sm text-body"><b className="text-ink">How to make it:</b> {im.instructions}{im.tool ? ` Tool: ${im.tool}.` : ''}</p>}
+          {im.prompt && <p className="mt-2 whitespace-pre-wrap text-sm text-body">{im.prompt}</p>}
+          {im.data && <pre className="mt-2 overflow-x-auto rounded-lg bg-base/60 p-3 text-xs text-body">{im.data}</pre>}
           {im.textOnImage?.filter(Boolean).length > 0 && <p className="mt-2 text-xs text-muted">Text on the image: {im.textOnImage.filter(Boolean).join(' | ')}</p>}
           <p className="mt-1 text-xs text-muted">Alt text: {im.alt}. File name: {im.filename}</p>
         </div>
