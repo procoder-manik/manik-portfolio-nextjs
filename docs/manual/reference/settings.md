@@ -64,6 +64,8 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 | --- | --- | --- | --- |
 | `features.caseStudies` | Case studies (page, home section, menu and footer links) | switch | Off hides every case study page, section and link at once. Your case studies stay saved. |
 | `features.caseStudiesInMenu` | Add "Case studies" to the header menu and footer automatically | switch |  |
+| `features.backToTop` | Back to Top button | switch | A round button that appears after a visitor scrolls down and takes them back to the top. It shows a ring that fills as they read. Off removes it from... |
+| `features.backToTopPosition` | Back to Top side | segmented | Which bottom corner the button sits in, on desktop and phones. If the built-in chat is on the same side, the button sits above the chat button. |
 | `features.trashDays` | Empty the Trash automatically after (days) | number | Deleted items wait in the Trash this many days, then are removed for good. 0 keeps them until you delete them yourself. |
 | `features.customerAccounts` | Customer accounts (sign up, order tracking, project updates) | switch | Off hides the account icon, the sign-up prompts and every /account page. Existing accounts stay saved. |
 
@@ -426,6 +428,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
 | `chat.mode` | Chat on the site | segmented |  |
+| `chat.position` | Chat button side | segmented | Which bottom corner the chat button and window sit in, on desktop and phones. Keep it on the opposite side from the Back to Top button (Site and cont... |
 | `chat.title` | Window title | text |  |
 | `chat.greeting` | Greeting | textarea |  |
 | `chat.quickReplies` | Suggested questions | tags |  |

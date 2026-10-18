@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 
-/* Appears after you scroll down, with a ring that fills as you read. Sits above the chat bubble so they never overlap. */
-export default function BackToTop() {
+/* Appears after you scroll down, with a ring that fills as you read. On the side you choose; if the chat button is on the same side it sits above it. */
+export default function BackToTop({ side = 'right', stack = false }) {
   const [show, setShow] = useState(false); const [pct, setPct] = useState(0);
   useEffect(() => {
     let raf = 0;
@@ -19,8 +19,8 @@ export default function BackToTop() {
   return (
     <button type="button" aria-label="Back to top" title="Back to top" tabIndex={show ? 0 : -1}
       onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}
-      className={`no-print group fixed right-4 z-[60] grid h-12 w-12 place-items-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-signal hover:text-signal sm:right-6 ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}
-      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5.25rem)' }}>
+      className={`no-print group fixed ${side === 'left' ? 'left-4 sm:left-6' : 'right-4 sm:right-6'} z-[60] grid h-12 w-12 place-items-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-signal hover:text-signal ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}
+      style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${stack ? '5.25rem' : '1.25rem'})` }}>
       <svg className="absolute inset-0 -rotate-90" width="48" height="48" viewBox="0 0 48 48" aria-hidden>
         <circle cx="24" cy="24" r="21" fill="none" strokeWidth="2.5" className="stroke-line" />
         <circle cx="24" cy="24" r="21" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={`${pct * circ} ${circ}`} className="stroke-signal transition-[stroke-dasharray] duration-150" />

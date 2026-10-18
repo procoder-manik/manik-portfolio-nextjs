@@ -41,7 +41,7 @@ export default function ChatWidget({ cfg = {}, site = {} }) {
   }
 
   return (
-    <div className="no-print fixed bottom-4 right-4 z-[70] sm:bottom-6 sm:right-6">
+    <div className={`no-print fixed bottom-4 z-[70] sm:bottom-6 ${cfg.position === 'right' ? 'right-4 sm:right-6' : 'left-4 sm:left-6'}`}>
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: 16, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: .97 }} transition={{ duration: .3, ease: [0.16, 1, 0.3, 1] }}
@@ -87,7 +87,7 @@ export default function ChatWidget({ cfg = {}, site = {} }) {
         )}
       </AnimatePresence>
       <button onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? 'Close chat' : 'Open chat'}
-        className="group ml-auto grid h-14 w-14 place-items-center rounded-full bg-signal text-white shadow-[0_18px_40px_-12px_rgb(var(--signal))] transition hover:scale-105">
+        className={`group ${cfg.position === 'right' ? 'ml-auto' : 'mr-auto'} grid h-14 w-14 place-items-center rounded-full bg-signal text-white shadow-[0_18px_40px_-12px_rgb(var(--signal))] transition hover:scale-105`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.span key={open ? 'x' : 'm'} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: .2 }}>
             {open ? <X size={22} /> : <MessageCircle size={22} />}

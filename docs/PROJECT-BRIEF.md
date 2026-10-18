@@ -439,3 +439,8 @@ components/admin/EmailComposer.jsx
 **Docs:** `docs/GUIDE-V4.6.md`, `docs/manual/README.md`.
 
 **Fix 4.6.1.** `components/admin/List.jsx`: the SEO score memo read `list` before it was declared (a ReferenceError that broke every admin list). It now reads the `items` state. Checked by rendering the list for eight content types on the server, and by scoring every starter item with `analyzeDoc`. Lesson: `next build` does not catch use-before-declaration inside a component; render it once before shipping.
+
+## 12p. Version 4.7: floating button options
+
+`site.features.backToTop` (default true) and `site.features.backToTopPosition` ('right' default | 'left'); `integrations.chat.position` ('left' default | 'right'; chat on or off is the existing `chat.mode`). Helpers `backToTopOn`, `backToTopSide`, `chatSide` in `lib/features.js`. `app/(site)/layout.js` renders `<BackToTop side stack>` only when on; `stack` is true when the built-in chat is on the same side, which lifts the button to 5.25rem. `ChatWidget` places its container and toggle by `cfg.position`. Third-party embedded chats position themselves. Verified by rendering both widgets in every side combination and by the live home page HTML.
+**Docs:** `docs/GUIDE-V4.7.md`.

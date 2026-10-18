@@ -45,7 +45,7 @@ Do not run `npm audit fix --force`; it can break Tailwind and Next. Update one p
 | `bad auth` | Wrong database user or password | Fix `MONGODB_URI`; URL-encode special characters |
 | `Cannot reach the database` | IP not allowed | Atlas > Network Access: add your IP or `0.0.0.0/0` |
 | Admin says read-only or refuses to save | No `MONGODB_URI`, or the database is down | Set the variable, redeploy |
-| Hydration mismatch mentioning `chrome-extension://` | A browser extension changed the page before React loaded | Harmless and only in development; test in a private window |
+| Hydration mismatch mentioning `chrome-extension://` | A browser extension changed the page before React loaded | Harmless and only in development. The theme script now has `suppressHydrationWarning`; for other tags, test in a private window |
 | "Encountered two children with the same key" | A list had the same item twice | Fixed in current versions; update |
 | AI: "The free AI is busy right now" | Free quota or high demand | It retries by itself; press Continue writing; add a second free key |
 | AI: "No AI key is set" | No key anywhere | Admin > AI writer > Settings > API keys |

@@ -57,6 +57,15 @@ Card designs: Service card, Numbered step, Image card, Big number, Testimonial, 
 - **Announcement bar:** a slim bar above the header with message, colours, countdown and dates.
 - **Redirects:** send an old address to a new one. Slug changes create redirects for you. The **404 log** shows missing addresses people tried; turn the busiest into redirects.
 
+## Floating buttons: Back to Top and chat
+
+| Button | Where to set it | Options |
+| --- | --- | --- |
+| **Back to Top** | Site > Site and contact > Features | On or off; Left or Right |
+| **Chat** (built-in assistant) | Site > Analytics and integrations > Chat | Built-in, third-party or off; Left or Right |
+
+By default the chat is on the **left** and Back to Top on the **right**. If you put both on the same side, Back to Top automatically sits above the chat button so they never overlap. A third-party chat (Tawk, Crisp, Tidio) positions itself; set its side in that tool.
+
 ## Navigation
 
 **Site > Header and footer** edits the top menu, the header button and the footer columns, and can list custom pages and products in the footer.

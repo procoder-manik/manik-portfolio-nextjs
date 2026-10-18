@@ -15,6 +15,7 @@ The full technical notes of each version are in `docs/PROJECT-BRIEF.md`; each up
 | 4.4 | Blog contents list that follows scrolling (desktop and mobile), clear heading size ladder, unique heading ids (also for Bengali); database DNS-over-HTTPS fallback |
 | 4.5 | SEO score in lists, after saving and in an SEO overview with a Needs work view; automatic schema for every content type with a preview, plain-language explanations and Rebuild schema; FAQ schema from your own text; Back to Top button; carousel shadow fix |
 | 4.6 | FAQ update (WordPress redesign question, payment terms), a larger knowledge base, the public Help center with search, topics and one page per answer, safe content updates for live databases, and this manual with generated reference |
+| 4.7 | Back to Top and the built-in chat can each be switched on or off and placed on the left or right; chat defaults to the left and Back to Top to the right |
 
 ## How to record a change
 

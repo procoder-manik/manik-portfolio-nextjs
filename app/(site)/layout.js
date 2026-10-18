@@ -9,7 +9,7 @@ import RefTracker from '@/components/site/RefTracker';
 import AnnouncementBar from '@/components/site/AnnouncementBar';
 import PopupManager from '@/components/site/PopupManager';
 import { getAllSettings, getNavPages, getApps, getPopups } from '@/lib/data';
-import { caseStudiesOn, isCaseStudyLink, accountsOn } from '@/lib/features';
+import { caseStudiesOn, isCaseStudyLink, accountsOn, backToTopOn, backToTopSide, chatSide } from '@/lib/features';
 
 export default async function SiteLayout({ children }) {
   const [{ site, navigation, integrations, announcement, popups: popupRules }, pages, apps, popups] = await Promise.all([getAllSettings(), getNavPages(), getApps({ footer: true }), getPopups()]);
@@ -40,7 +40,7 @@ export default async function SiteLayout({ children }) {
       <Motion />
       <RefTracker />
       {popupRules?.enabled !== false && popups.length > 0 && <PopupManager popups={popups} rules={popupRules} />}
-      <BackToTop />
+      {backToTopOn(site) && <BackToTop side={backToTopSide(site)} stack={chat.mode === 'builtin' && chatSide(chat) === backToTopSide(site)} />}
       {chat.mode === 'builtin' && <ChatWidget cfg={chat} site={{ avatar: site.avatar, email: site.email, whatsapp: site.whatsapp, replyTime: site.replyTime }} />}
       {chat.mode === 'embed' && <CodeInjector html={chat.embedCode} where="bodyEnd" />}
     </>
