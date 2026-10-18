@@ -5,13 +5,14 @@ import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { mailEnabled } from '@/lib/mail';
 import { sendVerifyEmail } from '@/lib/notifications';
 import { siteUrl } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { getCustomer, sha, newSecret, linkOrdersByEmail } from '@/lib/customers';
 
 export const dynamic = 'force-dynamic';
 
 /* Link from the confirmation email */
 export async function GET(req) {
-  const base = siteUrl();
+  const base = (await getBaseUrl());
   const token = req.nextUrl.searchParams.get('token') || '';
   if (!hasDB() || !token) return NextResponse.redirect(`${base}/account?verified=0`);
   await dbConnect();
@@ -32,7 +33,7 @@ export async function POST() {
   if (!(await rateLimit(`cverify:${me._id}`, 3, 3600))) return NextResponse.json({ error: 'Already sent a few times. Check your spam folder, or try again in an hour.' }, { status: 429 });
   const token = newSecret();
   await Customer.updateOne({ _id: me._id }, { verifyTokenHash: sha(token), verifyExpires: new Date(Date.now() + 48 * 3600 * 1000) });
-  const r = await sendVerifyEmail(me, `${siteUrl()}/api/account/verify?token=${token}`);
+  const r = await sendVerifyEmail(me, `${(await getBaseUrl())}/api/account/verify?token=${token}`);
   if (!r.ok) return NextResponse.json({ error: r.error || 'The email did not send.' }, { status: 502 });
   return NextResponse.json({ ok: true });
 }

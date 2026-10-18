@@ -13,6 +13,7 @@ import { PAYMENT_METHODS } from '@/lib/options';
 import { sslczEnabled, sslczInit } from '@/lib/payments/sslcommerz';
 import { paypalEnabled, paypalCreate } from '@/lib/payments/paypal';
 import { siteUrl, money } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { explainError } from '@/lib/explain-error';
 import { headers } from 'next/headers';
 
@@ -80,8 +81,8 @@ async function submit(req, slug) {
     order.invoiceNumber = `INV-${order.number.replace(/^MH-/, '')}`; await order.save();
     redirect = `/order/${order.number}?t=${order.token}`;
     try {
-      if (method.id === 'card' && sslczEnabled()) redirect = await sslczInit({ order, amountBDT: order.payment.amountLocal, siteUrl: siteUrl() });
-      if (method.id === 'paypal' && paypalEnabled()) redirect = await paypalCreate({ order, siteUrl: siteUrl() });
+      if (method.id === 'card' && sslczEnabled()) redirect = await sslczInit({ order, amountBDT: order.payment.amountLocal, siteUrl: await getBaseUrl() });
+      if (method.id === 'paypal' && paypalEnabled()) redirect = await paypalCreate({ order, siteUrl: await getBaseUrl() });
     } catch (e) { console.error('[form gateway]', e.message); }
     sendOrderEmail(order, 'placed').catch(() => {}); alertNewOrder(order).catch(() => {});
   }
@@ -102,7 +103,7 @@ async function submit(req, slug) {
   const vars = { form: form.name, name: name || 'someone', email, total: total ? money(total, pay.currency) : '' };
   const nt = form.notify || {};
   if (nt.enabled !== false) {
-    const m = adminAlert({ site, title: fill(nt.subject || 'New answer: {form}', vars), rows: [...rows, ...(total ? [['Total', money(total, pay.currency)]] : [])], link: `${siteUrl()}/admin/entries?form=${form._id}`, linkLabel: 'Open the answers' });
+    const m = adminAlert({ site, title: fill(nt.subject || 'New answer: {form}', vars), rows: [...rows, ...(total ? [['Total', money(total, pay.currency)]] : [])], link: `${(await getBaseUrl())}/admin/entries?form=${form._id}`, linkLabel: 'Open the answers' });
     const to = (nt.to || []).filter(Boolean);
     const replyTo = nt.replyToField && clean[nt.replyToField] ? String(clean[nt.replyToField]) : email || undefined;
     if (to.length) sendMail({ to, subject: m.subject, html: m.html, text: m.text, replyTo }).catch(() => {});

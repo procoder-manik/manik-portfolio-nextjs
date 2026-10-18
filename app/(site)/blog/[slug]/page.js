@@ -9,7 +9,7 @@ import Blocks from '@/components/site/blocks/Blocks';
 import ReadingProgress from '@/components/site/ReadingProgress';
 import ShareLinks from '@/components/site/ShareLinks';
 import JsonLd from '@/components/site/JsonLd';
-import { buildGraph, crumbs, postNode } from '@/lib/schema';
+import { buildGraph, crumbs, postNode, faqNode } from '@/lib/schema';
 import { fmtDate, readingTime, siteUrl } from '@/lib/utils';
 
 export const revalidate = 600;
@@ -39,7 +39,7 @@ export default async function PostPage(props) {
   return (
     <article>
       <ReadingProgress />
-      <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], ...(c ? [[c.name, `/blog/category/${c.slug}`]] : []), [p.title, `/blog/${p.slug}`]]), postNode(p)])} />
+      <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog'], ...(c ? [[c.name, `/blog/category/${c.slug}`]] : []), [p.title, `/blog/${p.slug}`]]), postNode(p), faqNode((p.aiMeta?.faq || []).map((f) => ({ q: f.q, a: f.a })))])} />
       <header className="pb-10 pt-32 sm:pt-40">
         <div className="shell max-w-4xl">
           <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink"><ArrowLeft size={15} />All posts</Link>

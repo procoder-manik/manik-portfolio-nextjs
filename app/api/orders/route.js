@@ -10,6 +10,7 @@ import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { touchContact } from '@/lib/crm';
 import { sendOrderEmail, alertNewOrder } from '@/lib/notifications';
 import { siteUrl } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { explainError } from '@/lib/explain-error';
 import { getCustomer } from '@/lib/customers';
 import { Customer } from '@/lib/models';
@@ -84,7 +85,7 @@ async function create(req) {
     sendOrderEmail(order, 'placed'), alertNewOrder(order),
   ]);
 
-  const base = siteUrl();
+  const base = (await getBaseUrl());
   let redirect = `/order/${order.number}?t=${order.token}`;
   if (amount <= 0) {
     await markPaid(order.number, { provider: coupon ? 'coupon' : 'credit', reference: coupon?.code || 'store credit' }, 'Covered in full by coupon or credit');

@@ -5,7 +5,7 @@ dotenv.config({ path: '.env.local' });
 dotenv.config();
 import mongoose from 'mongoose';
 import * as seed from '../lib/seed-data.js';
-import { Project, Post, Category, Service, Package, Page, Setting, App, CaseStudy, Form, Popup } from '../lib/models/index.js';
+import { Project, Post, Category, Service, Package, Page, Setting, App, CaseStudy, Form, Popup, Knowledge } from '../lib/models/index.js';
 
 const fresh = process.argv.includes('--fresh');
 if (!process.env.MONGODB_URI) { console.error('Set MONGODB_URI in .env first.'); process.exit(1); }
@@ -18,6 +18,10 @@ for (const [M, rows] of sets) {
   for (const r of rows) { const res = await M.updateOne({ slug: r.slug }, { $setOnInsert: r }, { upsert: true }); added += res.upsertedCount; }
   console.log(`${M.modelName}: ${added} added`);
 }
+if (fresh) await Knowledge.deleteMany({});
+let kn = 0;
+for (const r of seed.knowledge || []) kn += (await Knowledge.updateOne({ question: r.question }, { $setOnInsert: r }, { upsert: true })).upsertedCount;
+console.log(`Knowledge: ${kn} added`);
 for (const [key, data] of Object.entries(seed.settings)) {
   if (fresh) await Setting.deleteOne({ key });
   const res = await Setting.updateOne({ key }, { $setOnInsert: { key, data } }, { upsert: true });

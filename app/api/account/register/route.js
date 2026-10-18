@@ -10,6 +10,7 @@ import { touchContact } from '@/lib/crm';
 import { mailEnabled } from '@/lib/mail';
 import { sendVerifyEmail } from '@/lib/notifications';
 import { siteUrl } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { refSettings, programsOn, refCookieCode } from '@/lib/referrals';
 import { EMAIL_RE, normEmail, passwordProblem, sessionCookie, claimOrder, newSecret, sha } from '@/lib/customers';
 
@@ -43,7 +44,7 @@ export async function POST(req) {
     if (b.claim && b.t) await claimOrder(c, b.claim, b.t);
     await touchContact({ email, name, phone: c.phone, source: 'account', activity: 'Created a customer account' });
     let mail = { ok: false };
-    if (mailEnabled()) mail = await sendVerifyEmail(c, `${siteUrl()}/api/account/verify?token=${token}`);
+    if (mailEnabled()) mail = await sendVerifyEmail(c, `${(await getBaseUrl())}/api/account/verify?token=${token}`);
     const res = NextResponse.json({ ok: true, verifySent: mail.ok });
     res.cookies.set(...(await sessionCookie(c)));
     return res;

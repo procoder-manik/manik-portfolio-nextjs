@@ -4,7 +4,9 @@ import { dbConnect, hasDB } from '@/lib/db';
 import { MODELS } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
 import { RESOURCE_AREA } from '@/lib/roles';
-import { TRASHABLE } from '@/lib/trash';
+import { TRASHABLE, DUPLICABLE } from '@/lib/trash';
+import { buildCopy } from '@/lib/duplicate-server';
+import { RESOURCES } from '@/lib/admin-schema';
 import { trashUpdate, restoreUpdate, draftUpdate } from '@/lib/trash-server';
 
 /* POST { action: trash | restore | draft | publish | delete | empty, ids: [] } */
@@ -23,6 +25,7 @@ export const POST = adminRoute(async (req, { params }) => {
   let n = 0;
   for (const d of docs) {
     let set = null;
+    if (action === 'duplicate') { if (!DUPLICABLE.includes(params.resource)) continue; await M.create(await buildCopy(params.resource, M, d, RESOURCES[params.resource])); n++; continue; }
     if (action === 'trash' && TRASHABLE.includes(params.resource)) set = trashUpdate(params.resource, d);
     else if (action === 'restore') set = restoreUpdate(params.resource, d);
     else if (action === 'draft') set = draftUpdate(params.resource);

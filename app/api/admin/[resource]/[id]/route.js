@@ -9,7 +9,8 @@ import { adminRoute } from '@/lib/server-auth';
 import { slugify, serialize } from '@/lib/utils';
 import { RESOURCES } from '@/lib/admin-schema';
 import { RESOURCE_AREA } from '@/lib/roles';
-import { TRASHABLE, PUBLIC_PATH } from '@/lib/trash';
+import { TRASHABLE, PUBLIC_PATH, DUPLICABLE, NOINDEXABLE, STATUS } from '@/lib/trash';
+import { buildCopy } from '@/lib/duplicate-server';
 import { trashUpdate, restoreUpdate, draftUpdate } from '@/lib/trash-server';
 import { cleanRedirect, normPath } from '@/lib/redirects';
 import { getSettingsFresh } from '@/lib/data';
@@ -81,9 +82,36 @@ export const PATCH = adminRoute(async (req, { params }) => {
   const M = MODELS[params.resource]; if (!M) throw new Error('Unknown section.');
   if (!hasDB()) throw noDB();
   await dbConnect();
-  const { action } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  const { action } = body;
   const doc = await M.findById(params.id).lean();
   if (!doc) throw Object.assign(new Error('Not found.'), { status: 404 });
+
+  /* Duplicate: a copy that starts switched off, with a new unique address. */
+  if (action === 'duplicate') {
+    if (!DUPLICABLE.includes(params.resource)) throw new Error('This section cannot be duplicated.');
+    const copy = await buildCopy(params.resource, M, doc, RESOURCES[params.resource]);
+    const created = await M.create(copy);
+    refreshContent();
+    return NextResponse.json({ item: serialize(created) });
+  }
+
+  /* Quick edit: title, address, live or draft, index or noindex, in one small save. */
+  if (action === 'quick') {
+    const conf = RESOURCES[params.resource]; const tf = conf?.slugFrom; const st = STATUS[params.resource];
+    const set = {};
+    if (tf && typeof body.title === 'string') { if (!body.title.trim()) throw new Error('The title cannot be empty.'); set[tf] = body.title.trim(); }
+    if (M.schema.path('slug') && typeof body.slug === 'string' && body.slug.trim()) set.slug = slugify(body.slug);
+    if (st && typeof body.live === 'boolean') set[st.field] = st.invert ? !body.live : body.live;
+    if (NOINDEXABLE.includes(params.resource) && typeof body.noindex === 'boolean') set.seoNoindex = body.noindex;
+    if (!Object.keys(set).length) throw new Error('Nothing to save.');
+    const item = await M.findByIdAndUpdate(params.id, set, { new: true, runValidators: true }).lean();
+    if (PUBLIC_PATH[params.resource] && doc.slug && item.slug && doc.slug !== item.slug && doc.published !== false) await autoRedirect(params.resource, doc.slug, item.slug);
+    refreshContent();
+    pingIndexNow(params.resource, item).catch(() => {});
+    return NextResponse.json({ item: serialize(item) });
+  }
+
   let set = null;
   if (action === 'restore') set = restoreUpdate(params.resource, doc);
   else if (action === 'trash') { if (!TRASHABLE.includes(params.resource)) throw new Error('This section has no Trash.'); set = trashUpdate(params.resource, doc); }

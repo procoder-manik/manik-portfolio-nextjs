@@ -4,6 +4,7 @@ const adminRoute = (h) => guard(h, 'shop');
 import { dbConnect, hasDB } from '@/lib/db';
 import { Customer, Commission, Payout } from '@/lib/models';
 import { serialize } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { refSettings, ensureRefCode } from '@/lib/referrals';
 import { sendCustom } from '@/lib/notifications';
 import { siteUrl, money } from '@/lib/utils';
@@ -50,7 +51,7 @@ export const POST = adminRoute(async (req) => {
       await sendCustom({ to: c.email, name: c.name,
         subject: status === 'approved' ? 'You are in: affiliate account approved' : 'About your affiliate application',
         message: status === 'approved' ? `Your affiliate account is active. You earn ${c.affiliate?.rate ?? r.affiliate?.rate}% on every paid order that comes through your link. Your link and earnings are in your account.` : `Thanks for applying to the affiliate program. I cannot approve it right now.${b.note ? `\n\n${b.note}` : ''}`,
-        ctaLabel: status === 'approved' ? 'Get your link' : undefined, ctaUrl: status === 'approved' ? `${siteUrl()}/account/affiliate` : undefined }).catch(() => {});
+        ctaLabel: status === 'approved' ? 'Get your link' : undefined, ctaUrl: status === 'approved' ? `${(await getBaseUrl())}/account/affiliate` : undefined }).catch(() => {});
     }
     return NextResponse.json({ ok: true });
   }
@@ -71,7 +72,7 @@ export const POST = adminRoute(async (req) => {
     await Commission.updateMany({ payoutId: p._id, status: 'requested' }, paid ? { $set: { status: 'paid' } } : { $set: { status: 'pending' }, $unset: { payoutId: 1 } });
     await sendCustom({ to: p.email, name: p.name, subject: paid ? `Payout sent: ${money(p.amount, p.currency)}` : 'About your payout request',
       message: paid ? `Your affiliate payout of ${money(p.amount, p.currency)} was sent by ${p.method}.${p.reference ? ` Reference: ${p.reference}.` : ''} Thank you for the referrals.` : `Your payout request was not sent this time.${p.note ? `\n\n${p.note}` : ''} The amount is back in your available balance.`,
-      ctaLabel: 'Open your account', ctaUrl: `${siteUrl()}/account/affiliate` }).catch(() => {});
+      ctaLabel: 'Open your account', ctaUrl: `${(await getBaseUrl())}/account/affiliate` }).catch(() => {});
     return NextResponse.json({ ok: true });
   }
 

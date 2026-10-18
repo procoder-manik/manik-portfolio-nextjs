@@ -5,6 +5,7 @@ import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { mailEnabled } from '@/lib/mail';
 import { sendResetEmail } from '@/lib/notifications';
 import { siteUrl } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 import { EMAIL_RE, normEmail, newSecret, sha } from '@/lib/customers';
 
 export async function POST(req) {
@@ -19,7 +20,7 @@ export async function POST(req) {
   if (c && !c.disabled) {
     const token = newSecret();
     await Customer.updateOne({ _id: c._id }, { resetTokenHash: sha(token), resetExpires: new Date(Date.now() + 3600 * 1000) });
-    await sendResetEmail(c, `${siteUrl()}/account/reset?token=${token}`);
+    await sendResetEmail(c, `${(await getBaseUrl())}/account/reset?token=${token}`);
   }
   // Same answer either way, so the form cannot be used to check who has an account.
   return NextResponse.json({ ok: true });

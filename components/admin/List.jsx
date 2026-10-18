@@ -1,9 +1,9 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Check, Minus, Loader2, Trash2, RotateCcw, FileEdit, Eye, Copy, Inbox } from 'lucide-react';
+import { Plus, Search, Check, Minus, Loader2, Trash2, RotateCcw, FileEdit, Eye, Copy, Inbox, Pencil } from 'lucide-react';
 import { RESOURCES } from '@/lib/admin-schema';
-import { STATUS, TRASHABLE } from '@/lib/trash';
+import { STATUS, TRASHABLE, DUPLICABLE, NOINDEXABLE } from '@/lib/trash';
 import { api } from './api';
 import { Notice } from './Editor';
 import { DeleteDialog } from './Dialog';
@@ -19,6 +19,7 @@ export default function List({ resource }) {
   const [view, setView] = useState('all'); const [items, setItems] = useState(null); const [counts, setCounts] = useState(null);
   const [q, setQ] = useState(''); const [ro, setRo] = useState(false); const [err, setErr] = useState(''); const [sel, setSel] = useState([]); const [dlg, setDlg] = useState(null);
   const [trashDays, setTrashDays] = useState(30); const [flash, setFlash] = useState('');
+  const [qe, setQe] = useState(null); const [qeBusy, setQeBusy] = useState(false); // quick edit: { id, title, slug, live, noindex }
   const load = useCallback(() => {
     setErr('');
     api(`/api/admin/${resource}${canTrash ? `?view=${view}` : ''}`).then((j) => { setItems(j.items); setCounts(j.counts); setRo(!!j.readOnly); setSel([]); }).catch((e) => setErr(e.message));
@@ -40,14 +41,24 @@ export default function List({ resource }) {
     if (c.type === 'money') return money(v, x.currency);
     if (c.type === 'date') return fmtDate(v, { month: 'short', day: 'numeric', year: 'numeric' });
     if (c.type === 'num') return v ?? 0;
+    if (c.type === 'score') return v == null ? <span className="text-muted">-</span> : <span className={`inline-block min-w-9 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold tabular-nums ${v >= 80 ? 'bg-good/15 text-good' : v >= 60 ? 'bg-amber/15 text-amber' : 'bg-bad/15 text-bad'}`}>{v}</span>;
     return v;
   };
   const say = (m) => { setFlash(m); setTimeout(() => setFlash(''), 2600); };
   const bulk = async (action, ids = sel) => { try { const j = await api(`/api/admin/${resource}/bulk`, { method: 'POST', body: { action, ids } }); say(`${j.count} done`); load(); } catch (e) { setErr(e.message); } };
   const one = async (x, action) => { try { if (action === 'permanent') await api(`/api/admin/${resource}/${x._id}?mode=permanent`, { method: 'DELETE' }); else if (action === 'trash') await api(`/api/admin/${resource}/${x._id}?mode=trash`, { method: 'DELETE' }); else await api(`/api/admin/${resource}/${x._id}`, { method: 'PATCH', body: { action } }); setDlg(null); load(); } catch (e) { setErr(e.message); setDlg(null); } };
   const dup = async (x) => {
-    const { _id, slug, createdAt, updatedAt, entries, views, stats, trashedAt, trashState, ...rest } = x;
-    try { const j = await api(`/api/admin/${resource}`, { method: 'POST', body: { ...rest, name: `${x.name || x.title} (copy)`, ...(x.title ? { title: x.title } : {}), ...(resource === 'popups' ? { active: false } : {}) } }); say('Duplicated'); load(); return j; } catch (e) { setErr(e.message); }
+    try { await api(`/api/admin/${resource}/${x._id}`, { method: 'PATCH', body: { action: 'duplicate' } }); say('Duplicated. The copy starts as a draft.'); load(); } catch (e) { setErr(e.message); }
+  };
+  const canDup = DUPLICABLE.includes(resource) && !ro;
+  const titleKey = conf.slugFrom;
+  const openQe = (x) => setQe({ id: x._id, title: x[titleKey] || '', slug: x.slug || '', live: status ? (status.invert ? !x[status.field] : x[status.field] !== false) : true, noindex: !!x.seoNoindex });
+  const saveQe = async () => {
+    setQeBusy(true);
+    try {
+      await api(`/api/admin/${resource}/${qe.id}`, { method: 'PATCH', body: { action: 'quick', ...(titleKey ? { title: qe.title } : {}), ...(titleKey && resource !== 'popups' ? { slug: qe.slug } : {}), ...(status ? { live: qe.live } : {}), ...(NOINDEXABLE.includes(resource) ? { noindex: qe.noindex } : {}) } });
+      setQe(null); say('Saved'); load();
+    } catch (e) { setErr(e.message); } finally { setQeBusy(false); }
   };
   const allSel = list.length > 0 && list.every((x) => sel.includes(x._id));
   const first = ['thumb', 'swatch'].includes(conf.columns[0].type) ? 1 : 0;
@@ -81,6 +92,7 @@ export default function List({ resource }) {
           </> : <>
             {status && <button className="btn-ghost btn-sm" onClick={() => bulk('publish')}><Eye size={14} />{labels.live === 'Published' ? 'Publish' : 'Switch on'}</button>}
             {status && <button className="btn-ghost btn-sm" onClick={() => bulk('draft')}><FileEdit size={14} />{labels.live === 'Published' ? 'Draft' : 'Switch off'}</button>}
+            {canDup && <button className="btn-ghost btn-sm" onClick={() => bulk('duplicate')}><Copy size={14} />Duplicate</button>}
             {canTrash && <button className="btn-ghost btn-sm text-bad" onClick={() => bulk('trash')}><Trash2 size={14} />Move to Trash</button>}
           </>}
           <button className="ml-auto text-xs text-muted hover:text-ink" onClick={() => setSel([])}>Clear</button>
@@ -96,7 +108,8 @@ export default function List({ resource }) {
             {items === null && <tr><td colSpan={12} className="p-10 text-center text-muted"><Loader2 className="mx-auto animate-spin" /></td></tr>}
             {items && !list.length && <tr><td colSpan={12} className="p-10 text-center text-muted"><Inbox className="mx-auto mb-2" size={22} />{view === 'trash' ? 'The Trash is empty.' : `Nothing here yet. Add your first ${conf.singular}.`}</td></tr>}
             {list.map((x) => (
-              <tr key={x._id} className="group transition hover:bg-raised/50">
+              <Fragment key={x._id}>
+              <tr className="group transition hover:bg-raised/50">
                 {canTrash && <td className="px-4 py-3"><input type="checkbox" aria-label="Select" checked={sel.includes(x._id)} onChange={() => setSel(sel.includes(x._id) ? sel.filter((i) => i !== x._id) : [...sel, x._id])} className="accent-[rgb(var(--signal))]" /></td>}
                 {conf.columns.map((c, i) => (
                   <td key={c.key} className="px-4 py-3">
@@ -108,11 +121,30 @@ export default function List({ resource }) {
                     <span className="inline-flex gap-0.5 opacity-60 transition group-hover:opacity-100">
                       {view === 'trash' || x.trashedAt
                         ? <><button title="Restore" aria-label="Restore" onClick={() => one(x, 'restore')} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><RotateCcw size={15} /></button><button title="Delete permanently" aria-label="Delete permanently" onClick={() => setDlg({ kind: 'one', x, inTrash: true })} className="grid h-8 w-8 place-items-center rounded-lg text-bad hover:bg-raised"><Trash2 size={15} /></button></>
-                        : <>{['forms', 'popups'].includes(resource) && <button title="Duplicate" aria-label="Duplicate" onClick={() => dup(x)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><Copy size={15} /></button>}<button title="Remove" aria-label="Remove" onClick={() => setDlg({ kind: 'one', x })} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised hover:text-bad"><Trash2 size={15} /></button></>}
+                        : <>{(titleKey || status) && <button title="Quick edit" aria-label="Quick edit" onClick={() => (qe?.id === x._id ? setQe(null) : openQe(x))} className={`grid h-8 w-8 place-items-center rounded-lg hover:bg-raised ${qe?.id === x._id ? 'bg-raised text-signal' : ''}`}><Pencil size={15} /></button>}{canDup && <button title="Duplicate" aria-label="Duplicate" onClick={() => dup(x)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><Copy size={15} /></button>}<button title="Remove" aria-label="Remove" onClick={() => setDlg({ kind: 'one', x })} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised hover:text-bad"><Trash2 size={15} /></button></>}
                     </span>
                   </td>
                 )}
               </tr>
+              {qe?.id === x._id && (
+                <tr className="bg-raised/40"><td colSpan={conf.columns.length + 2} className="px-4 py-4">
+                  <p className="mb-3 text-sm font-semibold text-ink">Quick edit</p>
+                  <div className="grid gap-3 md:grid-cols-4">
+                    {titleKey && <label className="text-xs text-muted md:col-span-2">Title<input value={qe.title} onChange={(e) => setQe({ ...qe, title: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}
+                    {titleKey && resource !== 'popups' && <label className="text-xs text-muted md:col-span-2">Slug (URL)<input value={qe.slug} onChange={(e) => setQe({ ...qe, slug: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}
+                    {status && <label className="text-xs text-muted">Status<select value={qe.live ? 'live' : 'draft'} onChange={(e) => setQe({ ...qe, live: e.target.value === 'live' })} className="field mt-1 w-full py-2 text-sm"><option value="live">{labels.live === 'Published' ? 'Published' : 'On'}</option><option value="draft">{labels.live === 'Published' ? 'Draft' : 'Off'}</option></select></label>}
+                    {NOINDEXABLE.includes(resource) && <label className="text-xs text-muted">Search engines<select value={qe.noindex ? 'no' : 'yes'} onChange={(e) => setQe({ ...qe, noindex: e.target.value === 'no' })} className="field mt-1 w-full py-2 text-sm"><option value="yes">Index (show in Google)</option><option value="no">Noindex (hide from Google)</option></select></label>}
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <button disabled={qeBusy} onClick={saveQe} className="btn-primary btn-sm">{qeBusy ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}Update</button>
+                    <button onClick={() => setQe(null)} className="btn-ghost btn-sm">Cancel</button>
+                    <span className="ml-auto flex gap-3 text-xs">
+                      <button onClick={() => { setQe(null); setDlg({ kind: 'one', x }); }} className="text-bad hover:underline">Trash or delete</button>
+                    </span>
+                  </div>
+                </td></tr>
+              )}
+              </Fragment>
             ))}
           </tbody>
         </table>

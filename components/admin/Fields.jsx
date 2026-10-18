@@ -56,6 +56,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'popupTemplates') return <PopupTemplates doc={doc || {}} setDoc={setDoc} />;
   if (T === 'popupPreview') return <PopupPreviewBox doc={doc || {}} />;
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
+  if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
   if (T === 'switch') return (
     <div>
@@ -191,7 +192,7 @@ export function MediaLibrary({ open, onClose, onPick, accept }) {
   );
 }
 
-function MediaInput({ value, onChange, accept = 'image/*', file }) {
+export function MediaInput({ value, onChange, accept = 'image/*', file }) {
   const ref = useRef(); const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [lib, setLib] = useState(false);
   const go = async (files) => { if (!files?.length) return; setBusy(true); setErr(''); try { const [r] = await upload(files); onChange(r.url); } catch (e) { setErr(e.message); } setBusy(false); };
   const isImg = !file || /\.(png|jpe?g|webp|gif|svg|avif)(\?|$)/i.test(value || '');
@@ -246,7 +247,7 @@ function Images({ value, onChange }) {
   );
 }
 
-function Markdown({ value, onChange }) {
+export function Markdown({ value, onChange }) {
   const ta = useRef(); const file = useRef(); const [preview, setPreview] = useState(false); const [busy, setBusy] = useState(false);
   const wrap = (before, after = before, ph = 'text') => {
     const el = ta.current; const s = el.selectionStart, e = el.selectionEnd; const sel = value.slice(s, e) || ph;
@@ -547,6 +548,27 @@ function CardsPreview({ doc }) {
         <Cards cfg={{ ...doc, items: items.length ? items : [SAMPLE[doc.template || 'service'], SAMPLE[doc.template || 'service'], SAMPLE[doc.template || 'service']].map((x, i) => ({ ...x, title: `${x.title || 'Card'} ${i + 1}` })), columns: Math.min(Number(doc.columns) || 3, 3) }} />
       </div>
       {!items.length && <p className="mt-1.5 text-xs text-muted">Sample cards are shown until you add your own below.</p>}
+    </div>
+  );
+}
+
+
+/* Read-only view of what the AI writer prepared for a post: image prompts with copy buttons, outline and FAQ. */
+function AiPlanView({ doc }) {
+  const m = doc.aiMeta; const [copied, setCopied] = useState('');
+  const copy = (k, t) => { navigator.clipboard?.writeText(t).catch(() => {}); setCopied(k); setTimeout(() => setCopied(''), 1500); };
+  if (!m) return <p className="rounded-xl border border-dashed border-line p-6 text-sm text-muted">This post was not written with the AI writer, so there is no plan here. Open AI writer in the sidebar to create posts with image prompts and a content score.</p>;
+  return (
+    <div className="space-y-4">
+      {doc.aiScore != null && <p className="text-sm text-body">Content score when saved: <b className="text-ink">{doc.aiScore} / 100</b>. Open it again in the AI writer to rescore.</p>}
+      {(m.images || []).map((im) => (
+        <div key={im.slot} className="rounded-xl border border-line bg-base/40 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">Image {im.slot}: {im.role}{im.ratio ? ` (${im.ratio})` : ''}</p><button type="button" onClick={() => copy(`p${im.slot}`, im.prompt)} className="btn-ghost btn-sm">{copied === `p${im.slot}` ? 'Copied' : 'Copy prompt'}</button></div>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-body">{im.prompt}</p>
+          {im.textOnImage?.filter(Boolean).length > 0 && <p className="mt-2 text-xs text-muted">Text on the image: {im.textOnImage.filter(Boolean).join(' | ')}</p>}
+          <p className="mt-1 text-xs text-muted">Alt text: {im.alt}. File name: {im.filename}</p>
+        </div>
+      ))}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { getCustomer } from '@/lib/customers';
 import { refSettings, ensureRefCode, affiliateTotals } from '@/lib/referrals';
 import { touchContact } from '@/lib/crm';
 import { money, siteUrl } from '@/lib/utils';
+import { getBaseUrl } from '@/lib/base-url';
 
 const clip = (v, n) => String(v || '').trim().slice(0, n);
 
@@ -32,7 +33,7 @@ export async function POST(req) {
       'affiliate.appliedAt': new Date(), ...(status === 'approved' ? { 'affiliate.approvedAt': new Date() } : {}),
     } });
     await touchContact({ email: me.email, source: 'affiliate', activity: `Affiliate application (${status})` });
-    notify(`New affiliate ${status === 'approved' ? 'joined' : 'application'}: ${me.name}`, `${me.name} (${me.email}) ${status === 'approved' ? 'joined' : 'applied to'} the affiliate program.\nWebsite: ${b.website || '-'}\nAbout: ${b.about || '-'}\nReview: ${siteUrl()}/admin/affiliates`);
+    notify(`New affiliate ${status === 'approved' ? 'joined' : 'application'}: ${me.name}`, `${me.name} (${me.email}) ${status === 'approved' ? 'joined' : 'applied to'} the affiliate program.\nWebsite: ${b.website || '-'}\nAbout: ${b.about || '-'}\nReview: ${(await getBaseUrl())}/admin/affiliates`);
     return NextResponse.json({ ok: true, status });
   }
 
@@ -52,7 +53,7 @@ export async function POST(req) {
     const u = await Commission.updateMany({ customerId: me._id, kind: 'affiliate', status: 'pending', availableAt: { $lte: new Date() } }, { $set: { status: 'requested', payoutId: p._id } });
     const sum = (await Commission.find({ payoutId: p._id }).lean()).reduce((a, c) => a + c.amount, 0);
     await Payout.updateOne({ _id: p._id }, { amount: Math.round(sum * 100) / 100 });
-    notify(`Payout request from ${me.name}`, `${me.name} asked for a payout of ${money(sum, r.base)} (${u.modifiedCount} commissions) by ${me.affiliate.payoutMethod}: ${me.affiliate.payoutDetails}\nPay it, then mark it paid: ${siteUrl()}/admin/affiliates`);
+    notify(`Payout request from ${me.name}`, `${me.name} asked for a payout of ${money(sum, r.base)} (${u.modifiedCount} commissions) by ${me.affiliate.payoutMethod}: ${me.affiliate.payoutDetails}\nPay it, then mark it paid: ${(await getBaseUrl())}/admin/affiliates`);
     return NextResponse.json({ ok: true, message: `Payout of ${money(sum, r.base)} requested. You will get it within a few working days.` });
   }
   return NextResponse.json({ error: 'Unknown action.' }, { status: 400 });
