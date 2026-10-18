@@ -2,6 +2,7 @@ import Header from '@/components/site/Header';
 import Footer from '@/components/site/Footer';
 import Integrations from '@/components/site/Integrations';
 import ChatWidget from '@/components/site/ChatWidget';
+import BackToTop from '@/components/site/BackToTop';
 import CodeInjector from '@/components/site/CodeInjector';
 import Motion from '@/components/site/Motion';
 import RefTracker from '@/components/site/RefTracker';
@@ -39,6 +40,7 @@ export default async function SiteLayout({ children }) {
       <Motion />
       <RefTracker />
       {popupRules?.enabled !== false && popups.length > 0 && <PopupManager popups={popups} rules={popupRules} />}
+      <BackToTop />
       {chat.mode === 'builtin' && <ChatWidget cfg={chat} site={{ avatar: site.avatar, email: site.email, whatsapp: site.whatsapp, replyTime: site.replyTime }} />}
       {chat.mode === 'embed' && <CodeInjector html={chat.embedCode} where="bodyEnd" />}
     </>

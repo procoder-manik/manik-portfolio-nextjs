@@ -1,9 +1,12 @@
 'use client';
-import { useEffect, useState, useCallback, Fragment } from 'react';
+import { useEffect, useState, useCallback, useMemo, Fragment } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Check, Minus, Loader2, Trash2, RotateCcw, FileEdit, Eye, Copy, Inbox, Pencil } from 'lucide-react';
 import { RESOURCES } from '@/lib/admin-schema';
 import { STATUS, TRASHABLE, DUPLICABLE, NOINDEXABLE } from '@/lib/trash';
+import { SEO_RES } from '@/lib/admin-schema';
+import { analyzeDoc } from '@/lib/seo-analysis';
+import { getSeoTpl } from './seoTpl';
 import { api } from './api';
 import { Notice } from './Editor';
 import { DeleteDialog } from './Dialog';
@@ -19,6 +22,9 @@ export default function List({ resource }) {
   const [view, setView] = useState('all'); const [items, setItems] = useState(null); const [counts, setCounts] = useState(null);
   const [q, setQ] = useState(''); const [ro, setRo] = useState(false); const [err, setErr] = useState(''); const [sel, setSel] = useState([]); const [dlg, setDlg] = useState(null);
   const [trashDays, setTrashDays] = useState(30); const [flash, setFlash] = useState('');
+  const [tpl, setTpl] = useState('%s'); const seoCfg = SEO_RES[resource];
+  useEffect(() => { if (seoCfg) getSeoTpl().then(setTpl); }, [seoCfg]);
+  const scores = useMemo(() => { const m = {}; if (!seoCfg) return m; for (const x of items || []) { try { const r = analyzeDoc(x, { path: seoCfg.path(x), titleFrom: seoCfg.titleFrom, descFrom: seoCfg.descFrom, template: tpl, contentAware: seoCfg.contentAware !== false }); m[x._id] = { score: r.score, tone: r.tone, fix: r.checks.filter((c) => c.status !== 'good').slice(0, 3).map((c) => c.label) }; } catch {} } return m; }, [items, seoCfg, tpl]);
   const [qe, setQe] = useState(null); const [qeBusy, setQeBusy] = useState(false); // quick edit: { id, title, slug, live, noindex }
   const load = useCallback(() => {
     setErr('');
@@ -102,7 +108,7 @@ export default function List({ resource }) {
         <table className="w-full min-w-[680px] text-left text-sm">
           <thead className="border-b border-line text-xs text-muted"><tr>
             {canTrash && <th className="w-10 px-4 py-3"><input type="checkbox" aria-label="Select all" checked={allSel} onChange={() => setSel(allSel ? [] : list.map((x) => x._id))} className="accent-[rgb(var(--signal))]" /></th>}
-            {conf.columns.map((c) => <th key={c.key} className="px-4 py-3 font-medium">{c.label || ''}</th>)}{canTrash && <th className="px-4 py-3" />}
+            {conf.columns.map((c) => <th key={c.key} className="px-4 py-3 font-medium">{c.label || ''}</th>)}{seoCfg && <th className="px-4 py-3 font-medium">SEO</th>}{canTrash && <th className="px-4 py-3" />}
           </tr></thead>
           <tbody className="divide-y divide-line">
             {items === null && <tr><td colSpan={12} className="p-10 text-center text-muted"><Loader2 className="mx-auto animate-spin" /></td></tr>}
@@ -116,6 +122,7 @@ export default function List({ resource }) {
                     {i === first ? <Link href={`/admin/${resource}/${x._id}`} className="font-medium text-ink hover:text-signal">{cell(c, x)}{status && !view.startsWith('t') && x.trashedAt == null && x[status.field] === (status.invert ? true : false) && <span className="ml-2 rounded-full bg-amber/15 px-2 py-0.5 text-[11px] font-normal text-amber">{labels.draft === 'Drafts' ? 'Draft' : labels.draft}</span>}</Link> : cell(c, x)}
                   </td>
                 ))}
+                {seoCfg && <td className="px-4 py-3">{scores[x._id] ? <Link href={`/admin/${resource}/${x._id}#seo`} title={scores[x._id].fix.length ? `To improve: ${scores[x._id].fix.join('; ')}` : 'All checks pass'} className={`inline-block min-w-10 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold tabular-nums ${{ good: 'bg-good/15 text-good', ok: 'bg-amber/15 text-amber', bad: 'bg-bad/15 text-bad' }[scores[x._id].tone]}`}>{scores[x._id].score}</Link> : null}</td>}
                 {canTrash && (
                   <td className="whitespace-nowrap px-4 py-3 text-right">
                     <span className="inline-flex gap-0.5 opacity-60 transition group-hover:opacity-100">
@@ -127,7 +134,7 @@ export default function List({ resource }) {
                 )}
               </tr>
               {qe?.id === x._id && (
-                <tr className="bg-raised/40"><td colSpan={conf.columns.length + 2} className="px-4 py-4">
+                <tr className="bg-raised/40"><td colSpan={conf.columns.length + 2 + (seoCfg ? 1 : 0)} className="px-4 py-4">
                   <p className="mb-3 text-sm font-semibold text-ink">Quick edit</p>
                   <div className="grid gap-3 md:grid-cols-4">
                     {titleKey && <label className="text-xs text-muted md:col-span-2">Title<input value={qe.title} onChange={(e) => setQe({ ...qe, title: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}

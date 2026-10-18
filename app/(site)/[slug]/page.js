@@ -3,7 +3,7 @@ import { seoMeta, pageMeta } from '@/lib/seo';
 import { getPage, getSettings } from '@/lib/data';
 import { renderMarkdown } from '@/lib/markdown';
 import JsonLd from '@/components/site/JsonLd';
-import { buildGraph, crumbs, faqNode } from '@/lib/schema';
+import { buildGraph, crumbs, faqNode, faqFromMarkdown } from '@/lib/schema';
 import Blocks from '@/components/site/blocks/Blocks';
 import { fmtDate } from '@/lib/utils';
 
@@ -20,7 +20,7 @@ export default async function CustomPage(props) {
   const blocks = (p.blocks || []).filter((b) => b && !b.hidden);
   const heroFirst = blocks[0]?.type === 'hero';
   const showTitle = !p.hideTitle && !heroFirst;
-  const faqs = blocks.filter((b) => b.type === 'faq' && !b.useSite).flatMap((b) => b.items || []);
+  const faqs = [...blocks.filter((b) => b.type === 'faq' && !b.useSite).flatMap((b) => b.items || []), ...faqFromMarkdown(p.content)];
   return (
     <>
       <JsonLd item={p} data={buildGraph(site, [crumbs([['Home', '/'], [p.title, `/${p.slug}`]]), faqNode(faqs), { '@type': 'WebPage', name: p.seoTitle || p.title, description: p.seoDescription }])} />

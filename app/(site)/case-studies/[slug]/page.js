@@ -10,7 +10,7 @@ import Blocks from '@/components/site/blocks/Blocks';
 import CaseStudyCard, { Metric } from '@/components/site/CaseStudyCard';
 import Reveal from '@/components/site/Reveal';
 import JsonLd from '@/components/site/JsonLd';
-import { buildGraph, crumbs } from '@/lib/schema';
+import { buildGraph, crumbs, caseNode } from '@/lib/schema';
 import { caseStudiesOn } from '@/lib/features';
 import { siteUrl, hostOf, fmtDate } from '@/lib/utils';
 
@@ -44,11 +44,7 @@ export default async function CaseStudyPage({ params }) {
 
   return (
     <article style={{ '--a': accent }}>
-      <JsonLd item={c} data={buildGraph(site, [crumbs([['Home', '/'], ['Case studies', '/case-studies'], [c.client || c.title, `/case-studies/${c.slug}`]]), {
-        '@type': 'Article', '@id': `${url}#case-study`, headline: c.title, description: c.summary, url, image: c.cover ? (c.cover.startsWith('http') ? c.cover : `${siteUrl()}${c.cover}`) : undefined,
-        datePublished: c.publishedAt, dateModified: c.updatedAt || c.publishedAt, author: { '@id': `${siteUrl()}/#person` }, publisher: { '@id': `${siteUrl()}/#person` },
-        articleSection: 'Case study', about: { '@type': 'Organization', name: c.client, url: c.liveUrl || undefined }, keywords: [...(c.services || []), ...(c.technologies || [])].join(', '),
-      }])} />
+      <JsonLd item={c} data={buildGraph(site, [crumbs([['Home', '/'], ['Case studies', '/case-studies'], [c.client || c.title, `/case-studies/${c.slug}`]]), caseNode(c)])} />
 
       <header className="relative overflow-hidden pb-14 pt-32 sm:pt-40">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_70%_70%_at_30%_0%,#000,transparent)]" />

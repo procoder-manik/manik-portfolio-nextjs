@@ -46,11 +46,12 @@ export default function CardLayout({ layout = 'grid', columns = 3, autoplay = fa
   const go = (d) => { const el = ref.current; if (!el) return; const c = el.firstElementChild; el.scrollBy({ left: d * ((c?.offsetWidth || el.clientWidth) + 24), behavior: 'smooth' }); };
   return (
     <div className="relative" role="region" aria-roledescription="carousel" aria-label={label}>
-      <div ref={ref} className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-1 pb-2 pt-3" style={{ scrollbarWidth: 'none' }}>
+      {/* Scroll areas clip anything outside them, so the padding below gives card shadows and the Most popular badge room, and negative margins keep the layout where it was. */}
+      <div ref={ref} className="no-scrollbar -mx-5 -mb-8 -mt-3 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-5 pb-11 pt-7 scroll-px-5" style={{ scrollbarWidth: 'none' }}>
         {nodes.map((n, i) => <div key={i} className={cn('shrink-0 snap-start', WIDTH[cols])}>{n}</div>)}
       </div>
       {pages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
+        <div className="relative mt-2 flex items-center justify-between">
           <div className="flex gap-1.5" aria-hidden>{Array.from({ length: pages }).map((_, i) => <span key={i} className={cn('h-1.5 rounded-full transition-all', i === page ? 'w-6 bg-signal' : 'w-1.5 bg-line')} />)}</div>
           <div className="flex gap-2">
             <button type="button" aria-label="Previous cards" onClick={() => go(-1)} className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink transition hover:bg-raised"><ChevronLeft size={18} /></button>

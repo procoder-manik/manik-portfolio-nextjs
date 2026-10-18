@@ -360,3 +360,7 @@ vercel.json            Vercel settings
 ## New in version 3
 
 Per-page SEO with a Rank Math style checklist and schema, local business schema, automatic sitemap, robots.txt and llms.txt, a drag and drop form builder with payments and surveys, popups with templates, an announcement bar, redirects with a 404 log, user roles, and a Trash with Draft and permanent delete. See docs/PROJECT-BRIEF.md section 12h.
+
+## Documentation
+
+The full project manual is in [`docs/manual`](docs/manual/README.md): setup, code map, admin guide, content, SEO and schema, AI, shop, email, security, maintenance, how to extend, and a reference generated from the code. Update guides for each version are in `docs/`.

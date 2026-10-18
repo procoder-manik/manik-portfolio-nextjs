@@ -28,7 +28,7 @@ export default async function FaqPage() {
           <div className="mt-12"><FaqExplorer groups={groups} /></div>
           <div className="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-line bg-surface/60 p-7">
             <div><p className="font-display text-xl font-semibold text-ink">Still have a question?</p><p className="mt-1 text-muted">I reply within one working day.</p></div>
-            <Link href="/contact" className="btn-primary">Ask me <ArrowRight size={16} /></Link>
+            <div className="flex flex-wrap gap-3"><Link href="/help" className="btn-ghost">Help center</Link><Link href="/contact" className="btn-primary">Ask me <ArrowRight size={16} /></Link></div>
           </div>
         </div>
       </section>

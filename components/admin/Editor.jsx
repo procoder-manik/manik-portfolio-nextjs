@@ -6,6 +6,9 @@ import { ArrowLeft, ExternalLink, Loader2, Save, Trash2, CheckCircle2, AlertTria
 import { DeleteDialog } from './Dialog';
 import { STATUS, TRASHABLE } from '@/lib/trash';
 import { FieldList, InfoScope } from './Fields';
+import { SEO_RES } from '@/lib/admin-schema';
+import { analyzeDoc } from '@/lib/seo-analysis';
+import { getSeoTpl } from './seoTpl';
 import { api } from './api';
 import { RESOURCES, SETTINGS } from '@/lib/admin-schema';
 import InfoTip from '@/components/site/InfoTip';
@@ -32,9 +35,13 @@ export default function Editor({ resource, id, settingsKey }) {
     setStatus({ t: 'saving', msg: '' });
     try {
       const j = await api(endpoint, { method: isNew ? 'POST' : 'PUT', body: doc });
-      setDoc(j.item); setDirty(false); setStatus({ t: 'ok', msg: 'Saved' });
+      setDoc(j.item); setDirty(false);
+      let msg = 'Saved';
+      const sc = SEO_RES[resource];
+      if (sc && !settingsKey) { try { const r = analyzeDoc(j.item, { path: sc.path(j.item), titleFrom: sc.titleFrom, descFrom: sc.descFrom, template: await getSeoTpl(), contentAware: sc.contentAware !== false }); const weak = r.checks.filter((c) => c.status !== 'good')[0]; msg = `Saved. SEO score ${r.score}/100${weak ? `. Next: ${weak.label}` : '. All checks pass'}`; } catch {} }
+      setStatus({ t: 'ok', msg });
       if (isNew) router.replace(`/admin/${resource}/${j.item._id}`);
-      setTimeout(() => setStatus((s) => (s.t === 'ok' ? { t: '', msg: '' } : s)), 2500);
+      setTimeout(() => setStatus((s) => (s.t === 'ok' ? { t: '', msg: '' } : s)), 7000);
     } catch (e) { setStatus({ t: 'err', msg: e.message }); }
   }, [doc, endpoint, isNew, resource, router]);
 

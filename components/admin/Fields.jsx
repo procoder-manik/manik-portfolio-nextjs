@@ -7,6 +7,7 @@ import { get, set, slugify, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/markdown';
 import { api, upload } from './api';
 import AiKeys from './AiKeys';
+import SchemaPanel from './SchemaPanel';
 import { BLOCKS, BLOCK_DEFAULTS, blockFields } from '@/lib/blocks';
 import * as Lucide from 'lucide-react';
 import { analyzeDoc } from '@/lib/seo-analysis';
@@ -59,6 +60,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
   if (T === 'aiKeys') return <AiKeys />;
+  if (T === 'schemaPanel') return <SchemaPanel doc={doc || {}} />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
   if (T === 'switch') return (
     <div>
