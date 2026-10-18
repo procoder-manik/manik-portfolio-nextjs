@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { seoMeta } from '@/lib/seo';
 import { ArrowUpRight } from 'lucide-react';
 import { getServicesWithPackages, getAllSettings, getSettings , getPageSeo } from '@/lib/data';
-import { PackageCard } from '@/components/site/PricingTabs';
+import { PackageGrid } from '@/components/site/PricingTabs';
 import Faq from '@/components/site/Faq';
 import Icon from '@/components/site/Icon';
 import JsonLd from '@/components/site/JsonLd';
@@ -47,9 +47,7 @@ export default async function PricingPage() {
               </div>
               <p className="lede md:ml-auto md:text-right">{s.summary}</p>
             </div>
-            <div className={`grid gap-5 ${s.packages.length >= 4 ? 'md:grid-cols-2 xl:grid-cols-4' : s.packages.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
-              {s.packages.map((p) => <PackageCard key={p.slug} p={p} />)}
-            </div>
+            <PackageGrid packages={s.packages} lay={home.pricing || {}} />
           </div>
         </section>
       ))}

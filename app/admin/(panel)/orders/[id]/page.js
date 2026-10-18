@@ -6,6 +6,7 @@ import { api } from '@/components/admin/api';
 import Status from '@/components/admin/Status';
 import EmailComposer from '@/components/admin/EmailComposer';
 import OrderPortal from '@/components/admin/OrderPortal';
+import SubscriptionBox from '@/components/admin/SubscriptionBox';
 import { money, fmtDate } from '@/lib/utils';
 import { ORDER_STATUS, PAYMENT_METHODS } from '@/lib/options';
 import InfoTip from '@/components/site/InfoTip';
@@ -65,6 +66,7 @@ export default function OrderDetail(props) {
             </div>
             {compose && <div className="mt-4"><EmailComposer target={{ orderId: o._id }} defaultSubject={`About your order ${o.number}`} attachOptions onSent={() => { load(); setCompose(false); say('ok', 'Email sent.'); }} onClose={() => setCompose(false)} /></div>}
           </section>
+          {(o.subscription?.period || ['monthly', 'yearly'].includes(o.package?.billing)) && <SubscriptionBox key={`s${o.updatedAt}`} o={o} onChange={setO} say={say} />}
           <OrderPortal key={o.updatedAt} o={o} onChange={setO} say={say} />
           <section className="rounded-2xl border border-line bg-surface p-6">
             <h2 className="flex items-center gap-1.5 font-semibold">Payment<InfoTip text="How the buyer paid and the transaction details they sent. For bKash, Nagad, Rocket and bank, check the transaction ID in your account before approving." /></h2>

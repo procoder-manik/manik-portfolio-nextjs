@@ -21,7 +21,7 @@ export default function CheckoutForm({ pkg, methods, amountLabel: baseLabel, bdt
   async function apply(c = code) {
     if (!c.trim()) return;
     setCBusy(true); setCErr('');
-    const r = await fetch('/api/coupons/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: c, package: pkg.slug, email: document.getElementById('o-email')?.value }) });
+    const r = await fetch('/api/coupons/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: c, package: pkg.slug, period: pkg.period, email: document.getElementById('o-email')?.value }) });
     const j = await r.json().catch(() => ({}));
     if (r.ok) { setApplied(j); setCode(j.code); track('apply_coupon', { coupon: j.code }); } else { setApplied(null); setCErr(j.error || 'That code did not work.'); }
     setCBusy(false);
@@ -37,7 +37,7 @@ export default function CheckoutForm({ pkg, methods, amountLabel: baseLabel, bdt
     e.preventDefault(); setBusy(true); setError('');
     const f = Object.fromEntries(new FormData(e.currentTarget));
     const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      package: pkg.slug, method, requirements: f.requirements, coupon: applied?.code || undefined, useCredit: creditUse > 0, customer: { name: f.name, email: f.email, phone: f.phone, company: f.company, country: f.country },
+      package: pkg.slug, period: pkg.period, method, requirements: f.requirements, coupon: applied?.code || undefined, useCredit: creditUse > 0, customer: { name: f.name, email: f.email, phone: f.phone, company: f.company, country: f.country },
     }) });
     const j = await r.json().catch(() => ({}));
     if (j.ok) track('begin_checkout', { item: pkg.name, method });

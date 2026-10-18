@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ChevronLeft, ChevronRight, Check, Quote } from 'lucide-react';
+import { ArrowRight, Check, Quote } from 'lucide-react';
+import CardLayout from './CardLayout';
 import Icon from '../Icon';
 import { cn } from '@/lib/utils';
 import { SERVICE_ICONS } from '@/lib/options';
@@ -100,45 +100,11 @@ function Custom({ it, i, html, css }) {
   return <div data-cards="" className="h-full"><style dangerouslySetInnerHTML={{ __html: scope(css) }} /><div className="h-full" dangerouslySetInnerHTML={{ __html: out }} /></div>;
 }
 
-const COLS = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-2 xl:grid-cols-3', 4: 'md:grid-cols-2 xl:grid-cols-4' };
-
-/* A set of cards as a grid or a carousel. cfg: { template, layout, columns, autoplay, items, linkLabel, html, css }. */
+/* A set of cards as a grid or a carousel. cfg: { template, layout, columns, autoplay, interval, items, linkLabel, html, css }. */
 export default function Cards({ cfg }) {
   const items = (cfg.items || []).filter((x) => x && (x.title || x.body || x.value));
-  const t = cfg.template || 'service'; const carousel = cfg.layout === 'carousel';
-  const ref = useRef(null); const [page, setPage] = useState(0); const [pages, setPages] = useState(1);
-  const cols = Number(cfg.columns) || 3;
+  const t = cfg.template || 'service';
   const render = (it, i) => (t === 'custom' ? <Custom key={i} it={it} i={i} html={cfg.html} css={cfg.css} /> : <Card key={i} t={t} it={it} i={i} link={cfg.linkLabel || 'Learn more'} />);
-
-  useEffect(() => {
-    if (!carousel || !ref.current) return;
-    const el = ref.current;
-    const calc = () => setPages(el.scrollWidth > el.clientWidth + 8 ? Math.max(2, Math.ceil(el.scrollWidth / el.clientWidth - 0.05)) : 1);
-    const on = () => setPage(Math.round((el.scrollLeft / Math.max(1, el.scrollWidth - el.clientWidth)) * (Math.max(2, Math.ceil(el.scrollWidth / el.clientWidth - 0.05)) - 1)));
-    calc(); el.addEventListener('scroll', on, { passive: true }); window.addEventListener('resize', calc);
-    let timer; if (cfg.autoplay && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) timer = setInterval(() => { if (el.matches(':hover') || el.contains(document.activeElement)) return; const next = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8 ? 0 : el.scrollLeft + el.clientWidth; el.scrollTo({ left: next, behavior: 'smooth' }); }, 5000);
-    return () => { el.removeEventListener('scroll', on); window.removeEventListener('resize', calc); clearInterval(timer); };
-  }, [carousel, cfg.autoplay, items.length]);
   if (!items.length) return <p className="rounded-2xl border border-dashed border-line p-8 text-center text-sm text-muted">No cards yet.</p>;
-
-  if (!carousel) return <div className={cn('grid gap-5 sm:gap-6', COLS[cols] || COLS[3])}>{items.map((it, i) => <div key={i} data-reveal className="h-full">{render(it, i)}</div>)}</div>;
-  const go = (d) => { const el = ref.current; if (!el) return; const c = el.firstElementChild; el.scrollBy({ left: d * ((c?.offsetWidth || el.clientWidth) + 24), behavior: 'smooth' }); };
-  // Always show a part of the next card, so it is clear the row slides, even with only 3 cards.
-  const w = { 1: 'basis-full', 2: 'basis-[88%] md:basis-[calc((100%-0.75rem)/1.5)]', 3: 'basis-[86%] md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-2.25rem)/2.5)]', 4: 'basis-[86%] md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-3.75rem)/3.5)]' }[cols] || 'basis-full';
-  return (
-    <div className="relative" role="region" aria-roledescription="carousel" aria-label="Cards">
-      <div ref={ref} className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-1 pb-2" style={{ scrollbarWidth: 'none' }}>
-        {items.map((it, i) => <div key={i} className={cn('shrink-0 snap-start', w)}>{render(it, i)}</div>)}
-      </div>
-      {pages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex gap-1.5" aria-hidden>{Array.from({ length: pages }).map((_, i) => <span key={i} className={cn('h-1.5 rounded-full transition-all', i === page ? 'w-6 bg-signal' : 'w-1.5 bg-line')} />)}</div>
-          <div className="flex gap-2">
-            <button type="button" aria-label="Previous cards" onClick={() => go(-1)} className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink transition hover:bg-raised"><ChevronLeft size={18} /></button>
-            <button type="button" aria-label="Next cards" onClick={() => go(1)} className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink transition hover:bg-raised"><ChevronRight size={18} /></button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <CardLayout layout={cfg.layout} columns={cfg.columns} autoplay={cfg.autoplay} interval={cfg.interval}>{items.map((it, i) => <div key={i} data-reveal className="h-full">{render(it, i)}</div>)}</CardLayout>;
 }

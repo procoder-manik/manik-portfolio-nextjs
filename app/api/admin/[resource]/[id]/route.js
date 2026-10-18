@@ -3,6 +3,7 @@ import { refreshContent } from '@/lib/revalidate';
 import { sendOrderEmail } from '@/lib/notifications';
 import { touchContact } from '@/lib/crm';
 import { rewardOrder, unwindOrder } from '@/lib/referrals';
+import { activateSubscription } from '@/lib/subscriptions';
 import { dbConnect, hasDB } from '@/lib/db';
 import { MODELS, Redirect } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
@@ -46,7 +47,20 @@ export const PUT = adminRoute(async (req, { params }) => {
     body.history = [...(prev.history || []), { status: body.status, at: new Date(), note: 'Updated by admin' }];
     if (body.status === 'paid' && !prev.payment?.paidAt) body['payment.paidAt'] = new Date();
   }
-  const item = await M.findByIdAndUpdate(params.id, body, { new: true, runValidators: true }).lean();
+  // Subscription dates typed on the order screen: { startsAt, endsAt, action: 'cancel' | 'switchOn' }
+  if (params.resource === 'orders' && body.subscriptionEdit) {
+    const e = body.subscriptionEdit; delete body.subscriptionEdit;
+    const ps = prev.subscription || {}; const paid = ['paid', 'in_progress', 'completed'].includes(body.status || prev.status);
+    if (e.startsAt !== undefined) body['subscription.startsAt'] = e.startsAt ? new Date(e.startsAt) : null;
+    if (e.endsAt !== undefined) body['subscription.endsAt'] = e.endsAt ? new Date(e.endsAt) : null;
+    if (!ps.period) body['subscription.period'] = prev.package?.billing === 'yearly' ? 'yearly' : 'monthly';
+    if (e.endsAt !== undefined) body['subscription.reminders'] = [];
+    const endsAt = e.endsAt !== undefined ? (e.endsAt ? new Date(e.endsAt) : null) : ps.endsAt ? new Date(ps.endsAt) : null;
+    if (e.action === 'cancel') body['subscription.status'] = 'cancelled';
+    else if (paid && endsAt) body['subscription.status'] = endsAt > new Date() ? 'active' : 'expired';
+    else if (!ps.status || ps.status === 'none') body['subscription.status'] = 'pending';
+  }
+  let item = await M.findByIdAndUpdate(params.id, body, { new: true, runValidators: true }).lean();
 
   // Slug changed on a published item: send the old address to the new one (Rank Math style).
   if (PUBLIC_PATH[params.resource] && prev.slug && item.slug && prev.slug !== item.slug && prev.published !== false) await autoRedirect(params.resource, prev.slug, item.slug);
@@ -56,7 +70,7 @@ export const PUT = adminRoute(async (req, { params }) => {
     const key = { paid: 'paid', in_progress: 'in_progress', completed: 'completed', cancelled: 'cancelled' }[item.status];
     if (key && body.notify !== false) mail = await sendOrderEmail(item, key);
     if (item.status === 'paid') await touchContact({ email: item.customer?.email, source: 'payment', spent: item.amount, activity: `Paid ${item.number}` });
-    if (['paid', 'in_progress', 'completed'].includes(item.status)) await rewardOrder(item);
+    if (['paid', 'in_progress', 'completed'].includes(item.status)) { await activateSubscription(item); await rewardOrder(item); item = await M.findById(params.id).lean(); }
     if (item.status === 'cancelled') await unwindOrder(item);
   }
   refreshContent();

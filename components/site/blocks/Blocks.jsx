@@ -7,7 +7,8 @@ import { renderMarkdown } from '@/lib/markdown';
 import { videoEmbed, cn } from '@/lib/utils';
 import ProjectCard from '../ProjectCard';
 import PostCard from '../PostCard';
-import PricingTabs, { PackageCard } from '../PricingTabs';
+import PricingTabs, { PackageGrid } from '../PricingTabs';
+import CardLayout from '../cards/CardLayout';
 import Faq from '../Faq';
 import Marquee from '../Marquee';
 import ContactForm from '../ContactForm';
@@ -96,19 +97,19 @@ async function Block({ b, first, ctx }) {
       const all = await getProjects(b.source === 'featured' ? { featured: true } : {});
       return wrap(<>
         <div className="mb-12 flex flex-wrap items-end justify-between gap-6"><Head heading={b.heading} intro={b.intro} /><Link href="/portfolio" className="btn-ghost mb-12">All projects <ArrowRight size={16} /></Link></div>
-        <div className="grid gap-x-8 gap-y-16 md:grid-cols-2 xl:grid-cols-3">{all.slice(0, b.count || 3).map((p) => <ProjectCard key={p.slug} project={p} />)}</div></>);
+        <CardLayout layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} label="Projects">{all.slice(0, b.count || 3).map((p) => <ProjectCard key={p.slug} project={p} />)}</CardLayout></>);
     }
     case 'posts': {
       const posts = await getPosts({ category: b.category || undefined, kind: b.category ? undefined : 'article', limit: b.count || 3 });
-      return wrap(<><Head heading={b.heading} /><div className="grid gap-x-8 gap-y-14 md:grid-cols-3">{posts.map((p) => <PostCard key={p.slug} post={p} cats={ctx.catMap} />)}</div></>);
+      return wrap(<><Head heading={b.heading} /><CardLayout layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} label="Posts">{posts.map((p) => <PostCard key={p.slug} post={p} cats={ctx.catMap} />)}</CardLayout></>);
     }
     case 'pricing': {
       const svc = b.service ? ctx.services.filter((s) => s.slug === b.service) : ctx.services;
       return wrap(<>
         <Head heading={b.heading} intro={b.intro} />
         {b.service && svc[0]
-          ? <div className={cn('grid gap-5', svc[0].packages.length >= 4 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3')}>{svc[0].packages.map((p) => <PackageCard key={p.slug} p={p} />)}</div>
-          : <PricingTabs services={svc} compact />}</>);
+          ? <PackageGrid packages={svc[0].packages} lay={b} />
+          : <PricingTabs services={svc} compact lay={b} />}</>);
     }
     case 'caseStudies': {
       if (!caseStudiesOn(await getSettings('site'))) return null;
@@ -121,7 +122,7 @@ async function Block({ b, first, ctx }) {
       const items = b.useSite ? ctx.home.testimonials?.items || [] : b.items || [];
       return wrap(<>
         <Head heading={b.heading} />
-        <div className="grid gap-5 md:grid-cols-3">
+        <CardLayout layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} label="Reviews">
           {items.map((t, k) => (
             <figure key={k} className="card flex h-full flex-col p-7">
               <Quote size={24} className="text-signal" />
@@ -130,7 +131,7 @@ async function Block({ b, first, ctx }) {
               <figcaption className="mt-7 flex items-center gap-3 border-t border-line pt-5">{t.avatar && <img src={t.avatar} alt="" className="h-10 w-10 rounded-full" loading="lazy" />}<span><span className="block font-semibold text-ink">{t.name}</span><span className="text-sm text-muted">{t.source}</span></span></figcaption>
             </figure>
           ))}
-        </div></>);
+        </CardLayout></>);
     }
     case 'logos':
       return wrap(<>{b.heading && <p className="mb-8 text-center text-sm text-muted">{b.heading}</p>}

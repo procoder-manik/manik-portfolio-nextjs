@@ -103,11 +103,12 @@ export default async function AccountOrder(props) {
           <section className="card p-6">
             <h2 className="text-lg font-semibold">Summary</h2>
             <dl className="mt-4 space-y-3 text-[0.95rem]">
-              {[['Package', o.package?.name], ['Billing', BILLING[o.package?.billing] || o.package?.billing], ...(o.discount > 0 || o.creditUsed > 0 ? [['Price', money(o.subtotal, o.currency)]] : []), ...(o.discount > 0 ? [[`Coupon ${o.coupon?.code || ''}`, `-${money(o.discount, o.currency)}`]] : []), ...(o.creditUsed > 0 ? [['Referral credit', `-${money(o.creditUsed, o.currency)}`]] : []), ['Amount', money(o.amount, o.currency)], ['Payment', m?.name || o.method], ['Paid', dt(o.payment?.paidAt)], ['Invoice', o.invoiceNumber]].filter(([, v]) => v).map(([k, v]) => (
+              {[['Package', o.package?.name], ['Billing', BILLING[o.package?.billing] || o.package?.billing], ...(o.subscription?.endsAt ? [['Plan starts', dt(o.subscription.startsAt)], ['Plan ends', dt(o.subscription.endsAt)], ['Plan status', { active: 'Active', expired: 'Ended, switched off', renewed: 'Renewed', cancelled: 'Cancelled', pending: 'Starts when paid' }[o.subscription.status] || '']] : []), ...(o.discount > 0 || o.creditUsed > 0 ? [['Price', money(o.subtotal, o.currency)]] : []), ...(o.discount > 0 ? [[`Coupon ${o.coupon?.code || ''}`, `-${money(o.discount, o.currency)}`]] : []), ...(o.creditUsed > 0 ? [['Referral credit', `-${money(o.creditUsed, o.currency)}`]] : []), ['Amount', money(o.amount, o.currency)], ['Payment', m?.name || o.method], ['Paid', dt(o.payment?.paidAt)], ['Invoice', o.invoiceNumber]].filter(([, v]) => v).map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4"><dt className="text-muted">{k}</dt><dd className="text-right font-medium text-ink">{v}</dd></div>
               ))}
             </dl>
             <a href={`/invoice/${o.number}?t=${o.token}`} target="_blank" rel="noopener noreferrer" className="btn-ghost btn-sm mt-6 w-full"><FileText size={14} />View invoice</a>
+            {['expired', 'active'].includes(o.subscription?.status) && o.package?.slug && <Link href={`/checkout/${o.package.slug}?period=${o.subscription.period === 'yearly' ? 'yearly' : 'monthly'}`} className="btn-primary btn-sm mt-3 w-full">{o.subscription.status === 'expired' ? 'Renew and switch back on' : 'Renew early'}</Link>}
           </section>
           {o.requirements && <section className="card p-6"><h2 className="text-lg font-semibold">Your brief</h2><p className="mt-3 whitespace-pre-wrap text-sm text-body">{o.requirements}</p></section>}
           <section className="card p-6">

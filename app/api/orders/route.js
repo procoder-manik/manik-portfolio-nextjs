@@ -17,6 +17,7 @@ import { Customer } from '@/lib/models';
 import { checkCoupon, redeemCoupon, releaseCoupon, round2 } from '@/lib/coupons';
 import { attribute, refSettings } from '@/lib/referrals';
 import { markPaid } from '@/lib/orders';
+import { priceFor, periodOf, isRecurring } from '@/lib/plans';
 
 export async function POST(req) {
   try { return await create(req); }
@@ -41,10 +42,12 @@ async function create(req) {
   const r = await refSettings();
 
   // Coupon (validated again here; the price always comes from the package)
-  const price = round2(pkg.price);
+  // Monthly or yearly: the price always comes from the package, never from the browser
+  const period = periodOf(pkg, b.period); const unit = priceFor(pkg, period);
+  const price = round2(unit);
   let discount = 0; let coupon = null;
   if (b.coupon && r.coupons?.enabled !== false) {
-    const chk = await checkCoupon({ code: b.coupon, pkg, email, customer: me });
+    const chk = await checkCoupon({ code: b.coupon, pkg: { ...pkg, price: unit }, email, customer: me });
     if (!chk.ok) return NextResponse.json({ error: chk.error, field: 'coupon' }, { status: 400 });
     if (!(await redeemCoupon(chk.coupon.code))) return NextResponse.json({ error: 'That coupon was just used up. Remove it and try again.', field: 'coupon' }, { status: 400 });
     coupon = { code: chk.coupon.code, type: chk.coupon.type, value: chk.coupon.value }; discount = chk.discount;
@@ -65,10 +68,11 @@ async function create(req) {
   try {
     order = await Order.create({
       number: newOrderNumber(), token: newToken(), customerId: me?._id,
-      package: { slug: pkg.slug, name: pkg.name, service: pkg.service, price: pkg.price, priceMax: pkg.priceMax, billing: pkg.billing, currency: pkg.currency, deliveryDays: pkg.deliveryDays },
+      package: { slug: pkg.slug, name: pkg.name, service: pkg.service, price: unit, priceMax: pkg.priceMax, billing: period, choice: pkg.monthlyYearly === true, currency: pkg.currency, deliveryDays: pkg.deliveryDays },
       subtotal: price, discount, creditUsed, coupon: coupon || undefined, referral: referral || undefined,
       amount, currency: pkg.currency || 'USD',
       invoiceNumber: undefined,
+      subscription: isRecurring(period) ? { period, status: 'pending' } : undefined,
       customer: { name: c.name.trim().slice(0, 100), email, phone: c.phone?.slice(0, 40), company: c.company?.slice(0, 120), country: c.country?.slice(0, 60) },
       requirements: (b.requirements || '').slice(0, 5000), method: method.id, status: 'pending_payment',
       payment: { provider: method.id, amountLocal: method.local && pkg.currency !== 'BDT' ? Math.ceil(amount * (pay.bdtRate || 120)) : amount },

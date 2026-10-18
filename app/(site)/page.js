@@ -16,6 +16,7 @@ import Marquee from '@/components/site/Marquee';
 import Faq from '@/components/site/Faq';
 import PostCard from '@/components/site/PostCard';
 import PricingTabs from '@/components/site/PricingTabs';
+import CardLayout from '@/components/site/cards/CardLayout';
 import Reveal from '@/components/site/Reveal';
 import SplitText from '@/components/site/SplitText';
 import JsonLd from '@/components/site/JsonLd';
@@ -142,9 +143,9 @@ export default async function Home() {
             <SectionHead title={home.work.heading} intro={home.work.intro}>
               <Link href="/portfolio" className="btn-ghost">View all projects <ArrowRight size={16} /></Link>
             </SectionHead>
-            <div className="grid gap-x-8 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
+            <CardLayout layout={home.work.layout || 'grid'} columns={home.work.columns || 3} autoplay={home.work.autoplay} interval={home.work.interval} label="Projects">
               {work.map((p, i) => <ProjectCard key={p.slug} project={p} priority={i < 3} />)}
-            </div>
+            </CardLayout>
             <div className="mt-16 flex justify-center"><Link href="/portfolio" className="btn-primary">View more projects <ArrowRight size={16} /></Link></div>
           </div>
         </section>
@@ -211,7 +212,7 @@ export default async function Home() {
             <SectionHead title={home.pricing.heading} intro={home.pricing.intro}>
               <Link href="/pricing" className="btn-ghost">Full pricing <ArrowRight size={16} /></Link>
             </SectionHead>
-            <PricingTabs services={services} compact />
+            <PricingTabs services={services} compact lay={home.pricing || {}} />
           </div>
         </section>
       )}
@@ -221,7 +222,7 @@ export default async function Home() {
         <section className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.testimonials.heading} />
-            <div className="grid gap-5 md:grid-cols-3">
+            <CardLayout layout={home.testimonials.layout || 'grid'} columns={home.testimonials.columns || 3} autoplay={home.testimonials.autoplay} interval={home.testimonials.interval} label="Reviews">
               {(home.testimonials.items || []).map((t, i) => (
                 <figure key={i} className="card flex h-full flex-col p-7">
                     <Quote size={24} className="text-signal" />
@@ -233,7 +234,7 @@ export default async function Home() {
                     </figcaption>
                 </figure>
               ))}
-            </div>
+            </CardLayout>
             {home.testimonials.logos?.length > 0 && (
               <Marquee className="mt-16">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
