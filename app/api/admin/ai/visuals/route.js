@@ -3,6 +3,7 @@ import { adminRoute as guard } from '@/lib/server-auth';
 import { askAIx, parseJson, aiConfig } from '@/lib/ai';
 import { visualPrompts } from '@/lib/ai-writer';
 import { getSettingsFresh } from '@/lib/data';
+import { normalizeImages, str } from '@/lib/plan-normalize';
 const adminRoute = (h) => guard(h, 'blog');
 export const maxDuration = 60;
 
@@ -20,6 +21,6 @@ export const POST = adminRoute(async (req) => {
   }
   if (!out) throw Object.assign(new Error('The image plan did not come back. Press Make image prompts again.'), { status: 502 });
   const n = plan.outline.length;
-  const images = out.images.slice(0, 10).map((x, i) => ({ ...x, slot: i + 1, role: i === 0 ? 'featured' : ['inline', 'infographic', 'chart', 'table'].includes(x.role) ? x.role : 'inline', after: Math.max(0, Math.min(n, Number(x.after) || 0)), textOnImage: Array.isArray(x.textOnImage) ? x.textOnImage : [] }));
-  return NextResponse.json({ images, summary: out.summary || '', via });
+  const images = normalizeImages(out.images, plan.outline.length);
+  return NextResponse.json({ images, summary: str(out.summary), via });
 });

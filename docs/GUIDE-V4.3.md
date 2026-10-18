@@ -55,7 +55,8 @@ Leave "Which AI writes your posts" on **Automatic (free, with backup)**.
    - **Title (H1)**, **meta title**, **meta description** with live length meters and a Google preview, and a **suggested URL slug** (always in English letters, even for Bengali posts).
    - The full article, with H2/H3 headings, FAQ (also saved as FAQ schema), internal links to your own posts, category and tags.
    - **Content score 0 to 100** in the right column (keyword targeting, depth, structure, readability, media and links, human voice), updated live as you edit. The buttons **Make it more human** and **Add missing keywords** improve it section by section.
-7. Open the **Images** tab (see below), then **Save as draft** or **Publish now**.
+7. If the AI stops part-way (busy, limit), a red box appears **above the article** with the reason and a **Continue writing** button. It carries on from the section where it stopped, nothing is lost. The same button appears if you press Stop. The plan always uses your keywords, the questions found in keyword research, the FAQ and the outline.
+8. Open the **Images** tab (see below), then **Save as draft** or **Publish now**.
 
 ## 4. Images, infographics, charts and tables
 
@@ -81,6 +82,10 @@ Honest note: no tool can guarantee that a detector will never flag text. This se
 Bengali posts use separate rules (natural everyday Bangla, common English tech words kept in English letters, no word-by-word translation feel). Review a Bengali post before publishing; free models are good but not perfect in Bengali.
 
 ## 6. Free limits to know about
+
+- **Model names are found automatically.** Free providers rename and retire models often, so the writer asks each provider for its live model list (cached for 30 minutes) and tries the best ones first. The names in the settings are only a backup.
+- **"High demand" from Gemini** is a temporary busy signal from Google, not a problem with your key. The writer tries other models and providers and retries by itself.
+- If you see an error naming every provider, open Settings > API keys and press **Test** on each key. A failed test now lists exactly what each provider answered, line by line.
 
 - Free plans limit requests per minute and per day. A full post is about 10 to 14 requests. With one key, a long post may pause for a minute; with two or three keys it usually does not.
 - Free model names change from time to time. If a model disappears, the next one is tried automatically. You can edit the model lists in **AI writer > Settings > Advanced**.

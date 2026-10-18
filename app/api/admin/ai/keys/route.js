@@ -27,5 +27,5 @@ export const POST = adminRoute(async (req) => {
   try {
     const r = await askAIx({ system: 'Reply with the single word OK.', user: 'Say OK.', maxTokens: 12, temperature: 0, cfg: { chain: [p], models: { [p]: MODELS[p] } }, budgetMs: 22000 });
     return NextResponse.json({ ok: true, message: `Works. Answered by ${r.via}.` });
-  } catch (e) { return NextResponse.json({ ok: false, message: e.message }); }
+  } catch (e) { return NextResponse.json({ ok: false, message: e.message, details: e.attempts || [] }); }
 });

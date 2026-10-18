@@ -47,7 +47,7 @@ export default function ContentScore({ r, busy, onHumanize, onFixSeo, canFix }) 
       )}
       {(r.missingSecondary.length > 0 || r.missingTerms.length > 0) && (
         <div className="mt-4"><p className="mb-1.5 text-xs font-medium text-muted">Not used yet</p>
-          <div className="flex flex-wrap gap-1.5">{[...r.missingSecondary.map((k) => [k, true]), ...r.missingTerms.slice(0, 12).map((k) => [k, false])].map(([k, s]) => <span key={k} className={cn('rounded-full px-2.5 py-1 text-xs', s ? 'bg-amber/15 text-amber' : 'bg-raised text-body')}>{k}</span>)}</div></div>
+          <div className="flex flex-wrap gap-1.5">{[...r.missingSecondary.map((k) => [String(k), true]), ...r.missingTerms.slice(0, 12).map((k) => [String(k), false])].map(([k, s], i) => <span key={`${i}-${k}`} className={cn('rounded-full px-2.5 py-1 text-xs', s ? 'bg-amber/15 text-amber' : 'bg-raised text-body')}>{k}</span>)}</div></div>
       )}
     </div>
   );

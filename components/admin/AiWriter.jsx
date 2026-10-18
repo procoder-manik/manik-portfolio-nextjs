@@ -32,7 +32,7 @@ export default function AiWriter() {
   const [brief, setBrief] = useState(BRIEF); const [cfg, setCfg] = useState(null);
   const [kw, setKw] = useState(null); const [kwBusy, setKwBusy] = useState(false);
   const [post, setPost] = useState(null); const [tab, setTab] = useState('article'); const [gen, setGen] = useState(null); const [busy, setBusy] = useState(''); const [err, setErr] = useState('');
-  const [status, setStatus] = useState(null); const [vis, setVis] = useState({ busy: false, summary: '' }); const [via, setVia] = useState('');
+  const [genErr, setGenErr] = useState(''); const [progress, setProgress] = useState({ done: 0, total: 0 }); const piecesRef = useRef([]); const imagesRef = useRef([]); const [status, setStatus] = useState(null); const [vis, setVis] = useState({ busy: false, summary: '' }); const [via, setVia] = useState('');
   const [cats, setCats] = useState([]); const [saved, setSaved] = useState(null); const [copied, setCopied] = useState(''); const stop = useRef(false);
   const top = useRef(null);
 
@@ -95,29 +95,48 @@ export default function AiWriter() {
     } catch (e) { setVis({ busy: false, summary: '' }); setErr(`Image prompts: ${e.message}`); return []; }
   }
 
+  /* Writes the article from the plan, one part at a time. It can start from the beginning or carry on after a failure. */
+  async function runArticle(plan, images, startPieces = []) {
+    const n = plan.outline.length; const total = n + 2; const pieces = [...startPieces];
+    piecesRef.current = pieces; imagesRef.current = images; setGenErr('');
+    const one = async (kind, index, label) => {
+      setGen({ msg: label, pct: 10 + (pieces.length / total) * 88 });
+      const j = await callRetry('/api/admin/ai/section', { plan, kind, index, tail: pieces.join('\n\n'), brief }, label);
+      pieces.push(j.markdown); piecesRef.current = pieces; if (j.via) setVia(j.via);
+      setProgress({ done: pieces.length, total });
+      setPost((x) => ({ ...x, content: assemble(pieces.length > 1 ? [...pieces] : [...pieces, ''], images).replace(/\n\n$/, '') }));
+    };
+    setProgress({ done: pieces.length, total });
+    try {
+      while (pieces.length < total && !stop.current) {
+        const k = pieces.length;
+        if (k === 0) await one('intro', 0, 'Writing the introduction');
+        else if (k <= n) await one('section', k - 1, `Writing section ${k} of ${n}: ${plan.outline[k - 1].h2}`);
+        else await one('faq', 0, 'Writing the FAQ');
+      }
+      if (pieces.length >= total) setPost((x) => ({ ...x, content: assemble(pieces, images) }));
+    } catch (e) { setGenErr(`${e.message} Your progress is kept. Press Continue writing to carry on from where it stopped.`); }
+    setGen(null);
+  }
+
   async function generate() {
     if (brief.topic.trim().length < 3) { setErr('Type a topic first.'); return; }
-    stop.current = false; setErr(''); setSaved(null); setVis({ busy: false, summary: '' }); setGen({ msg: 'Planning the post: title, meta, URL, outline and FAQ', pct: 4 });
+    stop.current = false; setErr(''); setGenErr(''); setSaved(null); piecesRef.current = []; imagesRef.current = []; setProgress({ done: 0, total: 0 }); setVis({ busy: false, summary: '' }); setGen({ msg: 'Planning the post: title, meta, URL, outline and FAQ', pct: 4 });
     try {
-      const { plan, via: v } = await callRetry('/api/admin/ai/plan', brief, 'Plan'); setVia(v || '');
+      const { plan, via: v } = await callRetry('/api/admin/ai/plan', { ...brief, questions: [...(kw?.questions || []), ...(kw?.ai?.questions || [])].slice(0, 12) }, 'Plan'); setVia(v || '');
       const existing = cats.find((c) => c.name.toLowerCase() === String(plan.category || '').toLowerCase());
       const p = { title: plan.title, metaTitle: plan.metaTitle, metaDescription: plan.metaDescription, slug: plan.slug, category: existing?.name || plan.category || '', excerpt: plan.excerpt, tags: plan.tags || [], primary: plan.primaryKeyword, secondary: plan.secondaryKeywords || [], terms: plan.terms || [], images: [], faq: plan.faq || [], outline: plan.outline, cta: plan.cta, angle: plan.angle, content: '', plan };
       setPost(p); setTab('article'); setTimeout(() => top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       setGen({ msg: 'Planning the images, infographics, charts and tables', pct: 8 });
       const images = await makeVisuals(plan);
-      const total = plan.outline.length + 2; const pieces = [];
-      const call = async (kind, index, n) => {
-        const label = kind === 'intro' ? 'Writing the introduction' : kind === 'faq' ? 'Writing the FAQ' : `Writing section ${index + 1} of ${plan.outline.length}: ${plan.outline[index].h2}`;
-        setGen({ msg: label, pct: 10 + (n / total) * 88 });
-        const j = await callRetry('/api/admin/ai/section', { plan, kind, index, tail: pieces.join('\n\n'), brief }, label); pieces.push(j.markdown); if (j.via) setVia(j.via);
-        setPost((x) => ({ ...x, content: assemble(pieces.length > 1 ? [...pieces] : [...pieces, ''], images).replace(/\n\n$/, '') }));
-      };
-      await call('intro', 0, 0);
-      for (let i = 0; i < plan.outline.length; i++) { if (stop.current) break; await call('section', i, i + 1); }
-      if (!stop.current) await call('faq', 0, plan.outline.length + 1);
-      setPost((x) => ({ ...x, content: assemble(pieces, images) }));
-    } catch (e) { setErr(`${e.message} Your progress so far is kept below.`); }
-    setGen(null);
+      await runArticle(plan, images, []);
+    } catch (e) { setGen(null); setErr(e.message); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  }
+
+  async function continueWriting() {
+    if (!post?.plan) return;
+    stop.current = false; setErr('');
+    await runArticle(post.plan, imagesRef.current.length ? imagesRef.current : post.images, piecesRef.current);
   }
 
   async function fixAll(mode) {
@@ -196,13 +215,15 @@ export default function AiWriter() {
 
           {post && (
             <div ref={top} className="scroll-mt-6">
+              {genErr && <div className="mb-4 rounded-xl border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-body"><p className="flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-bad" /><span>{genErr}</span></p><button onClick={continueWriting} disabled={!!gen} className="btn-primary btn-sm mt-3"><Sparkles size={14} />Continue writing</button></div>}
+              {!genErr && !gen && post.plan && progress.total > 0 && progress.done < progress.total && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-body"><span>The article is {progress.done} of {progress.total} parts written.</span><button onClick={continueWriting} className="btn-primary btn-sm"><Sparkles size={14} />Continue writing</button></div>}
               <div className="mb-4 flex flex-wrap items-center gap-1 border-b border-line">
                 {TABS.map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={cn('-mb-px border-b-2 px-3.5 py-2.5 text-sm font-medium transition', tab === k ? 'border-signal text-ink' : 'border-transparent text-muted hover:text-ink')}>{l}</button>)}
                 <span className="ml-auto flex gap-2 pb-1.5"><button onClick={() => save(false)} disabled={busy === 'save' || !!gen || !post.content} className="btn-ghost btn-sm">{busy === 'save' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}Save as draft</button><button onClick={() => save(true)} disabled={busy === 'save' || !!gen || !post.content} className="btn-primary btn-sm"><Rocket size={14} />Publish now</button></span>
               </div>
 
               {tab === 'article' && (
-                <div className="space-y-3"><h2 className="font-display text-2xl font-bold text-ink">{post.title}</h2><Markdown value={post.content} onChange={(v) => set({ content: v })} /><p className="text-xs text-muted">The post title is the H1 on your site, so the text starts at H2. Image slots look like ![alt](#image-2): add the real pictures in the Images tab.</p></div>
+                <div className="space-y-3"><h2 className="font-display text-2xl font-bold text-ink">{post.title}</h2>{!post.content && !gen && <p className="rounded-xl border border-dashed border-line p-6 text-sm text-muted">The article is not written yet. Press <b>Continue writing</b> above. It writes every section from the outline, keywords, questions and FAQ.</p>}<Markdown value={post.content} onChange={(v) => set({ content: v })} /><p className="text-xs text-muted">The post title is the H1 on your site, so the text starts at H2. Image slots look like ![alt](#image-2): add the real pictures in the Images tab.</p></div>
               )}
 
               {tab === 'seo' && (
@@ -254,9 +275,9 @@ export default function AiWriter() {
               {tab === 'plan' && (
                 <div className="space-y-5">
                   {post.angle && <p className="rounded-xl border border-line bg-surface p-4 text-sm text-body"><b className="text-ink">Angle:</b> {post.angle}</p>}
-                  <div className="rounded-2xl border border-line bg-surface p-5"><h3 className="mb-3 font-semibold text-ink">Outline</h3><ol className="space-y-3">{(post.outline || []).map((s, i) => <li key={i}><p className="font-medium text-ink">H2: {s.h2} <span className="text-xs font-normal text-muted">about {s.words} words</span></p>{s.h3?.length > 0 && <ul className="ml-4 mt-1 list-disc text-sm text-body">{s.h3.map((h) => <li key={h}>H3: {h}</li>)}</ul>}</li>)}</ol></div>
+                  <div className="rounded-2xl border border-line bg-surface p-5"><h3 className="mb-3 font-semibold text-ink">Outline</h3><ol className="space-y-3">{(post.outline || []).map((s, i) => <li key={i}><p className="font-medium text-ink">H2: {s.h2} <span className="text-xs font-normal text-muted">about {s.words} words</span></p>{s.h3?.length > 0 && <ul className="ml-4 mt-1 list-disc text-sm text-body">{s.h3.map((h, i) => <li key={`${i}-${h}`}>H3: {h}</li>)}</ul>}</li>)}</ol></div>
                   <div className="rounded-2xl border border-line bg-surface p-5"><h3 className="mb-3 font-semibold text-ink">FAQ (also added to the post as FAQ schema)</h3><ul className="space-y-3">{(post.faq || []).map((f, i) => <li key={i}><p className="font-medium text-ink">{f.q}</p><p className="text-sm text-body">{f.a}</p></li>)}</ul></div>
-                  <div className="rounded-2xl border border-line bg-surface p-5"><h3 className="mb-3 font-semibold text-ink">Related terms to cover</h3><div className="flex flex-wrap gap-1.5">{(post.terms || []).map((t) => <span key={t.term} className="rounded-full bg-raised px-2.5 py-1 text-xs text-body">{t.term}</span>)}</div></div>
+                  <div className="rounded-2xl border border-line bg-surface p-5"><h3 className="mb-3 font-semibold text-ink">Related terms to cover</h3><div className="flex flex-wrap gap-1.5">{(post.terms || []).map((t, i) => <span key={`${i}-${t.term}`} className="rounded-full bg-raised px-2.5 py-1 text-xs text-body">{t.term}</span>)}</div></div>
                 </div>
               )}
             </div>
@@ -281,12 +302,12 @@ function KeywordPanel({ kw, brief, onPick }) {
       <p className="text-xs text-muted">Primary and secondary keywords were filled in for you below. Click any suggestion to add or remove it as a secondary keyword. The small <b>Set as primary</b> buttons change the main one.</p>
       {kw.picked && <div className="rounded-lg bg-signal/10 p-3 text-sm"><p><b className="text-ink">Primary:</b> {kw.picked.primary}</p><p className="mt-1 text-body"><b className="text-ink">Secondary:</b> {kw.picked.secondary.join(', ') || 'none found'}</p></div>}
       {ai?.primary?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Primary keyword ideas <span className="font-normal">(AI estimate)</span></p><div className="space-y-2">{ai.primary.map((p) => <div key={p.keyword} className="flex flex-wrap items-center gap-2 text-sm"><button type="button" onClick={() => onPick(p.keyword, true)} className={cn('rounded-full border px-3 py-1.5 font-medium', brief.primary === p.keyword ? 'border-signal bg-signal text-white' : 'border-line text-ink hover:border-signal')}>Set as primary: {p.keyword}</button><span className="text-xs text-muted">{p.intent}, {p.competition} competition. {p.why}</span></div>)}</div></div>}
-      {kw.semrush?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Semrush <span className="font-normal">(optional paid data: real volume and difficulty)</span></p><div className="flex flex-wrap gap-1.5">{kw.semrush.map((s) => chip(s.keyword, <span className="ml-1.5 text-[11px] opacity-70">{s.volume.toLocaleString()} / KD {s.difficulty}</span>))}</div></div>}
+      {kw.semrush?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Semrush <span className="font-normal">(optional paid data: real volume and difficulty)</span></p><div className="flex flex-wrap gap-1.5">{kw.semrush.filter((s, i, a) => a.findIndex((y) => y.keyword === s.keyword) === i).map((s) => chip(s.keyword, <span className="ml-1.5 text-[11px] opacity-70">{s.volume.toLocaleString()} / KD {s.difficulty}</span>))}</div></div>}
       {kw.free?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Search suggestions <span className="font-normal">(free: Google, Bing, DuckDuckGo, YouTube. The number shows how many engines suggest it)</span></p><div className="flex flex-wrap gap-1.5">{kw.free.slice(0, 30).map((x) => chip(x.keyword, x.sources > 1 ? <span className="ml-1.5 text-[11px] opacity-70">{x.sources}</span> : null))}</div></div>}
-      {kw.questions?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Questions people ask <span className="font-normal">(good for headings and the FAQ)</span></p><div className="flex flex-wrap gap-1.5">{kw.questions.map((k) => chip(k))}</div></div>}
-      {ai?.questions?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">More questions <span className="font-normal">(AI)</span></p><div className="flex flex-wrap gap-1.5">{ai.questions.map((k) => chip(k))}</div></div>}
-      {(ai?.secondary?.length > 0 || ai?.longTail?.length > 0) && <div><p className="mb-2 text-xs font-medium text-muted">Secondary and long-tail ideas <span className="font-normal">(AI estimate)</span></p><div className="flex flex-wrap gap-1.5">{[...(ai.secondary || []).map((x) => x.keyword || x), ...(ai.longTail || [])].map((k) => chip(k))}</div></div>}
-      {kw.related?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Related words to cover <span className="font-normal">(free, Datamuse)</span></p><div className="flex flex-wrap gap-1.5">{kw.related.map((k) => chip(k))}</div></div>}
+      {kw.questions?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Questions people ask <span className="font-normal">(good for headings and the FAQ)</span></p><div className="flex flex-wrap gap-1.5">{[...new Set(kw.questions)].map((k) => chip(k))}</div></div>}
+      {ai?.questions?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">More questions <span className="font-normal">(AI)</span></p><div className="flex flex-wrap gap-1.5">{[...new Set(ai.questions.map((x) => String(x || '').trim()).filter(Boolean))].map((k) => chip(k))}</div></div>}
+      {(ai?.secondary?.length > 0 || ai?.longTail?.length > 0) && <div><p className="mb-2 text-xs font-medium text-muted">Secondary and long-tail ideas <span className="font-normal">(AI estimate)</span></p><div className="flex flex-wrap gap-1.5">{[...new Set([...(ai.secondary || []).map((x) => (typeof x === 'string' ? x : x?.keyword)), ...(ai.longTail || [])].map((x) => String(x || '').trim()).filter(Boolean))].map((k) => chip(k))}</div></div>}
+      {kw.related?.length > 0 && <div><p className="mb-2 text-xs font-medium text-muted">Related words to cover <span className="font-normal">(free, Datamuse)</span></p><div className="flex flex-wrap gap-1.5">{[...new Set(kw.related)].map((k) => chip(k))}</div></div>}
       {kw.notes?.length > 0 && <ul className="space-y-1 text-xs text-muted">{kw.notes.map((n) => <li key={n}>{n}</li>)}</ul>}
     </div>
   );

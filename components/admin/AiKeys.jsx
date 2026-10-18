@@ -16,7 +16,7 @@ const ROWS = [
 export default function AiKeys() {
   const [st, setSt] = useState(null); const [val, setVal] = useState({}); const [busy, setBusy] = useState(''); const [msg, setMsg] = useState({}); const [err, setErr] = useState('');
   useEffect(() => { api('/api/admin/ai/keys').then((j) => setSt(j.keys)).catch((e) => setErr(e.message)); }, []);
-  const say = (n, t, ok) => setMsg((m) => ({ ...m, [n]: { t, ok } }));
+  const say = (n, t, ok, details) => setMsg((m) => ({ ...m, [n]: { t, ok, details } }));
   const save = async (n) => {
     setBusy(`s${n}`); say(n, '');
     try { const j = await api('/api/admin/ai/keys', { method: 'PUT', body: { name: n, value: val[n] } }); setSt(j.keys); setVal((v) => ({ ...v, [n]: '' })); say(n, 'Saved. Testing...', true); await test(n, true); }
@@ -25,7 +25,7 @@ export default function AiKeys() {
   };
   const test = async (n, quiet) => {
     if (!quiet) setBusy(`t${n}`);
-    try { const j = await api('/api/admin/ai/keys', { method: 'POST', body: { name: n } }); say(n, j.message, j.ok); } catch (e) { say(n, e.message, false); }
+    try { const j = await api('/api/admin/ai/keys', { method: 'POST', body: { name: n } }); say(n, j.message, j.ok, j.details); } catch (e) { say(n, e.message, false); }
     if (!quiet) setBusy('');
   };
   const remove = async (n) => {
@@ -63,6 +63,7 @@ export default function AiKeys() {
                 {k.source === 'admin' && <button type="button" onClick={() => remove(r.name)} disabled={!!busy} className="btn-ghost btn-sm text-bad" aria-label="Remove saved key"><Trash2 size={14} /></button>}
               </div>
               {m?.t && <p className={`mt-2 text-xs ${m.ok ? 'text-good' : 'text-bad'}`}>{m.t}</p>}
+              {m?.details?.length > 0 && <div className="mt-2 rounded-lg bg-base/60 p-2.5 text-[11px] leading-relaxed text-muted"><p className="mb-1 font-medium text-body">What the provider answered (send this to support if it keeps failing):</p>{m.details.map((d, i) => <p key={i} className="break-words">{d}</p>)}</div>}
             </div>
           );
         })}

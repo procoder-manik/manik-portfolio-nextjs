@@ -8,6 +8,7 @@ import { getSettingsFresh } from '@/lib/data';
 import { rateLimit } from '@/lib/ratelimit';
 import { slugify } from '@/lib/utils';
 import { cleanText } from '@/lib/humanize';
+import { normalizePlan, str } from '@/lib/plan-normalize';
 const adminRoute = (h) => guard(h, 'blog');
 export const maxDuration = 60;
 
@@ -27,10 +28,12 @@ export const POST = adminRoute(async (req, ctx, admin) => {
     try { plan = parseJson(r.text); if (!plan.title || !Array.isArray(plan.outline) || !plan.outline.length) { lastErr = 'The plan was incomplete.'; plan = null; } } catch (e) { lastErr = e.message; plan = null; }
   }
   if (!plan) throw Object.assign(new Error(`${lastErr} Press the button again.`), { status: 502 });
+  plan = normalizePlan(plan);
+  if (!plan.title || !plan.outline.length) throw Object.assign(new Error('The plan was incomplete. Press the button again.'), { status: 502 });
   plan.title = cleanText(plan.title, b.language).replace(/\n/g, ' ');
   plan.slug = slugify(plan.slug || plan.title).slice(0, 70) || slugify(b.topic).slice(0, 70);
-  plan.primaryKeyword = plan.primaryKeyword || b.primary || '';
-  plan.secondaryKeywords = (plan.secondaryKeywords || b.secondary || []).slice(0, 12);
+  plan.primaryKeyword = plan.primaryKeyword || str(b.primary);
+  plan.secondaryKeywords = (plan.secondaryKeywords.length ? plan.secondaryKeywords : b.secondary || []).slice(0, 12);
   plan.metaTitle = String(plan.metaTitle || plan.title).slice(0, 70);
   plan.metaDescription = String(plan.metaDescription || plan.excerpt || '').slice(0, 170);
   return NextResponse.json({ plan, via, categories: categories.map((c) => c.name) });
