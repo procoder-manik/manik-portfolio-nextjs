@@ -6,7 +6,7 @@ Mongoose models in `lib/models/index.js` (field names found in each schema; see 
 
 ## Project
 
-`title, slug, client, industry, summary, content, liveUrl, bannerImage, scrollImage, useScrollAsBanner, scrollDirection, gallery, platformType, cms, technologies, services, duration, startDate, endDate, deliverables, metrics, value, label, video, provider, url, accent, featured, published, order`
+`title, slug, client, industry, summary, content, liveUrl, bannerImage, scrollImage, imageAlt, useScrollAsBanner, scrollDirection, gallery, platformType, cms, technologies, services, duration, startDate, endDate, deliverables, metrics, value, label, video, provider, url, accent, workStatus, aiMeta, featured, published, order`
 
 ## Post
 

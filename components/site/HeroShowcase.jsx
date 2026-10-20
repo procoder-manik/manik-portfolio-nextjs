@@ -35,7 +35,7 @@ export default function HeroShowcase({ projects = [] }) {
                 exit={{ opacity: 0, y: 60, scale: 1.02 }}
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 style={{ zIndex: 10 - depth, transformOrigin: '50% 0%' }}>
-                <ScrollShot key={`${p.slug}-${depth}`} src={p.scrollImage} alt={`${p.title} website`} url={p.liveUrl} accent={p.accent}
+                <ScrollShot key={`${p.slug}-${depth}`} src={p.scrollImage} alt={p.imageAlt || `${p.title} website`} url={p.liveUrl} accent={p.accent}
                   auto={depth === 0 && !reduce} speed={120} aspect="aspect-[16/12]" eager={depth === 0}
                   className="shadow-[0_50px_100px_-40px_rgba(0,0,0,.7)]" />
               </motion.div>

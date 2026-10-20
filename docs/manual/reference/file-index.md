@@ -45,6 +45,8 @@ The first comment of each source file, so you can find where something lives.
 | `plan-normalize.js` | Free AI models sometimes answer with the right idea in a slightly different shape (an object where a word was expected, a list instead of text). |
 | `plans.js` | Monthly / yearly plan maths, shared by the pricing cards, checkout, the order API and emails. |
 | `popups.js` | Popups: defaults, ready-made templates and the targeting rules. |
+| `project-ai-options.js` | Shared by the admin (the "Write with AI" window) and the server (the prompts). |
+| `project-ai.js` | Platform and tools, read from the page source (no AI needed). |
 | `ratelimit.js` | Fixed-window limiter. |
 | `redirects.js` | Redirect rules. |
 | `referrals.js` | Converts an order amount to the store currency (credit and payouts are kept in it). |
@@ -138,6 +140,7 @@ The first comment of each source file, so you can find where something lives.
 | `List.jsx` |  |
 | `NotFoundLog.jsx` |  |
 | `OrderPortal.jsx` | What the buyer sees in /account: progress, due date, updates and files. |
+| `ProjectAi.jsx` | ---------- helpers ---------- |
 | `SchemaPanel.jsx` | Shows the schema this page prints for Google, built from the form as it is now. |
 | `SeoOverview.jsx` | Every page on one screen: score, keyword, meta lengths, index state, schema and sitemap. |
 | `Sidebar.jsx` |  |

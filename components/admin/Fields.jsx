@@ -16,6 +16,7 @@ import { deepMerge } from '@/lib/utils';
 import PopupView from '@/components/site/PopupView';
 import Cards, { Card } from '@/components/site/cards/Cards';
 import { CARD_TEMPLATES, SAMPLE } from '@/lib/card-templates';
+import { BannerBox } from './ProjectAi';
 
 const optList = (o = []) => o.map((x) => (typeof x === 'string' ? { value: x, label: x } : x));
 
@@ -59,6 +60,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'popupPreview') return <PopupPreviewBox doc={doc || {}} />;
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
+  if (T === 'aiBanner') return <BannerBox doc={doc || {}} setDoc={setDoc} />;
   if (T === 'aiKeys') return <AiKeys />;
   if (T === 'schemaPanel') return <SchemaPanel doc={doc || {}} />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;

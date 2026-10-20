@@ -30,6 +30,9 @@
 | `/api/admin/ai/keywords` | POST | blog | POST { topic, audience, language } -> free search suggestions (Google, Bing, DuckDuckGo, YouTube), related words, AI ideas (free AI) and a ready pick of primary and seco... |
 | `/api/admin/ai/news` | GET | blog |  |
 | `/api/admin/ai/plan` | POST | blog | Step 1 of writing: title, meta, URL, category, keywords, outline, FAQ and related terms. (Image prompts come from /visuals.) |
+| `/api/admin/ai/project/research` | POST | content | Step 1 of "Write with AI" for a project: reads the live website (title, headings, text, platform). No AI, no key needed. |
+| `/api/admin/ai/project/visual` | POST | content | Step 2: the AI looks at the screenshot and returns colours, alt text and banner prompts. |
+| `/api/admin/ai/project/write` | POST | content | Step 3: writes the project (story, summary, deliverables, tags, meta title and description). |
 | `/api/admin/ai/rewrite` | POST | blog | Rewrites one section: more human, or with missing keywords and terms worked in. Keeps the meaning, headings and links. |
 | `/api/admin/ai/section` | POST | blog | Step 2: writes one part (intro, a section, or the FAQ) so each call stays short. Every part is cleaned for free (stock AI words swapped, long dashes removed). If it stil... |
 | `/api/admin/ai/status` | GET | blog | Which AI keys exist on the server (never the keys themselves). |

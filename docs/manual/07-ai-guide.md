@@ -5,6 +5,7 @@
 | Feature | Where | What it does |
 | --- | --- | --- |
 | AI writer | AI > AI writer | Plans and writes a full SEO blog post, with keyword research, meta, slug, FAQ, image prompts and a 0 to 100 score |
+| AI project writer | Portfolio > Add new (or Write with AI on a project) | Writes a portfolio project from the website, the kind of work and its stage: description, story, tags, meta title and description, alt text; banner prompts from your screenshot |
 | AI news | AI > AI news | Fresh story ideas from RSS feeds you choose; one click turns a story into a post topic |
 | AI IQ | AI > AI IQ | Teach the chatbot: generate answers, see unanswered questions, test the bot |
 | Taught answers | AI > Taught answers | The list of every answer (feeds the chatbot, FAQ and Help center) |
@@ -51,6 +52,15 @@ The **Images** tab says how many visuals to use and why. Image 1 is the featured
 ### Sounding human
 
 Every section is written under strict rules (concrete examples, varied sentence length, no stock AI phrases, no invented statistics or quotes). A free clean-up swaps stock AI words for plain ones and removes long dashes. With **Auto-polish** on, a section that still looks machine-made is rewritten once. No tool can promise that a detector will never flag text; adding your own notes and reading the post once before publishing is what works best. Bengali posts use separate rules; review them before publishing.
+
+## Portfolio projects
+
+A new project opens with a short form: website name and address, what you did (new build, redesign, new pages, maintenance, store, speed, SEO, local SEO, migration, fixes, custom features), where the work is now (finished, still building, ongoing care), the full-page screenshot and optional notes. Then three steps run: the live website is read (no AI, also detects WordPress, Elementor, Shopify, Webflow, Next.js and more), the screenshot is read by an AI that can see images (colours, alt text, banner prompts), and the project is written. Nothing is saved until you press Create.
+
+- Numbers and results come only from your notes. Anything the AI adds that is not there is dropped.
+- On a saved project, **Write with AI** can fill only empty fields or replace everything; the slug never changes.
+- **Images > Banner prompts from your screenshot** gives three prompts for a 1600 x 840 banner (attach the screenshot in ChatGPT or Nano Banana) and an upload slot for the finished banner.
+- Full how-to: `docs/GUIDE-V4.8.md`.
 
 ## AI IQ and the chatbot
 

@@ -2,7 +2,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Loader2, Save, Trash2, CheckCircle2, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Loader2, Save, Trash2, CheckCircle2, AlertTriangle, RotateCcw, Sparkles, X } from 'lucide-react';
+import { ProjectAiWizard } from './ProjectAi';
 import { DeleteDialog } from './Dialog';
 import { STATUS, TRASHABLE } from '@/lib/trash';
 import { FieldList, InfoScope } from './Fields';
@@ -25,6 +26,9 @@ export default function Editor({ resource, id, settingsKey }) {
   const [dirty, setDirty] = useState(false);
   const [tab, setTab] = useState(0);
   const [dlg, setDlg] = useState(false); const [trashDays, setTrashDays] = useState(30);
+  const aiProject = resource === 'projects' && !settingsKey;
+  const [aiOpen, setAiOpen] = useState(aiProject && isNew); // a new project starts by asking what kind of work it was
+  const [aiNote, setAiNote] = useState('');
   useEffect(() => { if (typeof window !== 'undefined' && window.location.hash === '#seo' && conf?.sections) { const i = conf.sections.findIndex((x) => x.title === 'SEO'); if (i >= 0) setTab(i); } }, [doc ? 1 : 0]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!settingsKey) api('/api/admin/settings/site').then((j) => setTrashDays(j.item?.features?.trashDays ?? 30)).catch(() => {}); }, [settingsKey]);
 
@@ -67,6 +71,7 @@ export default function Editor({ resource, id, settingsKey }) {
         </div>
         <div className="flex items-center gap-2">
           {status.t === 'ok' && <span className="inline-flex items-center gap-1.5 text-sm text-good"><CheckCircle2 size={15} />Saved</span>}
+          {aiProject && !readOnly && <button onClick={() => setAiOpen(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {preview && <a href={preview} target="_blank" className="btn-ghost btn-sm"><ExternalLink size={14} />View</a>}
           {!settingsKey && !isNew && <button onClick={() => setDlg(true)} className="btn-ghost btn-sm text-bad"><Trash2 size={14} />{doc.trashedAt ? 'Trash options' : 'Delete'}</button>}
           <button onClick={save} disabled={status.t === 'saving' || readOnly} className="btn-primary btn-sm">{status.t === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{isNew ? 'Create' : 'Save changes'}</button>
@@ -75,6 +80,7 @@ export default function Editor({ resource, id, settingsKey }) {
       {doc.trashedAt && <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-body"><span className="flex items-center gap-2"><AlertTriangle size={16} className="text-amber" />This {conf.singular} is in the Trash and hidden from your site.</span><button onClick={() => patch('restore')} className="btn-ghost btn-sm"><RotateCcw size={14} />Restore</button></div>}
       {readOnly && <Notice>Showing the built-in starter content. Connect MongoDB and run the seed script to edit and save.</Notice>}
       {status.t === 'err' && <Notice bad>{status.msg}</Notice>}
+      {aiNote && <p className="mb-6 flex items-start justify-between gap-3 rounded-xl border border-good/40 bg-good/10 px-4 py-3 text-sm text-body"><span className="flex items-start gap-2"><CheckCircle2 size={16} className="mt-0.5 shrink-0 text-good" />{aiNote}</span><button onClick={() => setAiNote('')} aria-label="Close" className="text-muted hover:text-ink"><X size={15} /></button></p>}
 
       {sections.length > 3 && (
         <div className="mb-6 flex gap-1 overflow-x-auto border-b border-line">
@@ -95,6 +101,7 @@ export default function Editor({ resource, id, settingsKey }) {
           {tab < sections.length - 1 ? <button onClick={() => setTab(tab + 1)} className="btn-ghost btn-sm">Next: {sections[tab + 1].title}</button> : <button onClick={save} className="btn-primary btn-sm"><Save size={14} />{isNew ? 'Create' : 'Save changes'}</button>}
         </div>
       )}
+      {aiProject && <ProjectAiWizard open={aiOpen} onClose={() => setAiOpen(false)} doc={doc} isNew={isNew} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Filled by AI${via ? ` (${via})` : ''}. Read each tab (Project, Images, What I did, SEO), change anything you like, then press ${isNew ? 'Create' : 'Save changes'}. Banner prompts are in the Images tab.`); }} />}
       {!settingsKey && <DeleteDialog open={dlg} onClose={() => setDlg(false)} name={title} singular={conf.singular} canDraft={!!STATUS[resource] && !doc.trashedAt} inTrash={!!doc.trashedAt} trashDays={trashDays}
         onTrash={() => (TRASHABLE.includes(resource) ? del('trash') : del('permanent'))} onDraft={() => patch('draft')} onRestore={() => patch('restore')} onPermanent={() => del('permanent')} />}
     </div>

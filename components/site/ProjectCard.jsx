@@ -14,7 +14,7 @@ export default function ProjectCard({ project: p, priority }) {
   return (
     <article className="group relative flex flex-col">
       <Link href={`/portfolio/${p.slug}`} className="block rounded-2xl" aria-label={`${p.title}: view project`}>
-        <ScrollShot src={img} alt={`${p.title} full-page screenshot`} url={p.liveUrl} direction={p.scrollDirection} accent={p.accent} eager={priority}
+        <ScrollShot src={img} alt={p.imageAlt || `${p.title} full-page screenshot`} url={p.liveUrl} direction={p.scrollDirection} accent={p.accent} eager={priority}
           className="transition-[transform,box-shadow,border-color] duration-500 ease-out group-hover:-translate-y-1 group-hover:border-ink/25 group-hover:shadow-[0_40px_80px_-40px_rgb(var(--signal)/.45)]" />
       </Link>
       <div className="mt-5 flex items-start justify-between gap-4">

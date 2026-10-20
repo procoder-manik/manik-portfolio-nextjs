@@ -9,6 +9,7 @@ import JsonLd from '@/components/site/JsonLd';
 import { renderMarkdown } from '@/lib/markdown';
 import { buildGraph, crumbs, projectNode } from '@/lib/schema';
 import { fmtDate, projectDuration, videoEmbed, hostOf } from '@/lib/utils';
+import { statusLabel } from '@/lib/project-ai-options';
 
 export const revalidate = 600;
 export const dynamicParams = true;
@@ -31,10 +32,11 @@ export default async function ProjectPage(props) {
   const more = all.filter((x) => x.slug !== p.slug).slice(0, 3);
   const { html } = renderMarkdown(p.content);
   const video = videoEmbed(p.video);
-  const dur = projectDuration(p);
+  const live = statusLabel(p.workStatus); // 'In progress' or 'Ongoing care' for unfinished work
+  const dur = live ? '' : projectDuration(p);
   const facts = [
-    ['Client', p.client], ['Industry', p.industry], ['Platform', platformLabel(p)],
-    ['Started', fmtDate(p.startDate, { month: 'long', day: 'numeric', year: 'numeric' })], ['Finished', fmtDate(p.endDate, { month: 'long', day: 'numeric', year: 'numeric' })], ['Duration', dur],
+    ['Client', p.client], ['Industry', p.industry], ['Platform', platformLabel(p)], ['Status', live],
+    ['Started', fmtDate(p.startDate, { month: 'long', day: 'numeric', year: 'numeric' })], ['Finished', live ? '' : fmtDate(p.endDate, { month: 'long', day: 'numeric', year: 'numeric' })], ['Duration', dur],
   ].filter(([, v]) => v);
 
   return (
@@ -48,6 +50,7 @@ export default async function ProjectPage(props) {
             <div>
               <div className="flex flex-wrap gap-2">
                 <span className="chip border-transparent font-semibold text-white" style={{ background: p.accent }}>{platformLabel(p)}</span>
+                {live && <span className="chip border-amber/40 text-amber">{live}</span>}
                 {(p.services || []).map((s) => <span key={s} className="chip">{s}</span>)}
               </div>
               <h1 className="mt-6 font-display text-[clamp(2.4rem,5.5vw,4.6rem)] font-bold leading-[1] tracking-[-0.035em]">{p.title}</h1>
@@ -63,7 +66,7 @@ export default async function ProjectPage(props) {
       </header>
 
       <section className="shell">
-        <ScrollShot src={p.scrollImage || p.bannerImage} alt={`${p.title} full-page screenshot`} url={p.liveUrl} direction={p.scrollDirection} accent={p.accent} aspect="aspect-[16/10]" speed={260} eager
+        <ScrollShot src={p.scrollImage || p.bannerImage} alt={p.imageAlt || `${p.title} full-page screenshot`} url={p.liveUrl} direction={p.scrollDirection} accent={p.accent} aspect="aspect-[16/10]" speed={260} eager
           className="shadow-[0_60px_120px_-60px_rgba(0,0,0,.8)]" />
         <p className="mt-3 text-center text-sm text-muted">Hover or tap the screenshot to scroll through the page.</p>
       </section>
@@ -83,7 +86,7 @@ export default async function ProjectPage(props) {
           {html && <div className="prose-site" dangerouslySetInnerHTML={{ __html: html }} />}
           {p.deliverables?.length > 0 && (
             <div className="mt-14">
-              <h2 className="text-2xl font-semibold">What I delivered</h2>
+              <h2 className="text-2xl font-semibold">{p.workStatus === 'maintenance' ? 'What I look after' : p.workStatus === 'ongoing' ? 'What I am delivering' : 'What I delivered'}</h2>
               <ul className="mt-6 grid gap-3">
                 {p.deliverables.map((d) => <li key={d} className="flex gap-3 rounded-2xl border border-line bg-surface p-4"><CheckCircle2 size={20} className="mt-0.5 shrink-0" style={{ color: p.accent }} /><span>{d}</span></li>)}
               </ul>

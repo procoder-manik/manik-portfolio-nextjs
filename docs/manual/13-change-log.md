@@ -16,6 +16,7 @@ The full technical notes of each version are in `docs/PROJECT-BRIEF.md`; each up
 | 4.5 | SEO score in lists, after saving and in an SEO overview with a Needs work view; automatic schema for every content type with a preview, plain-language explanations and Rebuild schema; FAQ schema from your own text; Back to Top button; carousel shadow fix |
 | 4.6 | FAQ update (WordPress redesign question, payment terms), a larger knowledge base, the public Help center with search, topics and one page per answer, safe content updates for live databases, and this manual with generated reference |
 | 4.7 | Back to Top and the built-in chat can each be switched on or off and placed on the left or right; chat defaults to the left and Back to Top to the right |
+| 4.8 | AI project writer: a new project asks the website, the kind of work and its stage, reads the live site and the screenshot, and fills description, story, tags, meta title and description, alt text and accent colour; banner prompts from the screenshot; work status (finished, still building, ongoing care) |
 
 ## How to record a change
 

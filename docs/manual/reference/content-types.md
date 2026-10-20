@@ -25,6 +25,8 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
 | `scrollImage` | Full-page screenshot | image | Upload the whole page as one tall image. It scrolls slowly when someone hovers the card. |
+| `imageAlt` | Screenshot alt text | text | Describes the screenshot for screen readers and Google Images. Under 125 characters. Write with AI fills it from the screenshot. |
+| `aiBanner` |  | aiBanner |  |
 | `scrollDirection` | Hover scroll direction | select |  |
 | `useScrollAsBanner` | Use the screenshot as the banner | switch |  |
 | `bannerImage` | Banner image | image | Used for social sharing and when the switch above is off. |
@@ -44,6 +46,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `workStatus` | Where the work is now | segmented | Finished shows the end date. Still building and Ongoing care show a status line on the project page instead, so an unfinished project never looks aba... |
 | `startDate` | Start date | date |  |
 | `endDate` | End date | date |  |
 | `duration` | Duration | text | For example "3 weeks". Leave empty to work it out from the dates. |
