@@ -8,34 +8,30 @@ import Motion from '@/components/site/Motion';
 import RefTracker from '@/components/site/RefTracker';
 import AnnouncementBar from '@/components/site/AnnouncementBar';
 import PopupManager from '@/components/site/PopupManager';
-import { getAllSettings, getNavPages, getApps, getPopups } from '@/lib/data';
+import { getAllSettings, getNavPages, getApps, getPopups, getHiddenPaths } from '@/lib/data';
+import { dropPaths } from '@/lib/menu';
+import { samePath } from '@/lib/system-pages';
 import { caseStudiesOn, isCaseStudyLink, accountsOn, backToTopOn, backToTopSide, chatSide } from '@/lib/features';
 
 export default async function SiteLayout({ children }) {
-  const [{ site, navigation, integrations, announcement, popups: popupRules }, pages, apps, popups] = await Promise.all([getAllSettings(), getNavPages(), getApps({ footer: true }), getPopups()]);
+  const [{ site, navigation, integrations, announcement, popups: popupRules }, pages, apps, popups, hidden] = await Promise.all([getAllSettings(), getNavPages(), getApps({ footer: true }), getPopups(), getHiddenPaths()]);
   const chat = integrations.chat || {};
   const cs = caseStudiesOn(site);
-  const auto = cs && site.features?.caseStudiesInMenu !== false;
-  // Case-study links disappear everywhere when the feature is off, and are added automatically when it is on.
-  let header = (navigation.header || []).filter((l) => cs || !isCaseStudyLink(l.href));
-  if (auto && !header.some((l) => isCaseStudyLink(l.href))) {
-    const at = header.findIndex((l) => /portfolio|#work/.test(l.href || ''));
-    header = [...header.slice(0, at + 1), { label: 'Case studies', href: '/case-studies' }, ...header.slice(at + 1)];
-  }
-  const headerLinks = [...header, ...pages.filter((p) => p.showInHeader).map((p) => ({ label: p.title, href: `/${p.slug}` }))];
+  // Menus come only from Header and footer (each page's Menus switches write there). Case-study links hide when the feature is off.
+  const header = (navigation.header || []).filter((l) => cs || !isCaseStudyLink(l.href));
+  const extra = pages.filter((p) => p.showInHeader && !header.some((l) => samePath(l.href, `/${p.slug}`))).map((p) => ({ label: p.title, href: `/${p.slug}` }));
+  const headerLinks = dropPaths([...header, ...extra], hidden);
   let footerColumns = (navigation.footerColumns || []).map((c) => ({ ...c, links: (c.links || []).filter((l) => cs || !isCaseStudyLink(l.href)) }));
-  if (auto && footerColumns[0] && !footerColumns.some((c) => c.links.some((l) => isCaseStudyLink(l.href)))) {
-    const links = [...footerColumns[0].links]; const at = links.findIndex((l) => /portfolio/.test(l.href || ''));
-    links.splice(at + 1, 0, { label: 'Case studies', href: '/case-studies' });
-    footerColumns = [{ ...footerColumns[0], links }, ...footerColumns.slice(1)];
-  }
+  footerColumns = footerColumns.map((c) => ({ ...c, links: dropPaths(c.links, hidden) }));
+  const inColumns = (p) => footerColumns.some((c) => c.links.some((l) => samePath(l.href, `/${p.slug}`)));
+  const cta = navigation.cta && hidden.some((h) => samePath(navigation.cta.href, h)) ? { ...navigation.cta, show: false } : navigation.cta;
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-signal focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
       {announcement?.enabled && <AnnouncementBar cfg={announcement} />}
-      <Header site={site} links={headerLinks} cta={navigation.cta} account={accountsOn(site)} />
+      <Header site={site} links={headerLinks} cta={cta} account={accountsOn(site)} />
       <main id="main">{children}</main>
-      <Footer site={site} nav={{ ...navigation, footerColumns }} pages={navigation.showPagesInFooter ? pages.filter((p) => p.showInFooter) : []} apps={navigation.showAppsInFooter ? apps : []} />
+      <Footer site={site} nav={{ ...navigation, footerColumns }} pages={navigation.showPagesInFooter ? pages.filter((p) => p.showInFooter && !inColumns(p)) : []} apps={navigation.showAppsInFooter ? apps : []} />
       <Integrations cfg={integrations} />
       <Motion />
       <RefTracker />

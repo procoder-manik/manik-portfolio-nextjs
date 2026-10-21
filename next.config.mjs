@@ -20,6 +20,10 @@ const nextConfig = {
   serverExternalPackages: ['mongoose', 'bcryptjs', 'nodemailer'],
   // No next/image is used (plain <img>), so the image optimizer is switched off entirely.
   images: { unoptimized: true },
+  // Common addresses for the Help center.
+  async redirects() {
+    return ['/support', '/help-center', '/helpcenter', '/knowledge-base'].map((source) => ({ source, destination: '/help', permanent: true }));
+  },
   async headers() {
     return [
       { source: '/:path*', headers: security },

@@ -16,7 +16,7 @@
 | `/api/account/register` | POST | public, rate-limited |  |
 | `/api/account/reset` | POST | public, rate-limited |  |
 | `/api/account/verify` | GET, POST | public, rate-limited | Link from the confirmation email |
-| `/api/admin/:resource` | GET, POST | admin | ?view=all (default, not trashed) \| live \| draft \| trash. Also returns counts for the tabs. |
+| `/api/admin/:resource` | GET, POST | admin | Built-in pages keep their SEO in settings (seo-<key>); add it so the SEO column scores the real values. |
 | `/api/admin/:resource/:id` | GET, PUT, PATCH, DELETE | admin | PATCH { action: 'restore' \| 'draft' \| 'trash' } |
 | `/api/admin/:resource/bulk` | POST | admin | POST { action: trash \| restore \| draft \| publish \| delete \| empty, ids: [] } |
 | `/api/admin/account` | PUT | admin |  |
@@ -26,6 +26,7 @@
 | `/api/admin/ai-iq/generate` | POST | content | POST { category, count, mode: 'ai' \| 'url' \| 'text', url?, text? } -> { items } (not saved yet) |
 | `/api/admin/ai-iq/save` | POST | content | POST { items: [{ question, answer, category, keywords, source }], resolveGap? } saves taught answers, skipping questions that already exist. |
 | `/api/admin/ai-iq/test` | POST | content | Asks the bot a question exactly like a visitor would, and shows which taught answers matched. |
+| `/api/admin/ai/assist` | POST | admin | Cleans every string in an object (AI words, long dashes), keeps the shape. |
 | `/api/admin/ai/keys` | GET, POST, PUT | system | PUT { name, value }  saves (empty value removes the saved key) POST { name }        sends one tiny request to check that the key works |
 | `/api/admin/ai/keywords` | POST | blog | POST { topic, audience, language } -> free search suggestions (Google, Bing, DuckDuckGo, YouTube), related words, AI ideas (free AI) and a ready pick of primary and seco... |
 | `/api/admin/ai/news` | GET | blog |  |

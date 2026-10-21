@@ -53,6 +53,15 @@ The **Images** tab says how many visuals to use and why. Image 1 is the featured
 
 Every section is written under strict rules (concrete examples, varied sentence length, no stock AI phrases, no invented statistics or quotes). A free clean-up swaps stock AI words for plain ones and removes long dashes. With **Auto-polish** on, a section that still looks machine-made is rewritten once. No tool can promise that a detector will never flag text; adding your own notes and reading the post once before publishing is what works best. Bengali posts use separate rules; review them before publishing.
 
+## AI in every editor (4.10)
+
+- **Pages:** Write with AI builds a whole page from your section types plus SEO; on built-in pages it writes the part headings and intros plus SEO.
+- **Case studies:** Write with AI (opens by itself on a new case study) writes the full story and SEO from a short brief.
+- **Sections:** the sparkle button on a section writes that section.
+- **Fields:** the small AI button next to a text field writes, improves or shortens that field.
+- **SEO, Social, Schema tabs:** one click fills every field; meta title and description also have their own buttons.
+- Every request carries your services, real prices, projects and existing pages, so the text follows the site's structure and links only to real pages. Numbers come only from what you type. Route: `/api/admin/ai/assist` (`lib/ai-assist.js`). Full how-to: `docs/GUIDE-V4.10.md`.
+
 ## Portfolio projects
 
 A new project opens with a short form: website name and address, what you did (new build, redesign, new pages, maintenance, store, speed, SEO, local SEO, migration, fixes, custom features), where the work is now (finished, still building, ongoing care), the full-page screenshot and optional notes. Then three steps run: the live website is read (no AI, also detects WordPress, Elementor, Shopify, Webflow, Next.js and more), the screenshot is read by an AI that can see images (colours, alt text, banner prompts), and the project is written. Nothing is saved until you press Create.

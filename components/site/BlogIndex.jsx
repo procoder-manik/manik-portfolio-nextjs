@@ -2,13 +2,14 @@ import Link from 'next/link';
 import PostCard from './PostCard';
 import { fmtDate } from '@/lib/utils';
 
-export default function BlogIndex({ posts, updates, cats, active, title, intro }) {
+/* part: 'intro' (heading and categories), 'posts' (posts and sidebar) or empty for both (category pages). */
+export default function BlogIndex({ posts, updates, cats, active, title, intro, part }) {
   const catMap = Object.fromEntries(cats.map((c) => [c.slug, c]));
   const featured = posts.find((p) => p.featured) || posts[0];
   const rest = posts.filter((p) => p !== featured);
   return (
     <>
-      <section className="relative overflow-hidden pb-12 pt-36 sm:pt-44">
+      {part !== 'posts' && <section className="relative overflow-hidden pb-12 pt-36 sm:pt-44">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_20%_0%,#000,transparent)]" />
         <div className="shell relative">
           <h1 className="h-display max-w-[14ch]">{title}</h1>
@@ -18,8 +19,8 @@ export default function BlogIndex({ posts, updates, cats, active, title, intro }
             {cats.map((c) => <Pill key={c.slug} href={`/blog/category/${c.slug}`} on={active === c.slug} color={c.color}>{c.name}</Pill>)}
           </nav>
         </div>
-      </section>
-      <section className="pb-28">
+      </section>}
+      {part !== 'intro' && <section className="pb-28">
         <div className="shell grid gap-16 lg:grid-cols-[2.2fr_1fr]">
           <div>
             {featured ? <PostCard post={featured} cats={catMap} large /> : <p className="text-muted">No posts here yet.</p>}
@@ -49,7 +50,7 @@ export default function BlogIndex({ posts, updates, cats, active, title, intro }
             </div>
           </aside>
         </div>
-      </section>
+      </section>}
     </>
   );
 }

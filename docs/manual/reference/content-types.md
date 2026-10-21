@@ -81,6 +81,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -92,6 +93,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -102,6 +104,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -197,6 +200,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -208,6 +212,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -218,6 +223,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -295,6 +301,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -306,6 +313,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -316,6 +324,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -439,24 +448,24 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 ## Pages (`pages`)
 
 - Admin: `/admin/pages`, area: **content**, slug made from `title`
-- List columns: Title, URL, In header, Schema, Noindex, Live
+- List columns: Title, Type, Address, In header, In footer, Noindex, Live
 
 ### Tab: Page
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
-| `title` | Title | text, required |  |
+| `builtinNote` |  | builtinNote |  |
+| `title` | Title | text, required | The name of the page in this list and the default text of its menu links. |
 | `slug` | URL slug | slug |  |
-| `published` | Published | switch |  |
+| `published` | Published | switch | Off hides the page: its address shows "page not found" and its links disappear from the header and footer. Turn it on again any time; nothing is lost. |
 | `hideTitle` | Hide the page title (use a Hero section instead) | switch |  |
-| `showInHeader` | Link in header menu | switch |  |
-| `showInFooter` | Link in footer | switch |  |
+| `menu` |  | menuPlacement |  |
 
 ### Tab: Sections
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
-| `blocks` | Page sections | blocks | Build the page from ready-made sections. Drag order with the arrows. |
+| `blocks` | Page sections | blocks | Reorder with the arrows, hide with the eye, add sections with Add section. On built-in pages the parts marked Built-in are the page's own content; re... |
 
 ### Tab: Plain text (optional)
 
@@ -468,6 +477,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -479,6 +489,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -489,6 +500,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -637,6 +649,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -648,6 +661,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -658,6 +672,7 @@ Each row below is a list in the admin (`/admin/<name>`) with its own editor. "Ar
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |

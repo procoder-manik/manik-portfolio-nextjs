@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-import { getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge } from '@/lib/data';
+import { getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge, getHiddenPaths } from '@/lib/data';
 import { buildHelp } from '@/lib/help';
 import { BUILTIN_PAGES } from '@/lib/admin-schema';
 import { caseStudiesOn } from '@/lib/features';
@@ -23,8 +23,9 @@ export async function GET() {
   };
 
   if (sm.builtin !== false) {
-    const items = await Promise.all(BUILTIN_PAGES.map(async (b) => [b, await getPageSeo(b.key)]));
+    const [items, hidden] = await Promise.all([Promise.all(BUILTIN_PAGES.map(async (b) => [b, await getPageSeo(b.key)])), getHiddenPaths()]);
     for (const [b, s] of items) {
+      if (hidden.includes(b.path)) continue; // switched off in Admin > Pages
       if (b.key === 'caseStudies' && !caseStudiesOn(site)) continue;
       if (skip(s)) continue;
       push(b.path, s, { priority: b.path === '/' ? 1 : 0.8, images: b.path === '/' ? [site.ogImage] : [] });
@@ -39,7 +40,7 @@ export async function GET() {
   cats.filter((x) => !skip(x) && !seo.defaults?.noindexCategories).forEach((c) => push(`/blog/category/${c.slug}`, c, { priority: 0.4 }));
   cases.filter((x) => !skip(x)).forEach((c) => push(`/case-studies/${c.slug}`, c, { priority: 0.7, images: [c.cover, c.scrollImage, c.seoImage] }));
   pages.filter((x) => !skip(x)).forEach((p) => push(`/${p.slug}`, p, { priority: 0.5 }));
-  if (sm.builtin !== false && !skip(await getPageSeo('help'))) { const help = buildHelp(await getKnowledge()); help.topics.forEach((t) => push(`/help/topic/${t.slug}`, null, { priority: 0.5 })); help.articles.forEach((a) => push(`/help/${a.slug}`, null, { priority: 0.5 })); }
+  if (sm.builtin !== false && !skip(await getPageSeo('help')) && !(await getHiddenPaths()).includes('/help')) { const help = buildHelp(await getKnowledge()); help.topics.forEach((t) => push(`/help/topic/${t.slug}`, null, { priority: 0.5 })); help.articles.forEach((a) => push(`/help/${a.slug}`, null, { priority: 0.5 })); }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${out.map((e) => `  <url>\n    <loc>${esc(e.loc)}</loc>\n    <lastmod>${e.lastmod}</lastmod>\n    <changefreq>${esc(e.changefreq)}</changefreq>\n${e.priority ? `    <priority>${Number(e.priority).toFixed(1)}</priority>\n` : ''}${e.images.map((i) => `    <image:image><image:loc>${esc(i)}</image:loc></image:image>\n`).join('')}  </url>`).join('\n')}\n</urlset>\n`;
   return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=600' } });

@@ -1,4 +1,8 @@
-import { getApps, getSettings , getPageSeo } from '@/lib/data';
+import { getApps, getSettings, getPageSeo, getSystemPage } from '@/lib/data';
+import { notFound } from 'next/navigation';
+import SystemSections from '@/components/site/SystemSections';
+import { layoutOf, pageLive } from '@/lib/system-pages';
+
 import { seoMeta } from '@/lib/seo';
 import AppCard from '@/components/site/AppCard';
 import JsonLd from '@/components/site/JsonLd';
@@ -9,18 +13,25 @@ export async function generateMetadata() {
 }
 
 export default async function AppsPage() {
-  const [apps, site, home] = await Promise.all([getApps(), getSettings('site'), getSettings('home')]);
+  const [apps, site, home, sp] = await Promise.all([getApps(), getSettings('site'), getSettings('home'), getSystemPage('apps')]);
+  if (!pageLive(sp)) notFound();
   return (
     <>
       <JsonLd builtin="apps" data={buildGraph(site, [crumbs([['Home', '/'], ['Products', '/apps']]), ...apps.map((a) => ({ '@type': 'SoftwareApplication', name: a.name, description: a.tagline, url: a.url || undefined, applicationCategory: a.category || 'BusinessApplication', operatingSystem: 'Web', author: { '@id': `${process.env.NEXT_PUBLIC_SITE_URL || ''}/#person` } }))])} />
-      <section className="relative overflow-hidden pb-10 pt-36 sm:pt-44">
-        <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_20%_0%,#000,transparent)]" />
-        <div className="shell relative"><h1 className="h-display max-w-[12ch]">{home.apps?.heading || 'Products'}</h1><p className="lede mt-6">{home.apps?.intro}</p></div>
-      </section>
-      <section className="pb-28"><div className="shell">
-        {apps.length ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{apps.map((a) => <AppCard key={a.slug} app={a} />)}</div>
-          : <p className="rounded-2xl border border-dashed border-line p-12 text-center text-muted">New products are on the way.</p>}
-      </div></section>
+      <SystemSections layout={layoutOf('apps', sp)} tops={['intro']} parts={{
+        intro: (b) => (
+          <section className="relative overflow-hidden pb-10 pt-36 sm:pt-44">
+            <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_80%_at_20%_0%,#000,transparent)]" />
+            <div className="shell relative"><h1 className="h-display max-w-[12ch]">{b.heading || home.apps?.heading || 'Products'}</h1><p className="lede mt-6">{b.text || home.apps?.intro}</p></div>
+          </section>
+        ),
+        list: () => (
+          <section className="pb-28"><div className="shell">
+            {apps.length ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{apps.map((a) => <AppCard key={a.slug} app={a} />)}</div>
+              : <p className="rounded-2xl border border-dashed border-line p-12 text-center text-muted">New products are on the way.</p>}
+          </div></section>
+        ),
+      }} />
     </>
   );
 }

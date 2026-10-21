@@ -17,6 +17,9 @@ import PopupView from '@/components/site/PopupView';
 import Cards, { Card } from '@/components/site/cards/Cards';
 import { CARD_TEMPLATES, SAMPLE } from '@/lib/card-templates';
 import { BannerBox } from './ProjectAi';
+import { AiFieldButton, SeoAiPanel, BlockAiButton, aiable } from './AiAssist';
+import { AI_BLOCK_TYPES } from '@/lib/ai-blocks';
+import { systemDef, partDef, pagePath } from '@/lib/system-pages';
 
 const optList = (o = []) => o.map((x) => (typeof x === 'string' ? { value: x, label: x } : x));
 
@@ -38,12 +41,13 @@ export function FieldList({ fields, value, onChange, slugFrom }) {
 /* The admin section (projects, payments, referrals...) so each field finds its own explanation. */
 export const InfoScope = createContext('');
 
-function Label({ f, htmlFor }) {
+function Label({ f, htmlFor, extra }) {
   const info = fieldInfo(f, useContext(InfoScope));
   return (
     <div className="mb-1.5 flex items-center gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-medium text-ink">{f.label}{f.required && <span className="text-bad"> *</span>}</label>
       <InfoTip text={info} label={`About ${f.label || 'this field'}`} />
+      {extra}
     </div>
   );
 }
@@ -61,6 +65,9 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
   if (T === 'aiBanner') return <BannerBox doc={doc || {}} setDoc={setDoc} />;
+  if (T === 'aiSeo') return <SeoAiPanel f={f} doc={doc || {}} setDoc={setDoc} />;
+  if (T === 'builtinNote') return <BuiltinNote doc={doc || {}} />;
+  if (T === 'menuPlacement') return <MenuPlacement doc={doc || {}} value={value || {}} onChange={onChange} />;
   if (T === 'aiKeys') return <AiKeys />;
   if (T === 'schemaPanel') return <SchemaPanel doc={doc || {}} />;
   if (T === 'note') return <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body [&_a]:font-medium [&_a]:text-signal" dangerouslySetInnerHTML={{ __html: f.html }} />;
@@ -77,7 +84,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   );
   return (
     <div>
-      {T !== 'repeater' && <Label f={f} htmlFor={id} />}
+      {T !== 'repeater' && <Label f={f} htmlFor={id} extra={aiable(f) ? <AiFieldButton f={f} value={value} onChange={onChange} doc={doc} /> : null} />}
       {T === 'text' || T === 'url' || T === 'email' ? <input id={id} type={T === 'text' ? 'text' : T} value={value || ''} placeholder={f.placeholder} onChange={(e) => onChange(e.target.value)} className="field" required={f.required} />
         : T === 'number' ? <input id={id} type="number" step="any" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} className="field" required={f.required} />
         : T === 'date' ? <input id={id} type="date" value={value ? String(value).slice(0, 10) : ''} onChange={(e) => onChange(e.target.value || null)} className="field" />
@@ -102,7 +109,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
         : T === 'markdown' ? <Markdown value={value || ''} onChange={onChange} />
         : T === 'ref' ? <RefSelect id={id} f={f} value={value} onChange={onChange} />
         : T === 'repeater' ? <Repeater f={f} value={value || []} onChange={onChange} />
-        : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} />
+        : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} builtin={doc?.builtin} />
         : T === 'cardTemplate' ? <CardTemplatePicker value={value || 'service'} onChange={onChange} />
         : T === 'datetime' ? <input id={id} type="datetime-local" value={value ? String(value).slice(0, 16) : ''} onChange={(e) => onChange(e.target.value || null)} className="field" />
         : T === 'code' ? <textarea id={id} rows={8} spellCheck={false} value={value || ''} placeholder={f.placeholder || ''} onChange={(e) => onChange(e.target.value)} className="field resize-y font-mono text-[0.85rem] leading-relaxed" />
@@ -326,13 +333,17 @@ function Repeater({ f, value, onChange }) {
 }
 
 /* Page builder: add pre-built sections, reorder, duplicate, hide and edit them. */
-function BlocksField({ value, onChange }) {
+function BlocksField({ value, onChange, builtin }) {
   const [picker, setPicker] = useState(false);
   const [open, setOpen] = useState(null);
   const add = (type) => { onChange([...value, { type, ...(BLOCK_DEFAULTS[type] || {}) }]); setOpen(value.length); setPicker(false); };
+  const addPart = (part) => { onChange([...value, { type: 'core', part }]); setPicker(false); };
+  const sys = systemDef(builtin);
+  const missing = sys ? sys.parts.filter((p) => !value.some((b) => b?.type === 'core' && b.part === p.id)) : [];
+  const meta = (b) => (b.type === 'core' ? { ...(partDef(builtin, b.part) || { label: `Unknown part (${b.part})`, desc: 'This part no longer exists. You can delete it.' }), icon: 'LayoutTemplate' } : BLOCKS[b.type] || {});
   const upd = (i, v) => onChange(value.map((x, k) => (k === i ? v : x)));
   const BI = ({ name, size = 16 }) => { const C = Lucide[name] || Lucide.Square; return <C size={size} />; };
-  const summary = (b) => b.heading || b.content?.slice(0, 60) || b.caption || BLOCKS[b.type]?.desc || '';
+  const summary = (b) => b.heading || b.content?.slice(0, 60) || b.caption || meta(b).desc || '';
   return (
     <div>
       <div className="space-y-2">
@@ -340,16 +351,17 @@ function BlocksField({ value, onChange }) {
           <div key={i} className={cn('rounded-xl border bg-base/40', open === i ? 'border-signal' : 'border-line', b.hidden && 'opacity-60')}>
             <div className="flex items-center gap-1 px-3 py-2">
               <button type="button" onClick={() => setOpen(open === i ? null : i)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-signal/15 text-signal"><BI name={BLOCKS[b.type]?.icon} /></span>
-                <span className="min-w-0"><span className="block text-sm font-semibold text-ink">{BLOCKS[b.type]?.label || b.type}{b.hidden ? ' (hidden)' : ''}</span><span className="block truncate text-xs text-muted">{String(summary(b)).slice(0, 80)}</span></span>
+                <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-lg', b.type === 'core' ? 'bg-amber/15 text-amber' : 'bg-signal/15 text-signal')}><BI name={meta(b).icon} /></span>
+                <span className="min-w-0"><span className="flex items-center gap-2 text-sm font-semibold text-ink">{meta(b).label || b.type}{b.hidden ? ' (hidden)' : ''}{b.type === 'core' && <span className="rounded-full bg-amber/15 px-1.5 py-px text-[10px] font-medium text-amber">Built-in</span>}</span><span className="block truncate text-xs text-muted">{String(summary(b)).slice(0, 80)}</span></span>
               </button>
               <IconBtn label="Move up" onClick={() => onChange(move(value, i, -1))}><ChevronUp size={15} /></IconBtn>
               <IconBtn label="Move down" onClick={() => onChange(move(value, i, 1))}><ChevronDown size={15} /></IconBtn>
               <IconBtn label={b.hidden ? 'Show' : 'Hide'} onClick={() => upd(i, { ...b, hidden: !b.hidden })}>{b.hidden ? <Lucide.EyeOff size={15} /> : <Eye size={15} />}</IconBtn>
-              <IconBtn label="Duplicate" onClick={() => { const a = [...value]; a.splice(i + 1, 0, JSON.parse(JSON.stringify(b))); onChange(a); }}><Lucide.Copy size={15} /></IconBtn>
-              <IconBtn label="Delete" onClick={() => { if (confirm('Delete this section?')) onChange(value.filter((_, k) => k !== i)); }}><Trash2 size={15} /></IconBtn>
+              {(b.type === 'core' ? meta(b).fields?.length > 0 : AI_BLOCK_TYPES.includes(b.type)) && <BlockAiButton b={b} label={meta(b).label} partLabel={b.type === 'core' ? meta(b).label : undefined} outline={value.filter((x) => x && !x.hidden).map((x) => meta(x).label || x.type)} onChange={(v) => upd(i, v)} />}
+              {b.type !== 'core' && <IconBtn label="Duplicate" onClick={() => { const a = [...value]; a.splice(i + 1, 0, JSON.parse(JSON.stringify(b))); onChange(a); }}><Lucide.Copy size={15} /></IconBtn>}
+              <IconBtn label="Delete" onClick={() => { if (confirm(b.type === 'core' ? 'Remove this built-in part from the page? You can add it back with Add section.' : 'Delete this section?')) onChange(value.filter((_, k) => k !== i)); }}><Trash2 size={15} /></IconBtn>
             </div>
-            {open === i && <div className="border-t border-line p-4"><FieldList fields={blockFields(b.type)} value={b} onChange={(v) => upd(i, v)} /></div>}
+            {open === i && <div className="border-t border-line p-4">{b.type === 'core' ? <CorePart b={b} def={meta(b)} onChange={(v) => upd(i, v)} /> : <FieldList fields={blockFields(b.type)} value={b} onChange={(v) => upd(i, v)} />}</div>}
           </div>
         ))}
         {!value.length && <p className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">No sections yet. Add your first one.</p>}
@@ -357,6 +369,18 @@ function BlocksField({ value, onChange }) {
       {picker ? (
         <div className="mt-3 rounded-2xl border border-line bg-base/60 p-3">
           <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold text-ink">Pick a section</p><button type="button" onClick={() => setPicker(false)} aria-label="Close"><X size={16} /></button></div>
+          {missing.length > 0 && (<>
+            <p className="mb-2 mt-1 text-xs font-medium text-amber">Built-in parts of this page you removed</p>
+            <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {missing.map((p) => (
+                <button type="button" key={p.id} onClick={() => addPart(p.id)} className="flex items-start gap-3 rounded-xl border border-amber/40 bg-surface p-3 text-left transition hover:border-amber">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber/15 text-amber"><BI name="LayoutTemplate" /></span>
+                  <span><span className="block text-sm font-semibold text-ink">{p.label}</span><span className="block text-xs text-muted">{p.desc}</span></span>
+                </button>
+              ))}
+            </div>
+            <p className="mb-2 text-xs font-medium text-muted">Ready-made sections</p>
+          </>)}
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.entries(BLOCKS).map(([k, d]) => (
               <button type="button" key={k} onClick={() => add(k)} className="flex items-start gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-signal">
@@ -371,6 +395,63 @@ function BlocksField({ value, onChange }) {
   );
 }
 
+
+/* A built-in part of a page (Portfolio grid, Blog posts...). Its content comes from elsewhere; some parts have their own heading and intro. */
+function CorePart({ b, def, onChange }) {
+  return (
+    <div className="space-y-4">
+      <p className="rounded-xl border border-line bg-base/50 px-4 py-3 text-sm text-body">{def.desc}.{def.editHref && <> The content comes from <a href={def.editHref} target="_blank" rel="noopener" className="font-medium text-signal">this admin screen</a>.</>} Use the arrows to move it, the eye to hide it, the bin to remove it.</p>
+      {def.fields?.length > 0 && <FieldList fields={def.fields} value={b} onChange={onChange} />}
+    </div>
+  );
+}
+
+/* Top of a built-in page in the editor: what it is and where its content lives. */
+function BuiltinNote({ doc }) {
+  const def = systemDef(doc.builtin); if (!def) return null;
+  return (
+    <div className="rounded-xl border border-signal/30 bg-signal/10 px-4 py-3 text-sm text-body">
+      <p><b className="text-ink">Built-in page</b> at <a href={def.path} target="_blank" rel="noopener" className="font-mono text-signal">{def.path}</a>. Its address cannot change{def.key === 'home' ? ' and it is always on' : ', but you can switch it off'}. In the <b className="text-ink">Sections</b> tab you can reorder, hide or remove its parts and add your own sections between them.</p>
+      {def.editHref && <p className="mt-1.5">Its content is edited in <a href={def.editHref} className="font-medium text-signal">{def.editLabel}</a>.</p>}
+      {def.key === 'caseStudies' && <p className="mt-1.5">The page also needs Case studies switched on in <a href="/admin/settings/site" className="font-medium text-signal">Site and contact &gt; Features</a>.</p>}
+    </div>
+  );
+}
+
+/* Menu switches for a page. They write straight into Header and footer when you save, so that list stays the one source of truth. */
+function MenuPlacement({ doc, value, onChange }) {
+  const [cols, setCols] = useState(null);
+  useEffect(() => { api('/api/admin/settings/navigation').then((j) => setCols((j.item?.footerColumns || []).map((c) => c.title || 'Untitled column'))).catch(() => setCols([])); }, []);
+  const v = value || {}; const set = (k, x) => onChange({ ...v, [k]: x });
+  const Sw = ({ k, label }) => (
+    <button type="button" role="switch" aria-checked={!!v[k]} onClick={() => set(k, !v[k])} className="flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-base/50 px-4 py-3 text-left">
+      <span className="text-sm font-medium text-ink">{label}</span>
+      <span className={cn('relative h-6 w-11 shrink-0 rounded-full transition', v[k] ? 'bg-signal' : 'bg-line')}><span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition', v[k] ? 'left-[22px]' : 'left-0.5')} /></span>
+    </button>
+  );
+  return (
+    <div className="rounded-xl border border-line p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><p className="flex items-center gap-1.5 text-sm font-semibold text-ink">Menus<InfoTip text="Adds or removes this page's link in the header menu and in a footer column when you save. The order of links is changed in Header and footer." /></p><a href="/admin/settings/navigation" className="text-xs font-medium text-signal">Reorder links in Header and footer</a></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Sw k="header" label="Show in the header menu" />
+          {v.header && <input value={v.headerLabel || ''} onChange={(e) => set('headerLabel', e.target.value)} placeholder={`Link text (empty: ${doc.title || 'page title'})`} className="field py-2 text-sm" />}
+        </div>
+        <div className="space-y-2">
+          <Sw k="footer" label="Show in the footer" />
+          {v.footer && (<>
+            <input value={v.footerLabel || ''} onChange={(e) => set('footerLabel', e.target.value)} placeholder={`Link text (empty: ${doc.title || 'page title'})`} className="field py-2 text-sm" />
+            <select value={v.column ?? 0} onChange={(e) => set('column', Number(e.target.value))} className="field py-2 text-sm">
+              {(cols?.length ? cols : ['First column']).map((t, i) => <option key={i} value={i}>Footer column: {t}</option>)}
+            </select>
+          </>)}
+        </div>
+      </div>
+      {doc.published === false && doc.builtin !== 'home' && <p className="mt-3 text-xs text-amber">This page is switched off, so its links are hidden on the site until you publish it again.</p>}
+      <p className="mt-3 text-xs text-muted">Address: <span className="font-mono">{pagePath(doc)}</span></p>
+    </div>
+  );
+}
 
 /* Google-style preview with length meters for the SEO tab. */
 let seoCtx = null;

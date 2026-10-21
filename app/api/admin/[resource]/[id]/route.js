@@ -17,6 +17,8 @@ import { cleanRedirect, normPath } from '@/lib/redirects';
 import { getSettingsFresh } from '@/lib/data';
 import { pingIndexNow } from '@/lib/indexnow';
 import * as seed from '@/lib/seed-data';
+import { decoratePage, prepareSave, moveMenuLinks, isSystem, systemError } from '@/lib/system-pages-server';
+import { SYSTEM_BY_KEY, SYSTEM_PAGES, defaultBlocks } from '@/lib/system-pages';
 
 const noDB = () => { const e = new Error('Connect MongoDB (set MONGODB_URI) to save changes.'); e.status = 503; return e; };
 const area = (p) => RESOURCE_AREA[p.resource] || 'system';
@@ -24,12 +26,17 @@ const area = (p) => RESOURCE_AREA[p.resource] || 'system';
 export const GET = adminRoute(async (req, { params }) => {
   const M = MODELS[params.resource]; if (!M) throw new Error('Unknown section.');
   if (!hasDB()) {
+    if (params.resource === 'pages' && params.id.startsWith('sys-')) {
+      const d = SYSTEM_BY_KEY[params.id.slice(4)]; if (!d) throw new Error('Not found.');
+      return NextResponse.json({ item: { _id: params.id, title: d.title, slug: d.slug, builtin: d.key, published: true, blocks: defaultBlocks(d.key, seed.settings.home), path: d.path, menu: {} }, readOnly: true });
+    }
     const i = Number(params.id.replace('seed-', ''));
     return NextResponse.json({ item: { _id: params.id, ...(seed[{ 'case-studies': 'caseStudies' }[params.resource] || params.resource]?.[i] || {}) }, readOnly: true });
   }
   await dbConnect();
   const item = await M.findById(params.id).lean();
   if (!item) throw Object.assign(new Error('Not found. It may have been deleted permanently.'), { status: 404 });
+  if (params.resource === 'pages') return NextResponse.json({ item: serialize(await decoratePage(item)) });
   return NextResponse.json({ item: serialize(item) });
 }, area);
 
@@ -37,12 +44,17 @@ export const PUT = adminRoute(async (req, { params }) => {
   const M = MODELS[params.resource]; if (!M) throw new Error('Unknown section.');
   if (!hasDB()) throw noDB();
   await dbConnect();
-  const body = await req.json(); delete body._id; delete body.createdAt; delete body.updatedAt; delete body.trashedAt; delete body.trashState;
+  let body = await req.json(); delete body._id; delete body.createdAt; delete body.updatedAt; delete body.trashedAt; delete body.trashState;
   const conf = RESOURCES[params.resource];
   if (conf?.slugFrom && (body.slug !== undefined || body[conf.slugFrom] !== undefined)) body.slug = slugify(body.slug || body[conf.slugFrom]);
   if (params.resource === 'redirects') Object.assign(body, cleanRedirect(body));
   const prev = await M.findById(params.id).lean();
   if (!prev) throw Object.assign(new Error('Not found. It may have been deleted permanently.'), { status: 404 });
+  if (params.resource === 'pages') {
+    if (!prev.builtin && SYSTEM_PAGES.some((d) => d.slug === body.slug)) throw new Error(`The address /${body.slug} belongs to a built-in page. Pick another URL slug.`);
+    if (!prev.builtin && body.slug && prev.slug !== body.slug) await moveMenuLinks(`/${prev.slug}`, `/${body.slug}`);
+    body = await prepareSave(body, prev);
+  }
   if (params.resource === 'orders' && body.status && prev.status !== body.status) {
     body.history = [...(prev.history || []), { status: body.status, at: new Date(), note: 'Updated by admin' }];
     if (body.status === 'paid' && !prev.payment?.paidAt) body['payment.paidAt'] = new Date();
@@ -75,6 +87,7 @@ export const PUT = adminRoute(async (req, { params }) => {
   }
   refreshContent();
   pingIndexNow(params.resource, item).catch(() => {});
+  if (params.resource === 'pages') return NextResponse.json({ item: serialize(await decoratePage(item)) });
   if (mail) return NextResponse.json({ item: serialize(await M.findById(params.id).lean()), mail });
   return NextResponse.json({ item: serialize(item) });
 }, area);
@@ -100,6 +113,12 @@ export const PATCH = adminRoute(async (req, { params }) => {
   const { action } = body;
   const doc = await M.findById(params.id).lean();
   if (!doc) throw Object.assign(new Error('Not found.'), { status: 404 });
+  if (params.resource === 'pages' && isSystem(doc)) {
+    if (action === 'duplicate') throw systemError('copied');
+    if (action === 'trash') throw systemError('moved to the Trash');
+    if (action === 'draft' && doc.builtin === 'home') throw new Error('The home page is always on.');
+    if (action === 'quick') { delete body.slug; if (doc.builtin === 'home') delete body.live; }
+  }
 
   /* Duplicate: a copy that starts switched off, with a new unique address. */
   if (action === 'duplicate') {
@@ -142,6 +161,7 @@ export const DELETE = adminRoute(async (req, { params }) => {
   if (!hasDB()) throw noDB();
   await dbConnect();
   const mode = req.nextUrl.searchParams.get('mode') || (TRASHABLE.includes(params.resource) ? 'trash' : 'permanent');
+  if (params.resource === 'pages' && isSystem(await M.findById(params.id).select('builtin').lean())) throw systemError('deleted');
   if (mode === 'trash' && TRASHABLE.includes(params.resource)) {
     const doc = await M.findById(params.id).lean();
     if (!doc) throw Object.assign(new Error('Not found.'), { status: 404 });

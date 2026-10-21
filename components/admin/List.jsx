@@ -47,6 +47,7 @@ export default function List({ resource }) {
     if (c.type === 'money') return money(v, x.currency);
     if (c.type === 'date') return fmtDate(v, { month: 'short', day: 'numeric', year: 'numeric' });
     if (c.type === 'num') return v ?? 0;
+    if (c.type === 'kind') return v === 'Built-in' ? <span className="whitespace-nowrap rounded-full bg-signal/15 px-2 py-0.5 text-xs font-medium text-signal">Built-in</span> : <span className="whitespace-nowrap text-xs text-muted">Your page</span>;
     if (c.type === 'score') return v == null ? <span className="text-muted">-</span> : <span className={`inline-block min-w-9 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold tabular-nums ${v >= 80 ? 'bg-good/15 text-good' : v >= 60 ? 'bg-amber/15 text-amber' : 'bg-bad/15 text-bad'}`}>{v}</span>;
     return v;
   };
@@ -128,7 +129,7 @@ export default function List({ resource }) {
                     <span className="inline-flex gap-0.5 opacity-60 transition group-hover:opacity-100">
                       {view === 'trash' || x.trashedAt
                         ? <><button title="Restore" aria-label="Restore" onClick={() => one(x, 'restore')} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><RotateCcw size={15} /></button><button title="Delete permanently" aria-label="Delete permanently" onClick={() => setDlg({ kind: 'one', x, inTrash: true })} className="grid h-8 w-8 place-items-center rounded-lg text-bad hover:bg-raised"><Trash2 size={15} /></button></>
-                        : <>{(titleKey || status) && <button title="Quick edit" aria-label="Quick edit" onClick={() => (qe?.id === x._id ? setQe(null) : openQe(x))} className={`grid h-8 w-8 place-items-center rounded-lg hover:bg-raised ${qe?.id === x._id ? 'bg-raised text-signal' : ''}`}><Pencil size={15} /></button>}{canDup && <button title="Duplicate" aria-label="Duplicate" onClick={() => dup(x)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><Copy size={15} /></button>}<button title="Remove" aria-label="Remove" onClick={() => setDlg({ kind: 'one', x })} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised hover:text-bad"><Trash2 size={15} /></button></>}
+                        : <>{(titleKey || status) && <button title="Quick edit" aria-label="Quick edit" onClick={() => (qe?.id === x._id ? setQe(null) : openQe(x))} className={`grid h-8 w-8 place-items-center rounded-lg hover:bg-raised ${qe?.id === x._id ? 'bg-raised text-signal' : ''}`}><Pencil size={15} /></button>}{canDup && !x.builtin && <button title="Duplicate" aria-label="Duplicate" onClick={() => dup(x)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised"><Copy size={15} /></button>}{!x.builtin && <button title="Remove" aria-label="Remove" onClick={() => setDlg({ kind: 'one', x })} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-raised hover:text-bad"><Trash2 size={15} /></button>}</>}
                     </span>
                   </td>
                 )}
@@ -138,15 +139,15 @@ export default function List({ resource }) {
                   <p className="mb-3 text-sm font-semibold text-ink">Quick edit</p>
                   <div className="grid gap-3 md:grid-cols-4">
                     {titleKey && <label className="text-xs text-muted md:col-span-2">Title<input value={qe.title} onChange={(e) => setQe({ ...qe, title: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}
-                    {titleKey && resource !== 'popups' && <label className="text-xs text-muted md:col-span-2">Slug (URL)<input value={qe.slug} onChange={(e) => setQe({ ...qe, slug: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}
-                    {status && <label className="text-xs text-muted">Status<select value={qe.live ? 'live' : 'draft'} onChange={(e) => setQe({ ...qe, live: e.target.value === 'live' })} className="field mt-1 w-full py-2 text-sm"><option value="live">{labels.live === 'Published' ? 'Published' : 'On'}</option><option value="draft">{labels.live === 'Published' ? 'Draft' : 'Off'}</option></select></label>}
+                    {titleKey && resource !== 'popups' && !x.builtin && <label className="text-xs text-muted md:col-span-2">Slug (URL)<input value={qe.slug} onChange={(e) => setQe({ ...qe, slug: e.target.value })} className="field mt-1 w-full py-2 text-sm" /></label>}
+                    {status && x.builtin !== 'home' && <label className="text-xs text-muted">Status<select value={qe.live ? 'live' : 'draft'} onChange={(e) => setQe({ ...qe, live: e.target.value === 'live' })} className="field mt-1 w-full py-2 text-sm"><option value="live">{labels.live === 'Published' ? 'Published' : 'On'}</option><option value="draft">{labels.live === 'Published' ? 'Draft' : 'Off'}</option></select></label>}
                     {NOINDEXABLE.includes(resource) && <label className="text-xs text-muted">Search engines<select value={qe.noindex ? 'no' : 'yes'} onChange={(e) => setQe({ ...qe, noindex: e.target.value === 'no' })} className="field mt-1 w-full py-2 text-sm"><option value="yes">Index (show in Google)</option><option value="no">Noindex (hide from Google)</option></select></label>}
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     <button disabled={qeBusy} onClick={saveQe} className="btn-primary btn-sm">{qeBusy ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}Update</button>
                     <button onClick={() => setQe(null)} className="btn-ghost btn-sm">Cancel</button>
                     <span className="ml-auto flex gap-3 text-xs">
-                      <button onClick={() => { setQe(null); setDlg({ kind: 'one', x }); }} className="text-bad hover:underline">Trash or delete</button>
+                      {!x.builtin && <button onClick={() => { setQe(null); setDlg({ kind: 'one', x }); }} className="text-bad hover:underline">Trash or delete</button>}
                     </span>
                   </div>
                 </td></tr>

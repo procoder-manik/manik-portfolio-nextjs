@@ -9,6 +9,8 @@ The first comment of each source file, so you can find where something lives.
 | File | What it is |
 | --- | --- |
 | `admin-schema.js` | ---------- Search, social, schema, advanced and code tabs (Yoast / Rank Math style) ---------- |
+| `ai-assist.js` | Everything the AI needs to write in the voice and structure of this website. |
+| `ai-blocks.js` | Section types the AI can write (shared by the admin and the server). |
 | `ai-iq.js` | Q and A pairs for one service (or from a page or pasted text). |
 | `ai-mail.js` | Writes a reply to a customer email. |
 | `ai-writer.js` | Step 1: the SEO plan (title, meta, slug, keywords, outline, FAQ, terms). |
@@ -39,6 +41,7 @@ The first comment of each source file, so you can find where something lives.
 | `log404.js` | Remembers a missing address so you can redirect it (Marketing > 404 log). |
 | `mail.js` | Sends email through Resend (RESEND_API_KEY) or SMTP (SMTP_HOST ...). |
 | `markdown.js` |  |
+| `menu.js` | Menus are kept in Admin > Header and footer (settings key "navigation"). |
 | `notifications.js` | status: placed \| paid \| in_progress \| completed \| cancelled. |
 | `options.js` | Payment methods. |
 | `orders.js` |  |
@@ -64,6 +67,8 @@ The first comment of each source file, so you can find where something lives.
 | `seo.js` | Builds Next.js metadata from an item's SEO fields with sensible fallbacks. |
 | `server-auth.js` | The signed-in admin, re-checked against the database on every call so a removed, blocked or re-roled user loses access at once (not only when the 7-day cookie ends). |
 | `subscriptions.js` | Called when an order becomes paid. |
+| `system-pages-server.js` | SEO fields of a built-in page live in the settings key seo-<key> (read by the page, the sitemap and the schema). |
+| `system-pages.js` | Built-in pages (home, portfolio, blog...) shown in Admin > Pages next to your own pages. |
 | `tones.js` | Writing tones for the AI writer. |
 | `track.js` | Fires conversion events to whatever is switched on. |
 | `trash-server.js` | Moves one document to the Trash: remembers its live switch, then hides it from the site. |
@@ -78,7 +83,7 @@ The first comment of each source file, so you can find where something lives.
 | `AnnouncementBar.jsx` | Slim strip above the header. |
 | `AppCard.jsx` |  |
 | `BackToTop.jsx` | Appears after you scroll down, with a ring that fills as you read. |
-| `BlogIndex.jsx` |  |
+| `BlogIndex.jsx` | part: 'intro' (heading and categories), 'posts' (posts and sidebar) or empty for both (category pages). |
 | `CaseStudyCard.jsx` | variant "feature" = large horizontal card, default = grid card |
 | `ChatWidget.jsx` | Built-in assistant. |
 | `CheckoutForm.jsx` |  |
@@ -120,12 +125,14 @@ The first comment of each source file, so you can find where something lives.
 | `SkillBars.jsx` | Proficiency bars that fill when scrolled into view. |
 | `SocialIcon.jsx` | Picks an icon from the profile URL or label. |
 | `SplitText.jsx` | Splits a heading into words so each one can slide up from behind a mask. |
+| `SystemSections.jsx` | Renders a built-in page from its layout: built-in parts (type "core") come from `parts`, every other block is a normal page section made in Admin > Pages. |
 | `Timeline.jsx` | Animated vertical timeline. |
 
 ## `components/admin/`
 
 | File | What it is |
 | --- | --- |
+| `AiAssist.jsx` | What the editor is working on, so any AI button can see the whole page or item. |
 | `AiIq.jsx` |  |
 | `AiKeys.jsx` | Paste API keys here instead of in the environment. |
 | `AiNews.jsx` | Headlines from your AI news feeds. |

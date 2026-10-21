@@ -1,4 +1,7 @@
-import { getPosts, getCategories, getSettings , getPageSeo } from '@/lib/data';
+import { getPosts, getCategories, getSettings, getPageSeo, getSystemPage } from '@/lib/data';
+import { notFound } from 'next/navigation';
+import SystemSections from '@/components/site/SystemSections';
+import { layoutOf, pageLive } from '@/lib/system-pages';
 import { seoMeta } from '@/lib/seo';
 import BlogIndex from '@/components/site/BlogIndex';
 import JsonLd from '@/components/site/JsonLd';
@@ -10,11 +13,15 @@ export async function generateMetadata() {
 }
 
 export default async function BlogPage() {
-  const [posts, updates, cats, site, home] = await Promise.all([getPosts({ kind: 'article' }), getPosts({ kind: 'update', limit: 8 }), getCategories(), getSettings('site'), getSettings('home')]);
+  const [posts, updates, cats, site, home, sp] = await Promise.all([getPosts({ kind: 'article' }), getPosts({ kind: 'update', limit: 8 }), getCategories(), getSettings('site'), getSettings('home'), getSystemPage('blog')]);
+  if (!pageLive(sp)) notFound();
   return (
     <>
       <JsonLd builtin="blog" data={buildGraph(site, [crumbs([['Home', '/'], ['Blog', '/blog']]), { '@type': 'Blog', '@id': `${siteUrl()}/blog#blog`, name: `${site.name} blog`, url: `${siteUrl()}/blog`, author: { '@id': `${siteUrl()}/#person` } }])} />
-      <BlogIndex posts={posts} updates={updates} cats={cats} title={home.blog?.heading || 'Blog'} intro={home.blog?.intro} />
+      <SystemSections layout={layoutOf('blog', sp)} tops={['intro']} parts={{
+        intro: (b) => <BlogIndex part="intro" posts={posts} updates={updates} cats={cats} title={b.heading || home.blog?.heading || 'Blog'} intro={b.text || home.blog?.intro} />,
+        posts: () => <BlogIndex part="posts" posts={posts} updates={updates} cats={cats} />,
+      }} />
     </>
   );
 }

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Download, MapPin, MessageCircle, Clock3, Quote } from 'lucide-react';
-import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies, getPageSeo } from '@/lib/data';
+import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies, getPageSeo, getSystemPage } from '@/lib/data';
+import SystemSections from '@/components/site/SystemSections';
+import { layoutOf, partOn } from '@/lib/system-pages';
 import { seoMeta } from '@/lib/seo';
 import Cards from '@/components/site/cards/Cards';
 import TimelineAnim from '@/components/site/Timeline';
@@ -33,22 +35,25 @@ export async function generateMetadata() {
 }
 
 export default async function Home() {
-  const [{ site, home, resume }, featured, all, posts, updates, cats, services] = await Promise.all([
+  const [{ site, home, resume }, featured, all, posts, updates, cats, services, sp] = await Promise.all([
     getAllSettings(), getProjects({ featured: true }), getProjects({ limit: 8 }), getPosts({ kind: 'article', limit: home_count() }),
-    getPosts({ kind: 'update', limit: 4 }), getCategories(), getServicesWithPackages(),
+    getPosts({ kind: 'update', limit: 4 }), getCategories(), getServicesWithPackages(), getSystemPage('home'),
   ]);
-  const apps = home.sections?.apps ? await getApps({ featured: true }) : [];
-  const cases = caseStudiesOn(site) && home.sections?.caseStudies ? (await getCaseStudies({ featured: true })).slice(0, home.caseStudies?.count || 3) : [];
-  const S = home.sections || {};
+  // Which sections show and in what order: Admin > Pages > Home (the old "Visible sections" switches are the starting point).
+  const layout = layoutOf('home', sp, home);
+  const on = (id) => partOn(layout, id);
+  const apps = on('apps') ? await getApps({ featured: true }) : [];
+  const cases = caseStudiesOn(site) && on('caseStudies') ? (await getCaseStudies({ featured: true })).slice(0, home.caseStudies?.count || 3) : [];
   const work = (featured.length ? featured : all).slice(0, home.work?.count || 6);
   const catMap = Object.fromEntries(cats.map((c) => [c.slug, c]));
   const about = renderMarkdown(home.about?.body).html;
 
   return (
     <>
-      <JsonLd builtin="home" data={buildGraph(site, [S.faq && faqNode(home.faq?.items), S.pricing && catalogNode(services)])} />
+      <JsonLd builtin="home" data={buildGraph(site, [on('faq') && faqNode(home.faq?.items), on('pricing') && catalogNode(services)])} />
 
-      {/* Hero */}
+      <SystemSections layout={layout} tops={['hero']} parts={{
+        hero: () => (
       <section className="relative overflow-hidden pb-16 pt-32 sm:pt-40">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_70%_60%_at_60%_30%,#000,transparent)]" />
         <div className="orb-a parallax-slow pointer-events-none absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-signal/20 blur-[120px]" />
@@ -82,9 +87,8 @@ export default async function Home() {
           </div>
         )}
       </section>
-
-      {/* About */}
-      {S.about && (
+      ),
+        about: () => (
         <section id="about" className="section">
           <div className="shell grid items-center gap-14 lg:grid-cols-[.9fr_1.1fr]">
             <Reveal className="relative">
@@ -117,10 +121,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* Services */}
-      {S.services && (
+      ),
+        services: () => (
         <section id="services" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.services.heading} intro={home.services.intro} />
@@ -134,10 +136,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* Work */}
-      {S.work && (
+      ),
+        work: () => (
         <section id="work" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.work.heading} intro={home.work.intro}>
@@ -149,10 +149,8 @@ export default async function Home() {
             <div className="mt-16 flex justify-center"><Link href="/portfolio" className="btn-primary">View more projects <ArrowRight size={16} /></Link></div>
           </div>
         </section>
-      )}
-
-      {/* Case studies */}
-      {cases.length > 0 && (
+      ),
+        caseStudies: () => cases.length > 0 && (
         <section id="case-studies" className="section border-t border-line bg-surface/30">
           <div className="shell">
             <SectionHead title={home.caseStudies?.heading} intro={home.caseStudies?.intro}>
@@ -164,10 +162,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* Products */}
-      {S.apps && apps.length > 0 && (
+      ),
+        apps: () => apps.length > 0 && (
         <section id="apps" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.apps?.heading} intro={home.apps?.intro}>
@@ -176,20 +172,16 @@ export default async function Home() {
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{apps.map((a, i) => <Reveal key={a.slug} delay={i * .06}><AppCard app={a} /></Reveal>)}</div>
           </div>
         </section>
-      )}
-
-      {/* Process */}
-      {S.process && (
+      ),
+        process: () => (
         <section className="section border-t border-line bg-surface/40">
           <div className="shell">
             <SectionHead title={home.process.heading} />
             <Cards cfg={{ template: home.process.template || 'numbered', layout: home.process.layout || 'grid', columns: home.process.columns || '3', items: (home.process.steps || []).map((x) => ({ ...x, meta: x.time })) }} />
           </div>
         </section>
-      )}
-
-      {/* Resume */}
-      {S.resume && (
+      ),
+        resume: () => (
         <section id="resume" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.resume.heading} intro={home.resume.intro}>
@@ -203,10 +195,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* Pricing */}
-      {S.pricing && services.length > 0 && (
+      ),
+        pricing: () => services.length > 0 && (
         <section id="pricing" className="section border-t border-line bg-surface/40">
           <div className="shell">
             <SectionHead title={home.pricing.heading} intro={home.pricing.intro}>
@@ -215,10 +205,8 @@ export default async function Home() {
             <PricingTabs services={services} compact lay={home.pricing || {}} />
           </div>
         </section>
-      )}
-
-      {/* Testimonials */}
-      {S.testimonials && (
+      ),
+        testimonials: () => (
         <section className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.testimonials.heading} />
@@ -243,10 +231,8 @@ export default async function Home() {
             )}
           </div>
         </section>
-      )}
-
-      {/* Blog */}
-      {S.blog && (
+      ),
+        blog: () => (
         <section id="blog" className="section border-t border-line">
           <div className="shell">
             <SectionHead title={home.blog.heading} intro={home.blog.intro}>
@@ -272,10 +258,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* FAQ */}
-      {S.faq && (
+      ),
+        faq: () => (
         <section id="faq" className="section border-t border-line">
           <div className="shell grid gap-12 lg:grid-cols-[1fr_1.6fr]">
             <div>
@@ -285,9 +269,8 @@ export default async function Home() {
             <Faq items={home.faq.items} />
           </div>
         </section>
-      )}
-
-      {/* CTA */}
+      ),
+        cta: () => (
       <section id="contact" className="px-3 pb-24 sm:px-5">
         <div className="relative mx-auto max-w-shell overflow-hidden rounded-[32px] bg-signal px-6 py-16 text-white sm:px-14 sm:py-24">
           <div className="grid-paper pointer-events-none absolute inset-0 opacity-60 [--grid:255_255_255]" />
@@ -303,6 +286,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      ),
+      }} />
     </>
   );
 }

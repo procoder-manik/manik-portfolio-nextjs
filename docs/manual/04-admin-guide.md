@@ -54,3 +54,8 @@ New orders, new messages, content counts and quick links. On an empty database i
 | Add a staff member | Site > Users |
 
 Details for each area are in chapters 05 to 09.
+
+
+## Built-in pages and menus (4.9)
+
+Pages lists the built-in pages first (Home, Portfolio, Case studies, Blog, Resume, Pricing, Contact, Products, FAQ, Help center). Open one to switch it on or off, reorder, hide or remove its parts, change part headings, add sections between parts and edit its SEO. Every page has a **Menus** box that adds or removes its link in the header and a footer column. Full steps: `docs/GUIDE-V4.9.md`.

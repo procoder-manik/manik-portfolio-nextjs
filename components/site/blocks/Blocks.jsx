@@ -31,7 +31,7 @@ const Head = ({ heading, intro, center }) => (heading || intro ? (
     {intro && <p className={cn('lede mt-4', center && 'mx-auto')}>{intro}</p>}
   </div>) : null);
 
-export default async function Blocks({ blocks = [] }) {
+export default async function Blocks({ blocks = [], atTop = true }) {
   const list = blocks.filter((b) => b && !b.hidden && b.type);
   if (!list.length) return null;
   const need = new Set(list.map((b) => b.type));
@@ -41,7 +41,7 @@ export default async function Blocks({ blocks = [] }) {
   ]);
   const catMap = Object.fromEntries(cats.map((c) => [c.slug, c]));
   const ctx = { catMap, services, apps, home };
-  return <>{list.map((b, i) => <Block key={i} b={b} first={i === 0} ctx={ctx} />)}</>;
+  return <>{list.map((b, i) => <Block key={i} b={b} first={atTop && i === 0} ctx={ctx} />)}</>;
 }
 
 async function Block({ b, first, ctx }) {

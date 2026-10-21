@@ -16,7 +16,7 @@ export const POST = adminRoute(async (req, { params }) => {
   await dbConnect();
   const { action, ids = [] } = await req.json().catch(() => ({}));
   if (action === 'empty') {
-    const r = await M.deleteMany({ trashedAt: { $ne: null } });
+    const r = await M.deleteMany({ trashedAt: { $ne: null }, ...(params.resource === 'pages' ? { builtin: { $in: [null, ''] } } : {}) });
     refreshContent();
     return NextResponse.json({ ok: true, count: r.deletedCount });
   }
@@ -25,6 +25,8 @@ export const POST = adminRoute(async (req, { params }) => {
   let n = 0;
   for (const d of docs) {
     let set = null;
+    // Built-in pages can only be switched on or off (Home is always on).
+    if (params.resource === 'pages' && d.builtin && (!['draft', 'publish'].includes(action) || (d.builtin === 'home' && action === 'draft'))) continue;
     if (action === 'duplicate') { if (!DUPLICABLE.includes(params.resource)) continue; await M.create(await buildCopy(params.resource, M, d, RESOURCES[params.resource])); n++; continue; }
     if (action === 'trash' && TRASHABLE.includes(params.resource)) set = trashUpdate(params.resource, d);
     else if (action === 'restore') set = restoreUpdate(params.resource, d);

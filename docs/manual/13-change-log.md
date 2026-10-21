@@ -17,6 +17,9 @@ The full technical notes of each version are in `docs/PROJECT-BRIEF.md`; each up
 | 4.6 | FAQ update (WordPress redesign question, payment terms), a larger knowledge base, the public Help center with search, topics and one page per answer, safe content updates for live databases, and this manual with generated reference |
 | 4.7 | Back to Top and the built-in chat can each be switched on or off and placed on the left or right; chat defaults to the left and Back to Top to the right |
 | 4.8 | AI project writer: a new project asks the website, the kind of work and its stage, reads the live site and the screenshot, and fills description, story, tags, meta title and description, alt text and accent colour; banner prompts from the screenshot; work status (finished, still building, ongoing care) |
+| 4.9 | Built-in pages (Home, Portfolio, Case studies, Blog, Resume, Pricing, Contact, Products, FAQ, Help center) listed and editable in Pages: switch on or off, reorder, hide or remove their parts, change part headings, add sections between parts, SEO tabs; a Menus box on every page that writes into Header and footer; links to switched-off pages are hidden |
+| 4.9.1 | Case studies menu link fixed (no automatic link; menu switches match /#anchor and full-domain links); built-in page records created safely when several requests run at once |
+| 4.10 | AI everywhere: page writer (custom and built-in pages), case study writer, section writer, a field AI button on text fields in every editor, one-click SEO, social and schema; 30 new FAQ answers and a Help and support topic, missing starter answers added to live sites once; /support and similar addresses open the Help center |
 
 ## How to record a change
 

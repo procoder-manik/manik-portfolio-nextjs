@@ -63,7 +63,6 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
 | `features.caseStudies` | Case studies (page, home section, menu and footer links) | switch | Off hides every case study page, section and link at once. Your case studies stay saved. |
-| `features.caseStudiesInMenu` | Add "Case studies" to the header menu and footer automatically | switch |  |
 | `features.backToTop` | Back to Top button | switch | A round button that appears after a visitor scrolls down and takes them back to the top. It shows a ring that fills as they read. Off removes it from... |
 | `features.backToTopPosition` | Back to Top side | segmented | Which bottom corner the button sits in, on desktop and phones. If the built-in chat is on the same side, the button sits above the chat button. |
 | `features.trashDays` | Empty the Trash automatically after (days) | number | Deleted items wait in the Trash this many days, then are removed for good. 0 keeps them until you delete them yourself. |
@@ -109,22 +108,6 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 ## Home page (`home`)
 
 - Admin: `/admin/settings/home`, area: **design**
-
-### Visible sections
-
-| Field | Label | Type | What it does |
-| --- | --- | --- | --- |
-| `sections.about` | About | switch |  |
-| `sections.services` | Services | switch |  |
-| `sections.work` | Work | switch |  |
-| `sections.caseStudies` | Case studies (also needs the feature on) | switch |  |
-| `sections.apps` | Products | switch |  |
-| `sections.process` | Process | switch |  |
-| `sections.resume` | Resume | switch |  |
-| `sections.pricing` | Pricing | switch |  |
-| `sections.testimonials` | Testimonials | switch |  |
-| `sections.blog` | Blog | switch |  |
-| `sections.faq` | FAQ | switch |  |
 
 ### Hero
 
@@ -661,6 +644,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -672,6 +656,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -682,6 +667,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -748,6 +734,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -759,6 +746,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -769,6 +757,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -835,6 +824,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -846,6 +836,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -856,6 +847,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -922,6 +914,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -933,6 +926,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -943,6 +937,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1009,6 +1004,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1020,6 +1016,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1030,6 +1027,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1096,6 +1094,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1107,6 +1106,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1117,6 +1117,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1183,6 +1184,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1194,6 +1196,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1204,6 +1207,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1270,6 +1274,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1281,6 +1286,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1291,6 +1297,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1357,6 +1364,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1368,6 +1376,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1378,6 +1387,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |
@@ -1444,6 +1454,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSeo` |  | aiSeo |  |
 | `seoPreview` |  | seo |  |
 | `focusKeyword` | Focus keyword | text | The main phrase you want this page to rank for on Google. The checklist below grades the page against it, like Rank Math and Yoast do. Use one phrase... |
 | `keywords` | Related keywords | tags | Other phrases and synonyms this page should also cover (secondary keywords). They are a reminder for you while writing and are added to the page sche... |
@@ -1455,6 +1466,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSocial` |  | aiSeo |  |
 | `socialPreview` |  | socialPreview |  |
 | `ogTitle` | Social title | text | The headline shown when the link is shared on Facebook, LinkedIn, WhatsApp and X. Leave empty to reuse the meta title. Social titles can be more catc... |
 | `ogDescription` | Social description | textarea | The short text under the headline on social cards. Leave empty to reuse the meta description. |
@@ -1465,6 +1477,7 @@ One page per group at `/admin/settings/<key>`. Saved as a single document per ke
 
 | Field | Label | Type | What it does |
 | --- | --- | --- | --- |
+| `aiSchema` |  | aiSeo |  |
 | `schemaPanel` |  | schemaPanel |  |
 | `schemaMarkup.type` | Schema type | select | Automatic picks the right type for you (blog post, project, FAQ...). Choose a type when this page is something specific, like a service you sell, an... |
 | `schemaMarkup.name` | Name or headline | text | The name of the thing this page describes. Empty uses the page title. |

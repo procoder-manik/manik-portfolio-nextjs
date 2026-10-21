@@ -34,7 +34,7 @@ Mongoose models in `lib/models/index.js` (field names found in each schema; see 
 
 ## Page
 
-`title, slug, content, blocks, layout, hideTitle, published, showInFooter, showInHeader`
+`title, slug, content, blocks, layout, hideTitle, builtin, published, showInFooter, showInHeader`
 
 ## Media
 

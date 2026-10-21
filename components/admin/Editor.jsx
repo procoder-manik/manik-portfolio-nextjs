@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Loader2, Save, Trash2, CheckCircle2, AlertTriangle, RotateCcw, Sparkles, X } from 'lucide-react';
 import { ProjectAiWizard } from './ProjectAi';
+import { AiCtx, PageAiWizard, CaseStudyAiWizard } from './AiAssist';
 import { DeleteDialog } from './Dialog';
 import { STATUS, TRASHABLE } from '@/lib/trash';
 import { FieldList, InfoScope } from './Fields';
@@ -29,7 +30,12 @@ export default function Editor({ resource, id, settingsKey }) {
   const aiProject = resource === 'projects' && !settingsKey;
   const [aiOpen, setAiOpen] = useState(aiProject && isNew); // a new project starts by asking what kind of work it was
   const [aiNote, setAiNote] = useState('');
-  useEffect(() => { if (typeof window !== 'undefined' && window.location.hash === '#seo' && conf?.sections) { const i = conf.sections.findIndex((x) => x.title === 'SEO'); if (i >= 0) setTab(i); } }, [doc ? 1 : 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  const aiPage = resource === 'pages' && !settingsKey; const aiCase = resource === 'case-studies' && !settingsKey;
+  const [pageAi, setPageAi] = useState(false); const [caseAi, setCaseAi] = useState(aiCase && isNew);
+  const [projList, setProjList] = useState([]);
+  useEffect(() => { if (aiCase) api('/api/admin/projects').then((j) => setProjList((j.items || []).map((p) => ({ slug: p.slug, title: p.title })))).catch(() => {}); }, [aiCase]);
+  const docRef = useRef(null);
+  useEffect(() => { if (typeof window !== 'undefined' && window.location.hash === '#seo' && conf?.sections) { const i = conf.sections.filter((x) => !x.showIf || x.showIf(doc || {})).findIndex((x) => x.title === 'SEO'); if (i >= 0) setTab(i); } }, [doc ? 1 : 0]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!settingsKey) api('/api/admin/settings/site').then((j) => setTrashDays(j.item?.features?.trashDays ?? 30)).catch(() => {}); }, [settingsKey]);
 
   useEffect(() => { if (!isNew) api(endpoint).then((j) => { setDoc(j.item); setReadOnly(!!j.readOnly); }).catch((e) => setStatus({ t: 'err', msg: e.message })); }, [endpoint, isNew]);
@@ -55,13 +61,15 @@ export default function Editor({ resource, id, settingsKey }) {
   const del = async (mode) => { try { await api(`${endpoint}?mode=${mode}`, { method: 'DELETE' }); done(); } catch (e) { setStatus({ t: 'err', msg: e.message }); setDlg(false); } };
   const patch = async (action) => { try { const j = await api(endpoint, { method: 'PATCH', body: { action } }); setDoc(j.item); setDlg(false); setStatus({ t: 'ok', msg: 'Done' }); setTimeout(() => setStatus({ t: '', msg: '' }), 2000); } catch (e) { setStatus({ t: 'err', msg: e.message }); setDlg(false); } };
 
+  docRef.current = doc;
   if (!doc) return <div className="grid h-64 place-items-center text-muted">{status.msg || <Loader2 className="animate-spin" />}</div>;
   const title = settingsKey ? conf.label : isNew ? `New ${conf.singular}` : doc.title || doc.name || conf.singular;
-  const sections = conf.sections;
+  const sections = conf.sections.filter((s) => !s.showIf || s.showIf(doc));
   const preview = !settingsKey && !isNew && conf.preview?.(doc);
 
   return (
     <InfoScope.Provider value={settingsKey || resource}>
+    <AiCtx.Provider value={{ scope: settingsKey || resource, getDoc: () => docRef.current }}>
     <div>
       <div className="sticky top-0 z-20 -mx-5 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-base/90 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">
@@ -71,9 +79,10 @@ export default function Editor({ resource, id, settingsKey }) {
         </div>
         <div className="flex items-center gap-2">
           {status.t === 'ok' && <span className="inline-flex items-center gap-1.5 text-sm text-good"><CheckCircle2 size={15} />Saved</span>}
+          {(aiPage || aiCase) && !readOnly && <button onClick={() => (aiPage ? setPageAi(true) : setCaseAi(true))} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {aiProject && !readOnly && <button onClick={() => setAiOpen(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {preview && <a href={preview} target="_blank" className="btn-ghost btn-sm"><ExternalLink size={14} />View</a>}
-          {!settingsKey && !isNew && <button onClick={() => setDlg(true)} className="btn-ghost btn-sm text-bad"><Trash2 size={14} />{doc.trashedAt ? 'Trash options' : 'Delete'}</button>}
+          {!settingsKey && !isNew && !doc.builtin && <button onClick={() => setDlg(true)} className="btn-ghost btn-sm text-bad"><Trash2 size={14} />{doc.trashedAt ? 'Trash options' : 'Delete'}</button>}
           <button onClick={save} disabled={status.t === 'saving' || readOnly} className="btn-primary btn-sm">{status.t === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{isNew ? 'Create' : 'Save changes'}</button>
         </div>
       </div>
@@ -101,10 +110,13 @@ export default function Editor({ resource, id, settingsKey }) {
           {tab < sections.length - 1 ? <button onClick={() => setTab(tab + 1)} className="btn-ghost btn-sm">Next: {sections[tab + 1].title}</button> : <button onClick={save} className="btn-primary btn-sm"><Save size={14} />{isNew ? 'Create' : 'Save changes'}</button>}
         </div>
       )}
+      {aiPage && <PageAiWizard open={pageAi} onClose={() => setPageAi(false)} doc={doc} onApply={(fn, via) => { setDoc(fn); setDirty(true); setAiNote(`Written by AI${via ? ` (${via})` : ''}. Check the Sections and SEO tabs, change anything you like, then press ${isNew ? 'Create' : 'Save changes'}.`); }} />}
+      {aiCase && <CaseStudyAiWizard open={caseAi} onClose={() => setCaseAi(false)} doc={doc} isNew={isNew} projects={projList} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Written by AI${via ? ` (${via})` : ''}. Read each tab, add the images, then press ${isNew ? 'Create' : 'Save changes'}.`); }} />}
       {aiProject && <ProjectAiWizard open={aiOpen} onClose={() => setAiOpen(false)} doc={doc} isNew={isNew} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Filled by AI${via ? ` (${via})` : ''}. Read each tab (Project, Images, What I did, SEO), change anything you like, then press ${isNew ? 'Create' : 'Save changes'}. Banner prompts are in the Images tab.`); }} />}
       {!settingsKey && <DeleteDialog open={dlg} onClose={() => setDlg(false)} name={title} singular={conf.singular} canDraft={!!STATUS[resource] && !doc.trashedAt} inTrash={!!doc.trashedAt} trashDays={trashDays}
         onTrash={() => (TRASHABLE.includes(resource) ? del('trash') : del('permanent'))} onDraft={() => patch('draft')} onRestore={() => patch('restore')} onPermanent={() => del('permanent')} />}
     </div>
+    </AiCtx.Provider>
     </InfoScope.Provider>
   );
 }
