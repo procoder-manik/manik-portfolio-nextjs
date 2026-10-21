@@ -91,5 +91,33 @@ export const POST = adminRoute(async (req, ctx, admin) => {
     refreshContent();
     return NextResponse.json({ created: { id: String(page._id), slug, title: page.title }, via: r.via });
   }
+
+  if (b.task === 'targetPage') {
+    const kind = b.kind === 'industry' ? 'industry' : 'location';
+    const target = String(b.target || '').trim().slice(0, 60); if (target.length < 2) throw new Error('Add the place or industry.');
+    const svc = b.service ? await Service.findOne({ slug: b.service }).lean() : null;
+    const svcName = svc?.name || 'Website design';
+    const start = slugify(b.prefix || svc?.slug || 'web-design').slice(0, 40) || 'web-design';
+    let slug = slugify(kind === 'industry' ? `${start}-for-${target}` : `${start}-${target}`).slice(0, 70);
+    if (SYSTEM_PAGES.some((x) => x.slug === slug)) slug += '-page';
+    if (await Page.findOne({ slug }).select('_id').lean()) return NextResponse.json({ skipped: true, slug });
+    const keyword = (kind === 'industry' ? `${svcName} for ${target}` : `${svcName} ${target}`).toLowerCase().slice(0, 70);
+    const input = { type: kind, topic: kind === 'industry' ? `${svcName} for ${target}` : `${svcName} for clients in ${target}`, audience: b.audience || (kind === 'industry' ? target : `Business owners in ${target}`), keyword, notes: [svc?.summary, b.notes && `Facts from the owner: ${b.notes}`, svc ? `This page is about the service "${svc.name}" (page /${svc.slug}).` : ''].filter(Boolean).join('\n') };
+    const p = pagePrompts(input, site);
+    const r = await ask(p, { maxTokens: 5000, temperature: 0.75 });
+    const j = r.data || {};
+    const blocks = (Array.isArray(j.blocks) ? j.blocks : []).filter((x) => x && AI_BLOCK_TYPES.includes(x.type)).slice(0, 9).map((x) => {
+      const c = deep(x); if (x.type === 'richText' && x.content) c.content = cleanText(x.content);
+      if (x.type === 'faq') c.useSite = !(c.items || []).length;
+      if (x.type === 'pricing' && svc) c.service = svc.slug;
+      return { ...(BLOCK_DEFAULTS[x.type] || {}), ...c, type: x.type };
+    });
+    if (!blocks.length) throw Object.assign(new Error('The AI returned no sections. Try again.'), { status: 502 });
+    const seo = normSeo(j.seo || {}, site.seo); seo.focusKeyword = keyword;
+    const schemaMarkup = { type: 'Service', name: input.topic, serviceType: svcName, ...(kind === 'location' ? { areaServed: target } : {}) };
+    const page = await Page.create({ title: line(j.title) || input.topic, slug, published: false, hideTitle: blocks[0]?.type === 'hero', blocks, ...seo, schemaMarkup });
+    refreshContent();
+    return NextResponse.json({ created: { id: String(page._id), slug, title: page.title }, via: r.via });
+  }
   throw new Error('Unknown task.');
 }, 'content');
