@@ -6,54 +6,11 @@ import { cleanText } from '@/lib/humanize';
 import { slugify } from '@/lib/utils';
 import { BLOCK_DEFAULTS } from '@/lib/blocks';
 import { WORK_TYPES } from '@/lib/project-ai-options';
-import { siteContext, fieldPrompts, seoPrompts, blockPrompts, pagePrompts, caseStudyPrompts, AI_BLOCKS, SCHEMA_FIELDS } from '@/lib/ai-assist';
+import { siteContext, fieldPrompts, seoPrompts, blockPrompts, pagePrompts, caseStudyPrompts, coverPrompts, AI_BLOCKS, SCHEMA_FIELDS } from '@/lib/ai-assist';
+import { arOf } from '@/lib/image-specs';
+import { line, cutAt, cutTitle, list, deep, normSeo, ask } from '@/lib/ai-run';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
-
-const line = (s) => cleanText(String(s ?? '')).replace(/\s*\n+\s*/g, ' ').trim();
-const cutAt = (s, n) => { s = line(s); if (s.length <= n) return s; const t = s.slice(0, n); const end = Math.max(t.lastIndexOf('. '), t.lastIndexOf('! '), t.lastIndexOf('? ')); return end > n * 0.55 ? t.slice(0, end + 1) : `${t.slice(0, t.lastIndexOf(' ') > n * 0.6 ? t.lastIndexOf(' ') : n).replace(/[\s,;:.-]+$/, '')}.`; };
-const cutTitle = (s, n) => { s = line(s).replace(/\.$/, ''); if (s.length <= n) return s; const t = s.slice(0, n); return t.slice(0, t.lastIndexOf(' ') > n * 0.6 ? t.lastIndexOf(' ') : n).replace(/[\s,;:.|-]+$/, '').replace(/\s+(and|or|the|a|an|to|of|for|with|in|on|at|by|&)$/i, ''); };
-const list = (a, n = 8) => [...new Set((Array.isArray(a) ? a : String(a || '').split(',')).map((x) => line(x)).filter(Boolean))].slice(0, n);
-const href = (h) => { const x = String(h || '').trim(); return /^(\/|#|https?:\/\/|mailto:|tel:)/.test(x) ? x : ''; };
-
-/* Cleans every string in an object (AI words, long dashes), keeps the shape. */
-const deep = (v, md = false) => (typeof v === 'string' ? (md ? cleanText(v) : line(v)) : Array.isArray(v) ? v.map((x) => deep(x, md)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, /href$/i.test(k) ? href(x) : deep(x, /content|body|results/.test(k) && typeof x === 'string' && x.includes('\n'))])) : v);
-
-function normSeo(j = {}, seo = {}, want) {
-  const tpl = String(seo.titleTemplate || '%s').includes('%s') ? String(seo.titleTemplate) : '%s';
-  const room = 62 - (tpl.length - 2);
-  const out = {};
-  const has = (k) => !want || want.includes(k);
-  if (has('focusKeyword') && j.focusKeyword) out.focusKeyword = line(j.focusKeyword).toLowerCase().replace(/\.$/, '').slice(0, 60);
-  if (has('keywords') && j.keywords) out.keywords = list(j.keywords, 6).map((k) => k.toLowerCase().replace(/\.$/, ''));
-  if (has('seoTitle') && j.seoTitle) { let raw = line(j.seoTitle); const suf = tpl.replace('%s', '').trim(); if (suf && raw.toLowerCase().endsWith(suf.toLowerCase())) raw = raw.slice(0, -suf.length).replace(/[\s|:-]+$/, ''); const base = cutTitle(raw, room >= 30 ? room : 60); out.seoTitle = room >= 30 ? tpl.replace('%s', base) : base; }
-  if (has('seoDescription') && j.seoDescription) out.seoDescription = cutAt(j.seoDescription, 160);
-  if (has('ogTitle') && j.ogTitle) out.ogTitle = cutTitle(j.ogTitle, 70);
-  if (has('ogDescription') && j.ogDescription) out.ogDescription = cutAt(j.ogDescription, 125);
-  if (has('breadcrumbTitle') && j.breadcrumbTitle) out.breadcrumbTitle = cutTitle(j.breadcrumbTitle, 30);
-  if (has('schema') && j.schema?.type) {
-    const type = String(j.schema.type);
-    const sm = { type };
-    for (const k of SCHEMA_FIELDS[type] || []) {
-      if (k === 'faq') sm.faq = (j.schema.faq || []).filter((x) => x?.q && x?.a).slice(0, 8).map((x) => ({ q: line(x.q), a: line(x.a) }));
-      else if (k === 'steps') sm.steps = (j.schema.steps || []).filter((x) => x?.name).slice(0, 10).map((x) => ({ name: line(x.name), text: line(x.text) }));
-      else if (j.schema[k]) sm[k] = k === 'description' ? cutAt(j.schema[k], 200) : line(j.schema[k]);
-    }
-    if (['WebPage', 'AboutPage', 'ContactPage', 'CollectionPage', 'Article', 'BlogPosting', 'auto'].includes(type) || SCHEMA_FIELDS[type]) out.schemaMarkup = sm;
-  }
-  return out;
-}
-
-async function ask(prompt, { json = true, maxTokens = 3000, temperature = 0.6 } = {}) {
-  const cfg = await aiConfig();
-  let last = '';
-  for (let i = 0; i < 2; i++) {
-    const r = await askAIx({ ...prompt, json, maxTokens, temperature, cfg, budgetMs: i ? 18000 : 38000 });
-    if (!json) return { text: r.text, via: r.via };
-    try { return { data: parseJson(r.text), via: r.via }; } catch (e) { last = e.message; }
-  }
-  throw Object.assign(new Error(`${last} Press the button again.`), { status: 502 });
-}
 
 /* POST { task: field | seo | block | page | caseStudy, ... } -> the written content, cleaned and ready to put in the form. */
 export const POST = adminRoute(async (req, ctx, admin) => {
@@ -97,6 +54,21 @@ export const POST = adminRoute(async (req, ctx, admin) => {
     });
     if (!blocks.length) throw Object.assign(new Error('The AI returned no sections. Press the button again.'), { status: 502 });
     return NextResponse.json({ title: line(j.title) || b.topic, slug: slugify(j.slug || j.title || b.topic).slice(0, 60), blocks, seo: normSeo(j.seo || {}, site.seo), via: r.via });
+  }
+
+  if (b.task === 'cover') {
+    if (!String(b.doc?.title || b.doc?.name || '').trim()) throw new Error('Add the title first, so the AI knows what the image is about.');
+    const p = coverPrompts(b, site); const sp = p.spec;
+    const r = await ask({ system: p.system, user: p.user }, { maxTokens: 3000, temperature: 0.7 });
+    const dash = (x) => String(x || '').replace(/\s*[\u2014\u2013]\s*/g, ', ').trim();
+    // The size is added here, not left to the AI, so every prompt asks for the exact ratio.
+    const tail = ` Final image: ${sp.w} x ${sp.h} pixels, ${sp.ratio} landscape. Keep every important element and all text inside the centre ${sp.safe[0]} x ${sp.safe[1]} pixels so nothing is lost when the site crops it. No watermark, no logos or brand names, and no text other than the exact text given.`;
+    const prompts = (r.data.prompts || []).filter((x) => x?.prompt).slice(0, 4).map((x) => ({
+      label: dash(x.label) || 'Cover', tool: dash(x.tool), attach: Boolean(x.attach && b.doc?.scrollImage),
+      prompt: dash(x.prompt) + tail + (/midjourney/i.test(x.tool || '') ? ` --ar ${arOf(sp)} --style raw` : ''),
+    }));
+    if (!prompts.length) throw Object.assign(new Error('The AI returned no prompts. Press the button again.'), { status: 502 });
+    return NextResponse.json({ cover: { headline: dash(r.data.headline), altText: dash(r.data.altText).slice(0, 140), fileName: String(r.data.fileName || '').toLowerCase().replace(/[^a-z0-9.-]+/g, '-').slice(0, 80), prompts, tips: dash(r.data.tips), size: `${sp.w} x ${sp.h}`, ratio: sp.ratio }, via: r.via });
   }
 
   if (b.task === 'caseStudy') {

@@ -11,7 +11,7 @@ import { purgeOld } from '@/lib/trash-server';
 import { pingIndexNow } from '@/lib/indexnow';
 import * as seed from '@/lib/seed-data';
 import { cleanRedirect } from '@/lib/redirects';
-import { ensureSystemPages, prepareSave, SEO_FIELDS } from '@/lib/system-pages-server';
+import { ensureSystemPages, prepareSave, SEO_FIELDS, ownHostsNow } from '@/lib/system-pages-server';
 import { ensureStarterAnswers } from '@/lib/content-updates';
 /* Built-in pages keep their SEO in settings (seo-<key>); add it so the SEO column scores the real values. */
 const withSeo = async (items) => Promise.all(items.map(async (x) => { if (!x.builtin) return x; const seo = await getPageSeoFresh(x.builtin).catch(() => ({})); return { ...x, ...Object.fromEntries(SEO_FIELDS.filter((k) => seo[k] !== undefined).map((k) => [k, seo[k]])) }; }));
@@ -21,7 +21,7 @@ import { getSettingsFresh, getPageSeoFresh } from '@/lib/data';
 
 /* Built-in pages first (in menu order), then your own pages, newest first. */
 const sysRank = (x) => (x.builtin && SYSTEM_BY_KEY[x.builtin] ? SYSTEM_PAGES.findIndex((d) => d.key === x.builtin) : 999);
-const pageRows = (items, nav) => items.map((x) => { const m = nav ? menuState(nav, pagePaths(x)) : null; return { ...x, kind: x.builtin ? 'Built-in' : 'Custom', url: pagePath(x), ...(m ? { showInHeader: m.header || Boolean(!x.builtin && x.showInHeader), showInFooter: m.footer || Boolean(!x.builtin && x.showInFooter) } : {}) }; }).sort((a, b) => sysRank(a) - sysRank(b));
+const pageRows = (items, nav, hosts = []) => items.map((x) => { const m = nav ? menuState(nav, pagePaths(x), hosts) : null; return { ...x, kind: x.builtin ? 'Built-in' : 'Custom', url: pagePath(x), ...(m ? { showInHeader: m.header || Boolean(!x.builtin && x.showInHeader), showInFooter: m.footer || Boolean(!x.builtin && x.showInFooter) } : {}) }; }).sort((a, b) => sysRank(a) - sysRank(b));
 
 const noDB = () => { const e = new Error('Connect MongoDB (set MONGODB_URI) to save changes.'); e.status = 503; return e; };
 const area = (p) => RESOURCE_AREA[p.resource] || 'system';
@@ -32,7 +32,7 @@ export const GET = adminRoute(async (req, { params }) => {
   const seedKey = { 'case-studies': 'caseStudies' }[params.resource] || params.resource;
   if (!hasDB()) {
     const items = (seed[seedKey] || []).map((x, i) => ({ _id: `seed-${i}`, ...x }));
-    if (params.resource === 'pages') return NextResponse.json({ items: pageRows([...SYSTEM_PAGES.map((d) => ({ _id: `sys-${d.key}`, title: d.title, slug: d.slug, builtin: d.key, published: true })), ...items], await getSettingsFresh('navigation')), readOnly: true });
+    if (params.resource === 'pages') return NextResponse.json({ items: pageRows([...SYSTEM_PAGES.map((d) => ({ _id: `sys-${d.key}`, title: d.title, slug: d.slug, builtin: d.key, published: true })), ...items], await getSettingsFresh('navigation'), await ownHostsNow()), readOnly: true });
     return NextResponse.json({ items, readOnly: true });
   }
   await dbConnect();
@@ -51,7 +51,7 @@ export const GET = adminRoute(async (req, { params }) => {
     M.find(filter).sort(sort).limit(1000).lean(),
     canTrash ? Promise.all([M.countDocuments(notTrashed), s ? M.countDocuments({ ...notTrashed, ...live }) : 0, s ? M.countDocuments({ ...notTrashed, ...draft }) : 0, M.countDocuments({ trashedAt: { $ne: null } })]) : null,
   ]);
-  return NextResponse.json({ items: params.resource === 'pages' ? pageRows(await withSeo(serialize(items)), await getSettingsFresh('navigation')) : serialize(items), counts: counts ? { all: counts[0], live: counts[1], draft: counts[2], trash: counts[3] } : null });
+  return NextResponse.json({ items: params.resource === 'pages' ? pageRows(await withSeo(serialize(items)), await getSettingsFresh('navigation'), await ownHostsNow()) : serialize(items), counts: counts ? { all: counts[0], live: counts[1], draft: counts[2], trash: counts[3] } : null });
 }, area);
 
 export const POST = adminRoute(async (req, { params }) => {

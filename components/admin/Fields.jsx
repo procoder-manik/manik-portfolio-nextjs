@@ -18,6 +18,7 @@ import Cards, { Card } from '@/components/site/cards/Cards';
 import { CARD_TEMPLATES, SAMPLE } from '@/lib/card-templates';
 import { BannerBox } from './ProjectAi';
 import { AiFieldButton, SeoAiPanel, BlockAiButton, aiable } from './AiAssist';
+import CoverPrompts from './CoverPrompts';
 import { AI_BLOCK_TYPES } from '@/lib/ai-blocks';
 import { systemDef, partDef, pagePath } from '@/lib/system-pages';
 
@@ -65,6 +66,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
   if (T === 'aiBanner') return <BannerBox doc={doc || {}} setDoc={setDoc} />;
+  if (T === 'aiCover') return <CoverPrompts f={f} doc={doc || {}} setDoc={setDoc} />;
   if (T === 'aiSeo') return <SeoAiPanel f={f} doc={doc || {}} setDoc={setDoc} />;
   if (T === 'builtinNote') return <BuiltinNote doc={doc || {}} />;
   if (T === 'menuPlacement') return <MenuPlacement doc={doc || {}} value={value || {}} onChange={onChange} />;

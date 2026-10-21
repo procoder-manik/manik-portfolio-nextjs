@@ -1,7 +1,7 @@
 export async function api(path, { method = 'GET', body } = {}) {
   const r = await fetch(path, { method, headers: body instanceof FormData ? undefined : { 'Content-Type': 'application/json' }, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.error || `Request failed (${r.status})`);
+  if (!r.ok) throw Object.assign(new Error(j.error || `Request failed (${r.status})`), { status: r.status });
   return j;
 }
 
