@@ -9,7 +9,7 @@ export async function generateMetadata(props) {
   const params = await props.params;
   const [cats, seo] = await Promise.all([getCategories(), getSettings('seo')]);
   const c = cats.find((x) => x.slug === params.slug);
-  return c ? seoMeta({ ...c, seoNoindex: c.seoNoindex || seo.defaults?.noindexCategories }, { title: `${c.name} articles`, description: c.description, path: `/blog/category/${c.slug}` }) : {};
+  return c ? seoMeta({ ...c, seoNoindex: c.seoNoindex || seo.defaults?.noindexCategories }, { title: `${c.name} articles`, description: c.description, path: `/blog/category/${c.slug}`, ogKind: 'post', ogSub: c.name }) : {};
 }
 
 export default async function CategoryPage(props) {

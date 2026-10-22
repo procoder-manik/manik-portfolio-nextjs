@@ -9,7 +9,7 @@ import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('apps'), { title: 'Products', description: 'Apps and SaaS tools built by Manik Hossain.', path: '/apps' });
+  return seoMeta(await getPageSeo('apps'), { title: 'Products', description: 'Apps and SaaS tools built by Manik Hossain.', path: '/apps' , ogKind: 'page' });
 }
 
 export default async function AppsPage() {

@@ -29,7 +29,7 @@ import { fmtDate } from '@/lib/utils';
 /* Home page SEO from Pages > Home (or the older Site and contact > Footer and SEO fields). */
 export async function generateMetadata() {
   const own = await getPageSeo('home');
-  const m = seoMeta(own, { path: '/' });
+  const m = seoMeta(own, { path: '/' , ogKind: 'page' });
   if (!String(own.seoTitle || '').trim()) delete m.title; // keeps the default title from the root layout
   return m;
 }

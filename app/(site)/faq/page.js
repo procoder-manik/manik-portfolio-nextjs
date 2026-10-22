@@ -12,7 +12,7 @@ import JsonLd from '@/components/site/JsonLd';
 import FaqExplorer from '@/components/site/FaqExplorer';
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('faq'), { title: 'Frequently asked questions', description: 'Answers about web design, SEO, automation, maintenance, pricing, timelines and payment.', path: '/faq' });
+  return seoMeta(await getPageSeo('faq'), { title: 'Frequently asked questions', description: 'Answers about web design, SEO, automation, maintenance, pricing, timelines and payment.', path: '/faq' , ogKind: 'page' });
 }
 
 /* Every answer you teach the chatbot in Admin > AI IQ (with "Show on the FAQ page" on) appears here, grouped by service. */

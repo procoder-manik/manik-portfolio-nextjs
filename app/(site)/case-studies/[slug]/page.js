@@ -21,7 +21,7 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const c = await getCaseStudy(slug);
   if (!c) return {};
-  return seoMeta(c, { title: `${c.client} case study: ${c.title}`, description: c.summary, image: c.cover, path: `/case-studies/${c.slug}`, type: 'article' });
+  return seoMeta(c, { title: `${c.client} case study: ${c.title}`, description: c.summary, image: c.cover, path: `/case-studies/${c.slug}`, type: 'article', ogKind: 'case', ogSub: c.industry });
 }
 
 export default async function CaseStudyPage({ params }) {

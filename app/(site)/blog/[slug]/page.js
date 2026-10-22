@@ -21,7 +21,7 @@ export async function generateMetadata(props) {
   const params = await props.params;
   const p = await getPost(params.slug);
   if (!p) return {};
-  const m = seoMeta(p, { title: p.title, description: p.excerpt, image: p.cover, path: `/blog/${p.slug}`, type: 'article' });
+  const m = seoMeta(p, { title: p.title, description: p.excerpt, image: p.cover, path: `/blog/${p.slug}`, type: 'article', ogKind: 'post' });
   m.openGraph.publishedTime = p.publishedAt;
   return m;
 }

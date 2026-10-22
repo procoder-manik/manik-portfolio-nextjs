@@ -15,7 +15,7 @@ import HelpSearch from '@/components/site/HelpSearch';
 const ICONS = { Search, Globe, Workflow, Wrench, Gauge, ShieldCheck, CreditCard, User, Server, HelpCircle };
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('help'), { title: 'Help center', description: 'Search answers about web design, SEO, automation, maintenance, pricing, billing and how we work together.', path: '/help' });
+  return seoMeta(await getPageSeo('help'), { title: 'Help center', description: 'Search answers about web design, SEO, automation, maintenance, pricing, billing and how we work together.', path: '/help' , ogKind: 'page' });
 }
 
 /* Every answer taught in Admin > AI IQ (with "Show in the Help center" on) becomes an article here, grouped by topic. */

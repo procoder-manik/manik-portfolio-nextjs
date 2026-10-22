@@ -13,7 +13,7 @@ export async function generateMetadata(props) {
   const { slug } = await props.params;
   const t = buildHelp(await getKnowledge()).topics.find((x) => x.slug === slug);
   if (!t) return {};
-  return seoMeta({}, { title: `${t.name}: Help center`, description: `Answers about ${t.name.toLowerCase()}. ${t.articles.slice(0, 3).map((a) => a.question).join(' ')}`, path: `/help/topic/${slug}` });
+  return seoMeta({}, { title: `${t.name}: Help center`, description: `Answers about ${t.name.toLowerCase()}. ${t.articles.slice(0, 3).map((a) => a.question).join(' ')}`, path: `/help/topic/${slug}` , ogKind: 'page' });
 }
 
 export default async function HelpTopic(props) {

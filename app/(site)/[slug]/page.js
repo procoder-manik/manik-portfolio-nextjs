@@ -10,7 +10,7 @@ import { fmtDate } from '@/lib/utils';
 export async function generateMetadata(props) {
   const params = await props.params;
   const p = await getPage(params.slug);
-  return p ? seoMeta(p, { title: p.title, path: `/${p.slug}` }) : {};
+  return p ? seoMeta(p, { title: p.title, path: `/${p.slug}`, ogKind: 'page' }) : {};
 }
 
 export default async function CustomPage(props) {

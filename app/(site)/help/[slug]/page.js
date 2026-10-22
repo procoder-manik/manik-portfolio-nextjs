@@ -14,7 +14,7 @@ export async function generateMetadata(props) {
   const { slug } = await props.params;
   const a = buildHelp(await getKnowledge()).bySlug[slug];
   if (!a) return {};
-  return seoMeta({}, { title: a.question, description: snippet(a.answer, 158), path: `/help/${slug}`, type: 'article' });
+  return seoMeta({}, { title: a.question, description: snippet(a.answer, 158), path: `/help/${slug}`, type: 'article' , ogKind: 'page' });
 }
 
 export default async function HelpArticle(props) {

@@ -11,7 +11,7 @@ import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('contact'), { title: 'Contact', description: 'Tell me about your website project. I reply within one working day.', path: '/contact' });
+  return seoMeta(await getPageSeo('contact'), { title: 'Contact', description: 'Tell me about your website project. I reply within one working day.', path: '/contact' , ogKind: 'page' });
 }
 
 export default async function ContactPage(props) {

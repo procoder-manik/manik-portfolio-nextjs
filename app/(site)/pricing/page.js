@@ -14,7 +14,7 @@ import { buildGraph, crumbs, catalogNode, faqNode } from '@/lib/schema';
 import { PAYMENT_METHODS } from '@/lib/options';
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('pricing'), { title: 'Pricing and packages', description: 'Web design, SEO, automation and maintenance packages with clear starting prices. Pay by bKash, Nagad, Rocket, card, bank, PayPal or Payoneer.', path: '/pricing' });
+  return seoMeta(await getPageSeo('pricing'), { title: 'Pricing and packages', description: 'Web design, SEO, automation and maintenance packages with clear starting prices. Pay by bKash, Nagad, Rocket, card, bank, PayPal or Payoneer.', path: '/pricing' , ogKind: 'page' });
 }
 
 export default async function PricingPage() {

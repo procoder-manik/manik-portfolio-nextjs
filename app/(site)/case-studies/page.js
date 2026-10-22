@@ -13,7 +13,7 @@ import { ArrowRight } from 'lucide-react';
 
 export async function generateMetadata() {
   const [{ home }, own] = await Promise.all([getAllSettings(), getPageSeo('caseStudies')]);
-  return seoMeta(own, { title: home.caseStudies?.heading || 'Case studies', description: home.caseStudies?.intro, path: '/case-studies' });
+  return seoMeta(own, { title: home.caseStudies?.heading || 'Case studies', description: home.caseStudies?.intro, path: '/case-studies' , ogKind: 'case' });
 }
 
 export default async function CaseStudiesPage() {

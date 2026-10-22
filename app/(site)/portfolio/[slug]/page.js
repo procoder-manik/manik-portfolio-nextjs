@@ -20,7 +20,7 @@ export async function generateMetadata(props) {
   const p = await getProject(params.slug);
   if (!p) return {};
   const img = p.useScrollAsBanner ? p.scrollImage : p.bannerImage || p.scrollImage;
-  return seoMeta(p, { title: `${p.title} | ${p.industry || 'Website'}`, description: p.summary, image: img, path: `/portfolio/${p.slug}` });
+  return seoMeta(p, { title: `${p.title} | ${p.industry || 'Website'}`, description: p.summary, image: img, path: `/portfolio/${p.slug}`, ogKind: 'project', ogSub: p.industry });
 }
 
 export default async function ProjectPage(props) {

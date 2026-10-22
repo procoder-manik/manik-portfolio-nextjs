@@ -9,7 +9,7 @@ import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
 export async function generateMetadata() {
-  return seoMeta(await getPageSeo('blog'), { title: 'Blog', description: 'Practical write-ups on WordPress, SEO, performance and e-commerce, plus daily build updates.', path: '/blog' });
+  return seoMeta(await getPageSeo('blog'), { title: 'Blog', description: 'Practical write-ups on WordPress, SEO, performance and e-commerce, plus daily build updates.', path: '/blog' , ogKind: 'post' });
 }
 
 export default async function BlogPage() {
