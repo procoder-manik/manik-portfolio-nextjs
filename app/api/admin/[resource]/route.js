@@ -13,6 +13,7 @@ import * as seed from '@/lib/seed-data';
 import { cleanRedirect } from '@/lib/redirects';
 import { ensureSystemPages, prepareSave, SEO_FIELDS, ownHostsNow } from '@/lib/system-pages-server';
 import { ensureStarterAnswers } from '@/lib/content-updates';
+import { pitchRows, newPitchCode, validCode } from '@/lib/pitch';
 /* Built-in pages keep their SEO in settings (seo-<key>); add it so the SEO column scores the real values. */
 const withSeo = async (items) => Promise.all(items.map(async (x) => { if (!x.builtin) return x; const seo = await getPageSeoFresh(x.builtin).catch(() => ({})); return { ...x, ...Object.fromEntries(SEO_FIELDS.filter((k) => seo[k] !== undefined).map((k) => [k, seo[k]])) }; }));
 import { SYSTEM_PAGES, SYSTEM_BY_KEY, pagePath, pagePaths } from '@/lib/system-pages';
@@ -51,6 +52,7 @@ export const GET = adminRoute(async (req, { params }) => {
     M.find(filter).sort(sort).limit(1000).lean(),
     canTrash ? Promise.all([M.countDocuments(notTrashed), s ? M.countDocuments({ ...notTrashed, ...live }) : 0, s ? M.countDocuments({ ...notTrashed, ...draft }) : 0, M.countDocuments({ trashedAt: { $ne: null } })]) : null,
   ]);
+  if (params.resource === 'pitches') return NextResponse.json({ items: await pitchRows(serialize(items)), counts: null });
   return NextResponse.json({ items: params.resource === 'pages' ? pageRows(await withSeo(serialize(items)), await getSettingsFresh('navigation'), await ownHostsNow()) : serialize(items), counts: counts ? { all: counts[0], live: counts[1], draft: counts[2], trash: counts[3] } : null });
 }, area);
 
@@ -67,6 +69,7 @@ export const POST = adminRoute(async (req, { params }) => {
     body = await prepareSave(body, null);
   }
   if (params.resource === 'redirects') Object.assign(body, cleanRedirect(body));
+  if (params.resource === 'pitches') { delete body.log; delete body.views; if (!validCode(body.code) || await M.exists({ code: body.code })) body.code = await newPitchCode(body.name); }
   const doc = await M.create(body);
   refreshContent();
   pingIndexNow(params.resource, doc).catch(() => {});

@@ -1,10 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 import { track } from '@/lib/track';
 
 export default function ContactForm({ services = [], defaultService = '', subject = '' }) {
   const [state, setState] = useState({ status: 'idle', error: '' });
+  const [pitch, setPitch] = useState('');
+  useEffect(() => { try { const j = JSON.parse(localStorage.getItem('pitch') || 'null'); if (j?.code && Date.now() - j.at < 30 * 864e5) setPitch(j.code); } catch {} }, []);
   async function submit(e) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget));
@@ -24,6 +26,7 @@ export default function ContactForm({ services = [], defaultService = '', subjec
   );
   return (
     <form onSubmit={submit} className="card grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
+        <input type="hidden" name="pitch" value={pitch} />
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       {subject && <input type="hidden" name="subject" value={subject} />}
       <div><label className="label" htmlFor="c-name">Name</label><input id="c-name" name="name" required className="field" autoComplete="name" /></div>

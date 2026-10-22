@@ -11,9 +11,9 @@ module.exports = {
         signal: v('signal'), amber: v('amber'), good: v('good'), bad: v('bad'),
       },
       fontFamily: {
-        display: ['"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--f-display, "Bricolage Grotesque")', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-        sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--f-body, "Instrument Sans")', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       maxWidth: { shell: '1240px' },
       borderRadius: { '4xl': '2rem' },

@@ -19,6 +19,8 @@ import { CARD_TEMPLATES, SAMPLE } from '@/lib/card-templates';
 import { BannerBox } from './ProjectAi';
 import { AiFieldButton, SeoAiPanel, BlockAiButton, aiable } from './AiAssist';
 import CoverPrompts from './CoverPrompts';
+import { PitchLink, PitchStats } from './PitchFields';
+import ThemePreview from './ThemePreview';
 import { AI_BLOCK_TYPES } from '@/lib/ai-blocks';
 import { systemDef, partDef, pagePath } from '@/lib/system-pages';
 
@@ -66,6 +68,9 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
   if (T === 'cardsPreview') return <CardsPreview doc={doc || {}} />;
   if (T === 'aiPlan') return <AiPlanView doc={doc || {}} />;
   if (T === 'aiBanner') return <BannerBox doc={doc || {}} setDoc={setDoc} />;
+  if (T === 'themePreview') return <ThemePreview doc={doc || {}} />;
+  if (T === 'pitchLink') return <PitchLink doc={doc || {}} />;
+  if (T === 'pitchStats') return <PitchStats doc={doc || {}} />;
   if (T === 'aiCover') return <CoverPrompts f={f} doc={doc || {}} setDoc={setDoc} />;
   if (T === 'aiSeo') return <SeoAiPanel f={f} doc={doc || {}} setDoc={setDoc} />;
   if (T === 'builtinNote') return <BuiltinNote doc={doc || {}} />;

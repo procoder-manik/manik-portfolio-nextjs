@@ -8,6 +8,7 @@ import { BLOCK_DEFAULTS } from '@/lib/blocks';
 import { WORK_TYPES } from '@/lib/project-ai-options';
 import { siteContext, fieldPrompts, seoPrompts, blockPrompts, pagePrompts, caseStudyPrompts, coverPrompts, AI_BLOCKS, SCHEMA_FIELDS } from '@/lib/ai-assist';
 import { arOf } from '@/lib/image-specs';
+import { buildAreaPage } from '@/lib/ai-area';
 import { line, cutAt, cutTitle, list, deep, normSeo, ask } from '@/lib/ai-run';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,11 @@ export const POST = adminRoute(async (req, ctx, admin) => {
     });
     if (!blocks.length) throw Object.assign(new Error('The AI returned no sections. Press the button again.'), { status: 502 });
     return NextResponse.json({ title: line(j.title) || b.topic, slug: slugify(j.slug || j.title || b.topic).slice(0, 60), blocks, seo: normSeo(j.seo || {}, site.seo), via: r.via });
+  }
+
+  if (b.task === 'areaPage') {
+    const r = await buildAreaPage({ area: b.area, niche: b.niche, service: b.service, notes: b.notes, keyword: b.keyword }, site);
+    return NextResponse.json({ page: r.doc, via: r.via });
   }
 
   if (b.task === 'cover') {

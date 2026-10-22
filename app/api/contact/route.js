@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dbConnect, hasDB } from '@/lib/db';
-import { Message } from '@/lib/models';
+import { Message, Pitch } from '@/lib/models';
 import { mailEnabled } from '@/lib/mail';
 import { explainError } from '@/lib/explain-error';
 import { rateLimit, clientIp } from '@/lib/ratelimit';
@@ -23,6 +23,8 @@ export async function POST(req) {
   if (hasDB()) {
     try {
       await dbConnect(); saved = await Message.create(doc);
+      const pc = String(b.pitch || '').toLowerCase();
+      if (/^[a-z0-9-]{4,40}$/.test(pc)) await Pitch.updateOne({ code: pc }, { $set: { status: 'enquired', enquiredAt: new Date() } }).catch(() => {});
       await touchContact({ email, name, phone: doc.phone, source: b.source === 'chat' ? 'chat' : 'contact form', message: true, activity: `${doc.service ? `${doc.service}: ` : ''}${message.slice(0, 140)}` });
     } catch (e) { dbError = e; console.error('[contact] database', e); }
   }

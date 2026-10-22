@@ -50,6 +50,7 @@ export const PUT = adminRoute(async (req, { params }) => {
   if (params.resource === 'redirects') Object.assign(body, cleanRedirect(body));
   const prev = await M.findById(params.id).lean();
   if (!prev) throw Object.assign(new Error('Not found. It may have been deleted permanently.'), { status: 404 });
+  if (params.resource === 'pitches') { body.code = prev.code; ['log', 'views', 'firstViewAt', 'lastViewAt', 'lastAlertAt', 'enquiredAt'].forEach((k) => delete body[k]); }
   if (params.resource === 'pages') {
     if (!prev.builtin && SYSTEM_PAGES.some((d) => d.slug === body.slug)) throw new Error(`The address /${body.slug} belongs to a built-in page. Pick another URL slug.`);
     if (!prev.builtin && body.slug && prev.slug !== body.slug) await moveMenuLinks(`/${prev.slug}`, `/${body.slug}`);

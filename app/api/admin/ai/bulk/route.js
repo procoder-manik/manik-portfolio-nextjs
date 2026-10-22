@@ -13,6 +13,7 @@ import { AI_BLOCK_TYPES } from '@/lib/ai-blocks';
 import { cleanText } from '@/lib/humanize';
 import { slugify } from '@/lib/utils';
 import { refreshContent } from '@/lib/revalidate';
+import { saveAreaPage } from '@/lib/ai-area';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
@@ -90,6 +91,12 @@ export const POST = adminRoute(async (req, ctx, admin) => {
     const page = await Page.create({ title: line(j.title) || svc.name, slug, published: false, hideTitle: blocks[0]?.type === 'hero', blocks, ...seo, schemaMarkup: seo.schemaMarkup || { type: 'Service', name: svc.name, serviceType: svc.name } });
     refreshContent();
     return NextResponse.json({ created: { id: String(page._id), slug, title: page.title }, via: r.via });
+  }
+
+  if (b.task === 'areaPage') {
+    const r = await saveAreaPage({ area: b.area, niche: b.niche, service: b.service, notes: b.notes }, site);
+    if (r.created) refreshContent();
+    return NextResponse.json(r);
   }
 
   if (b.task === 'targetPage') {

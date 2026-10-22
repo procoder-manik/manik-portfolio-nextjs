@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Loader2, Save, Trash2, CheckCircle2, AlertTriangle, RotateCcw, Sparkles, X } from 'lucide-react';
 import { ProjectAiWizard } from './ProjectAi';
-import { AiCtx, PageAiWizard, CaseStudyAiWizard } from './AiAssist';
+import { AiCtx, PageAiWizard, CaseStudyAiWizard, AreaPageAiWizard } from './AiAssist';
+import { PitchLinkButton } from './PitchFields';
 import { DeleteDialog } from './Dialog';
 import { STATUS, TRASHABLE } from '@/lib/trash';
 import { FieldList, InfoScope } from './Fields';
@@ -31,6 +32,7 @@ export default function Editor({ resource, id, settingsKey }) {
   const [aiOpen, setAiOpen] = useState(aiProject && isNew); // a new project starts by asking what kind of work it was
   const [aiNote, setAiNote] = useState('');
   const aiPage = resource === 'pages' && !settingsKey; const aiCase = resource === 'case-studies' && !settingsKey;
+  const aiSa = resource === 'service-areas' && !settingsKey; const [saAi, setSaAi] = useState(aiSa && isNew);
   const [pageAi, setPageAi] = useState(false); const [caseAi, setCaseAi] = useState(aiCase && isNew);
   const [projList, setProjList] = useState([]);
   useEffect(() => { if (aiCase) api('/api/admin/projects').then((j) => setProjList((j.items || []).map((p) => ({ slug: p.slug, title: p.title })))).catch(() => {}); }, [aiCase]);
@@ -79,6 +81,8 @@ export default function Editor({ resource, id, settingsKey }) {
         </div>
         <div className="flex items-center gap-2">
           {status.t === 'ok' && <span className="inline-flex items-center gap-1.5 text-sm text-good"><CheckCircle2 size={15} />Saved</span>}
+          {resource === 'service-areas' && !isNew && doc?.slug && !readOnly && <PitchLinkButton slug={doc.slug} />}
+          {aiSa && !readOnly && <button onClick={() => setSaAi(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {(aiPage || aiCase) && !readOnly && <button onClick={() => (aiPage ? setPageAi(true) : setCaseAi(true))} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {aiProject && !readOnly && <button onClick={() => setAiOpen(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {preview && <a href={preview} target="_blank" className="btn-ghost btn-sm"><ExternalLink size={14} />View</a>}
@@ -110,6 +114,7 @@ export default function Editor({ resource, id, settingsKey }) {
           {tab < sections.length - 1 ? <button onClick={() => setTab(tab + 1)} className="btn-ghost btn-sm">Next: {sections[tab + 1].title}</button> : <button onClick={save} className="btn-primary btn-sm"><Save size={14} />{isNew ? 'Create' : 'Save changes'}</button>}
         </div>
       )}
+      {aiSa && <AreaPageAiWizard open={saAi} onClose={() => setSaAi(false)} doc={doc} isNew={isNew} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Written by AI${via ? ` (${via})` : ''}. Read each tab, pick the design, then press ${isNew ? 'Create' : 'Save changes'}.`); }} />}
       {aiPage && <PageAiWizard open={pageAi} onClose={() => setPageAi(false)} doc={doc} onApply={(fn, via) => { setDoc(fn); setDirty(true); setAiNote(`Written by AI${via ? ` (${via})` : ''}. Check the Sections and SEO tabs, change anything you like, then press ${isNew ? 'Create' : 'Save changes'}.`); }} />}
       {aiCase && <CaseStudyAiWizard open={caseAi} onClose={() => setCaseAi(false)} doc={doc} isNew={isNew} projects={projList} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Written by AI${via ? ` (${via})` : ''}. Read each tab, add the images, then press ${isNew ? 'Create' : 'Save changes'}.`); }} />}
       {aiProject && <ProjectAiWizard open={aiOpen} onClose={() => setAiOpen(false)} doc={doc} isNew={isNew} onApply={(fn, via) => { setDoc(fn); setDirty(true); setTab(0); setAiNote(`Filled by AI${via ? ` (${via})` : ''}. Read each tab (Project, Images, What I did, SEO), change anything you like, then press ${isNew ? 'Create' : 'Save changes'}. Banner prompts are in the Images tab.`); }} />}

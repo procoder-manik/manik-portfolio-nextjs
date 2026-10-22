@@ -1,22 +1,27 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Trash2, FileEdit, AlertTriangle, RotateCcw } from 'lucide-react';
 
 /* Simple modal used for the delete choices and other confirmations. Escape or a click outside closes it. */
 export default function Dialog({ open, title, children, onClose, wide }) {
+  // Drawn straight into <body>: a header with backdrop-blur (or any transform) would otherwise turn "fixed" into "inside the header".
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (!open) return;
     const k = (e) => e.key === 'Escape' && onClose?.();
     document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k);
   }, [open, onClose]);
-  if (!open) return null;
-  return (
+  if (!open || !mounted) return null;
+  return createPortal(
     <div className="fixed inset-0 z-[90] grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className={`max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-line bg-surface shadow-2xl ${wide ? 'max-w-3xl' : 'max-w-lg'}`}>
         <div className="flex items-center justify-between border-b border-line px-5 py-4"><h3 className="font-semibold text-ink">{title}</h3><button onClick={onClose} aria-label="Close" className="text-muted hover:text-ink"><X size={18} /></button></div>
         <div className="p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

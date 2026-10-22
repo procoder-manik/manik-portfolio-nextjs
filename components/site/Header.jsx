@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X, Moon, Sun, Monitor, ArrowUpRight, UserRound, ChevronDown } from 'lucide-react';
 import { MegaPanel, MegaMobile } from './MegaMenu';
 import { cn } from '@/lib/utils';
@@ -15,7 +16,7 @@ export const TONES = [['blue', 'Blue', '#6391FF'], ['indigo', 'Indigo', '#818CF8
 export function ThemeToggle({ className, cfg, up = false }) {
   const c = { allowSwitch: true, showTones: true, defaultTone: 'blue', tones: TONES.map((t) => t[0]), ...(cfg || {}) };
   const [mode, setMode] = useState('system'); const [tone, setTone] = useState(c.defaultTone || 'blue'); const [dark, setDark] = useState(false); const [open, setOpen] = useState(false);
-  const box = useRef(null);
+  const box = useRef(null); const pop = useRef(null); const [pos, setPos] = useState(null);
   useEffect(() => { const d = document.documentElement; setMode(d.dataset.mode || 'system'); setTone(d.dataset.tone || c.defaultTone || 'blue'); setDark(d.dataset.theme === 'dark'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!window.matchMedia) return;
@@ -23,21 +24,28 @@ export function ThemeToggle({ className, cfg, up = false }) {
     const on = () => { const d = document.documentElement; if (d.dataset.mode === 'system') { d.dataset.theme = mq.matches ? 'dark' : 'light'; setDark(mq.matches); } };
     mq.addEventListener('change', on); return () => mq.removeEventListener('change', on);
   }, []);
-  useEffect(() => { if (!open) return; const h = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); }; const k = (e) => e.key === 'Escape' && setOpen(false); document.addEventListener('mousedown', h); document.addEventListener('keydown', k); return () => { document.removeEventListener('mousedown', h); document.removeEventListener('keydown', k); }; }, [open]);
+  useEffect(() => { if (!open) return; const h = (e) => { if (!(box.current?.contains(e.target) || pop.current?.contains(e.target))) setOpen(false); }; const k = (e) => e.key === 'Escape' && setOpen(false); const r = () => setOpen(false); document.addEventListener('mousedown', h); document.addEventListener('keydown', k); window.addEventListener('resize', r); return () => { document.removeEventListener('mousedown', h); document.removeEventListener('keydown', k); window.removeEventListener('resize', r); }; }, [open]);
+  // Place the panel next to its button, always fully inside the screen (the admin button sits at the very left).
+  useLayoutEffect(() => {
+    if (!open || !box.current) return;
+    const r = box.current.getBoundingClientRect(); const w = Math.min(240, window.innerWidth - 16);
+    const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+    setPos(up ? { left, width: w, bottom: window.innerHeight - r.top + 8 } : { left, width: w, top: r.bottom + 8 });
+  }, [open, up]);
   if (c.allowSwitch === false) return null;
   const pickMode = (m) => {
     const d = document.documentElement; const r = m === 'system' ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : m;
     d.dataset.mode = m; d.dataset.theme = r; setMode(m); setDark(r === 'dark'); try { localStorage.setItem('theme', m); } catch {}
   };
   const pickTone = (t) => { const d = document.documentElement; d.dataset.tone = t; setTone(t); try { localStorage.setItem('tone', t); } catch {} };
-  const tones = TONES.filter(([id]) => (c.tones || []).includes(id) || id === 'blue');
+  const tones = [...TONES.filter(([id]) => (c.tones || []).includes(id) || id === 'blue'), ...(c.custom || []).map((t) => [t.id, t.name, t.color])];
   return (
     <div className="relative" ref={box}>
       <button onClick={() => setOpen(!open)} aria-haspopup="true" aria-expanded={open} aria-label="Appearance: mode and colour" className={cn('grid h-10 w-10 place-items-center rounded-full border border-line text-ink transition hover:bg-raised', className)}>
         {mode === 'system' ? <Monitor size={17} /> : dark ? <Moon size={17} /> : <Sun size={17} />}
       </button>
-      {open && (
-        <div role="dialog" aria-label="Appearance" className={cn('absolute right-0 z-[70] w-60 rounded-2xl border border-line bg-surface p-3 shadow-[0_24px_60px_-20px_rgba(0,0,0,.55)]', up ? 'bottom-12' : 'top-12')}>
+      {open && pos && typeof document !== 'undefined' && createPortal(
+        <div ref={pop} role="dialog" aria-label="Appearance" style={pos} className="fixed z-[95] rounded-2xl border border-line bg-surface p-3 shadow-[0_24px_60px_-20px_rgba(0,0,0,.55)]">
           <p className="px-1 pb-2 text-xs font-medium uppercase tracking-wider text-muted">Mode</p>
           <div className="grid grid-cols-3 gap-1 rounded-xl bg-raised p-1">
             {MODES.map(([id, label, I]) => (
@@ -54,7 +62,8 @@ export function ThemeToggle({ className, cfg, up = false }) {
               ))}
             </div>
           </>)}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

@@ -27,7 +27,7 @@ export async function aiCall(body, onWait = () => {}) {
 const empty = (v) => v == null || v === '' || (Array.isArray(v) && !v.length);
 
 /* ---------- Which fields get an AI button ---------- */
-const NO_AI = /(slug|url|href|link$|email|phone|tel$|whatsapp|calendly|code|css|html|^id$|key$|token|secret|password|icon|colou?r|currency|sku|prefix|template|hex|path|domain|handle|username|placeholder|^name$|client|^value$|before$|after$|^when$|^phase$|^meta$|price|amount|number|date|time|source|label$|robots|canonical|location|address|city|country|area|team|duration|platform)/i;
+const NO_AI = /(slug|url|href|link$|email|phone|tel$|whatsapp|calendly|code|css|html|^id$|key$|token|secret|password|icon|colou?r|currency|sku|prefix|template|hex|path|domain|handle|username|placeholder|^name$|client|^value$|before$|after$|^when$|^phase$|^meta$|price|amount|number|date|time|source|label$|robots|canonical|location|address|city|country|area|team|duration|platform|company|business|customPath|font)/i;
 const SEO_ONE = ['seoTitle', 'seoDescription', 'ogTitle', 'ogDescription', 'focusKeyword', 'breadcrumbTitle'];
 export const aiable = (f) => ['text', 'textarea', 'markdown'].includes(f.type) && f.label && (SEO_ONE.includes(f.name) || !NO_AI.test(f.name.split('.').pop()));
 
@@ -244,3 +244,52 @@ export function CaseStudyAiWizard({ open, onClose, doc, isNew, onApply, projects
 }
 
 export { X };
+
+
+/* ---------- Service areas: write one landing page (a service for a niche in a place) ---------- */
+export function AreaPageAiWizard({ open, onClose, doc, isNew, onApply }) {
+  const [f, setF] = useState({ area: '', niche: '', service: '', notes: '', keyword: '' }); const [places, setPlaces] = useState([]); const [services, setServices] = useState([]);
+  const [mode, setMode] = useState('replace'); const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [wait, setWait] = useState(0);
+  useEffect(() => {
+    if (!open) return; setErr(''); setMode(isNew ? 'replace' : 'empty'); setF({ area: doc?.area || '', niche: doc?.niche || '', service: doc?.service || '', notes: '', keyword: '' });
+    fetch('/api/admin/area-categories').then((r) => r.json()).then((j) => setPlaces(j.items || [])).catch(() => {});
+    fetch('/api/admin/services').then((r) => r.json()).then((j) => setServices((j.items || []).filter((x) => x.active !== false))).catch(() => {});
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const up = (k, v) => setF((x) => ({ ...x, [k]: v }));
+  const run = async () => {
+    setBusy(true); setErr('');
+    try {
+      const j = await aiCall({ task: 'areaPage', ...f }, setWait);
+      onApply((d) => {
+        const next = { ...d };
+        for (const [k, v] of Object.entries(j.page)) { if (empty(v)) continue; if (k === 'slug' && d._id) continue; if (mode === 'empty' && !empty(d[k])) continue; next[k] = v; }
+        return next;
+      }, j.via);
+      onClose();
+    } catch (e) { setErr(e.message); }
+    setBusy(false); setWait(0);
+  };
+  return (
+    <Dialog open={open} onClose={busy ? undefined : onClose} title={isNew ? 'New service area page: pick the place and the niche' : 'Write this page with AI'} wide>
+      <div className="space-y-4">
+        <p className="text-sm text-muted">Writes the whole landing page: headline, intro, four key points, main text, call to action and SEO, for one service and one niche in one place. It never claims a local office or local clients, and uses only the facts you add. Nothing is saved until you press {isNew ? 'Create' : 'Save'}.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink">Place <span className="text-bad">*</span></span>
+            <select className="field" value={f.area} onChange={(e) => up('area', e.target.value)}><option value="">Choose a place</option>{places.map((p) => <option key={p.slug} value={p.slug}>{p.flag ? `${p.flag} ` : ''}{p.name}</option>)}</select></label>
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink">Niche or business type</span><input className="field" value={f.niche} onChange={(e) => up('niche', e.target.value)} placeholder="Dentists" /></label>
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink">Your service</span>
+            <select className="field" value={f.service} onChange={(e) => up('service', e.target.value)}><option value="">General website design</option>{services.map((s) => <option key={s.slug} value={s.slug}>{s.name}</option>)}</select></label>
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink">Search to rank for (optional)</span><input className="field" value={f.keyword} onChange={(e) => up('keyword', e.target.value)} placeholder="dental website design new york" /></label>
+        </div>
+        <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink">Real facts to use (optional)</span><textarea rows={3} className="field" value={f.notes} onChange={(e) => up('notes', e.target.value)} placeholder="For example: I built a clinic site in this city. Clients here usually ask for online booking." /></label>
+        {!isNew && <div className="flex flex-wrap items-center gap-2 text-sm"><span className="text-muted">When filling:</span>{[['empty', 'Only empty fields'], ['replace', 'Replace what is there']].map(([v, l]) => <button key={v} type="button" onClick={() => setMode(v)} className={cn('rounded-full border px-3 py-1', mode === v ? 'border-signal bg-signal/15 text-ink' : 'border-line text-muted')}>{l}</button>)}</div>}
+        {wait > 0 && <p className="text-sm text-amber">The free AI is busy. Trying again in {wait} s…</p>}
+        {err && <p className="rounded-xl border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-bad">{err}</p>}
+        <div className="flex justify-between gap-2 border-t border-line pt-4">
+          <button type="button" onClick={onClose} disabled={busy} className="btn-ghost btn-sm">{isNew ? 'Skip, I will write it myself' : 'Cancel'}</button>
+          <button type="button" onClick={run} disabled={busy || !f.area} className="btn-primary btn-sm">{busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}{busy ? 'Writing…' : 'Write it'}</button>
+        </div>
+      </div>
+    </Dialog>
+  );
+}

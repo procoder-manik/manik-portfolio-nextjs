@@ -113,7 +113,7 @@ function Hero({ sa, area, service, crumbs }) {
           <div className="space-y-6">
             <Crumbs items={crumbs} />
             {chips}
-            <h1 className="font-display text-[clamp(2.2rem,5vw,4.2rem)] font-bold leading-[1.03] tracking-[-0.035em] text-ink">{h1}</h1>
+            <h1 data-pitch-h="1" className="font-display text-[clamp(2.2rem,5vw,4.2rem)] font-bold leading-[1.03] tracking-[-0.035em] text-ink">{h1}</h1>
             {sa.summary && <p className="max-w-xl text-lg text-muted sm:text-xl">{sa.summary}</p>}
             <Buttons sa={sa} service={service} />
             {note}
@@ -151,7 +151,7 @@ function Hero({ sa, area, service, crumbs }) {
               {area && <Link href={href(area.slug)} className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur"><MapPin size={12} /> <PlaceName area={area} /></Link>}
               {sa.niche && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">{sa.niche}</span>}
             </div>
-            <h1 className="font-display text-[clamp(2.4rem,5.6vw,4.8rem)] font-bold leading-[1.02] tracking-[-0.04em]">{h1}</h1>
+            <h1 data-pitch-h="1" className="font-display text-[clamp(2.4rem,5.6vw,4.8rem)] font-bold leading-[1.02] tracking-[-0.04em]">{h1}</h1>
             {sa.summary && <p className="max-w-2xl text-lg text-white/80 sm:text-xl">{sa.summary}</p>}
             <Buttons sa={sa} service={service} light />
             {sa.heroNote && <p className="text-sm text-white/70">{sa.heroNote}</p>}
@@ -168,7 +168,7 @@ function Hero({ sa, area, service, crumbs }) {
         <div className="shell max-w-4xl space-y-6">
           <Crumbs items={crumbs} />
           {chips}
-          <h1 className="font-display text-[clamp(2rem,4.4vw,3.6rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-ink">{h1}</h1>
+          <h1 data-pitch-h="1" className="font-display text-[clamp(2rem,4.4vw,3.6rem)] font-semibold leading-[1.08] tracking-[-0.03em] text-ink">{h1}</h1>
           {sa.summary && <p className="max-w-2xl text-lg text-muted">{sa.summary}</p>}
           <Buttons sa={sa} service={service} />
           {note}
@@ -186,7 +186,7 @@ function Hero({ sa, area, service, crumbs }) {
       <div className="shell relative flex max-w-5xl flex-col items-center space-y-7 text-center">
         <div className="flex w-full justify-center"><Crumbs items={crumbs} /></div>
         {chips}
-        <h1 className="font-display text-[clamp(2.4rem,5.8vw,5rem)] font-bold leading-[1.02] tracking-[-0.04em] text-ink">{h1}</h1>
+        <h1 data-pitch-h="1" className="font-display text-[clamp(2.4rem,5.8vw,5rem)] font-bold leading-[1.02] tracking-[-0.04em] text-ink">{h1}</h1>
         {sa.summary && <p className="max-w-2xl text-lg text-muted sm:text-xl">{sa.summary}</p>}
         <Buttons sa={sa} service={service} />
         {note}

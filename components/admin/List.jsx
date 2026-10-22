@@ -1,6 +1,7 @@
 'use client';
 import ListAi, { hasListAi } from './ListAi';
 import TargetPages from './TargetPages';
+import AreaPages from './AreaPages';
 import { useEffect, useState, useCallback, useMemo, Fragment } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Check, Minus, Loader2, Trash2, RotateCcw, FileEdit, Eye, Copy, Inbox, Pencil } from 'lucide-react';
@@ -80,6 +81,7 @@ export default function List({ resource }) {
           <label className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="field w-48 py-2 pl-9 text-sm" aria-label="Search" /></label>
           {hasListAi(resource) && !ro && <ListAi resource={resource} onDone={load} />}
           {resource === 'pages' && !ro && <TargetPages onDone={load} />}
+          {resource === 'service-areas' && !ro && <AreaPages onDone={load} />}
           <Link href={`/admin/${resource}/new`} className="btn-primary btn-sm"><Plus size={15} />Add {conf.singular}</Link>
         </div>
       </div>
