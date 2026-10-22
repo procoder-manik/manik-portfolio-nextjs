@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-import { getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge, getHiddenPaths } from '@/lib/data';
+import { getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge, getHiddenPaths, getAreas, getServiceAreas } from '@/lib/data';
 import { buildHelp } from '@/lib/help';
 import { BUILTIN_PAGES } from '@/lib/admin-schema';
 import { caseStudiesOn } from '@/lib/features';
@@ -35,6 +35,11 @@ export async function GET() {
     sm.projects !== false ? getProjects() : [], sm.posts !== false ? getPosts() : [], sm.categories !== false ? getCategories() : [], sm.pages !== false ? getAllPages() : [],
     sm.caseStudies !== false && caseStudiesOn(site) ? getCaseStudies() : [],
   ]);
+  if (sm.serviceAreas !== false && !(await getHiddenPaths()).includes('/service-areas')) {
+    const [areaList, saList] = await Promise.all([getAreas(), getServiceAreas()]);
+    areaList.filter((x) => !skip(x)).forEach((a) => push(`/service-areas/${a.slug}`, a, { priority: 0.6, images: [a.cover, a.seoImage] }));
+    saList.filter((x) => !skip(x)).forEach((c) => push(`/service-areas/${c.slug}`, c, { priority: 0.7, images: [c.cover, c.seoImage] }));
+  }
   projects.filter((x) => !skip(x)).forEach((p) => push(`/portfolio/${p.slug}`, p, { priority: 0.7, images: [p.scrollImage, p.bannerImage, p.seoImage] }));
   posts.filter((x) => !skip(x)).forEach((p) => push(`/blog/${p.slug}`, p, { lastmod: p.updatedAt || p.publishedAt, priority: 0.6, images: [p.cover, p.seoImage] }));
   cats.filter((x) => !skip(x) && !seo.defaults?.noindexCategories).forEach((c) => push(`/blog/category/${c.slug}`, c, { priority: 0.4 }));

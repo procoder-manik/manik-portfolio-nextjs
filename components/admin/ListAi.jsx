@@ -6,7 +6,7 @@ import Dialog from './Dialog';
 import { api } from './api';
 import { cn } from '@/lib/utils';
 
-const BULK_SEO = ['pages', 'posts', 'projects', 'case-studies', 'apps', 'categories'];
+const BULK_SEO = ['pages', 'posts', 'projects', 'case-studies', 'apps', 'categories', 'service-areas', 'area-categories'];
 export const hasListAi = (resource) => BULK_SEO.includes(resource) || resource === 'services';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

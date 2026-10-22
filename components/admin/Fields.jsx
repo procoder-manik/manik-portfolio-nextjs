@@ -110,6 +110,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
         : T === 'images' ? <Images value={value || []} onChange={onChange} />
         : T === 'markdown' ? <Markdown value={value || ''} onChange={onChange} />
         : T === 'ref' ? <RefSelect id={id} f={f} value={value} onChange={onChange} />
+        : T === 'refs' ? <RefMulti f={f} value={value || []} onChange={onChange} />
         : T === 'repeater' ? <Repeater f={f} value={value || []} onChange={onChange} />
         : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} builtin={doc?.builtin} />
         : T === 'cardTemplate' ? <CardTemplatePicker value={value || 'service'} onChange={onChange} />
@@ -289,6 +290,23 @@ export function Markdown({ value, onChange }) {
         ? <div className="prose-site min-h-[320px] p-5" dangerouslySetInnerHTML={{ __html: renderMarkdown(value).html }} />
         : <textarea ref={ta} value={value} onChange={(e) => onChange(e.target.value)} rows={16} className="block w-full resize-y bg-transparent p-4 font-mono text-[0.9rem] leading-relaxed text-ink outline-none" placeholder="Write here. Use ## for headings, - for lists." />}
       <input ref={file} type="file" accept="image/*" hidden onChange={(e) => img(e.target.files)} />
+    </div>
+  );
+}
+
+/* Pick several items from another list (for example the projects to show on a service area page). Shown as chips. */
+function RefMulti({ f, value, onChange }) {
+  const [opts, setOpts] = useState(null);
+  useEffect(() => { api(`/api/admin/${f.source}`).then((j) => setOpts(j.items || [])).catch(() => setOpts([])); }, [f.source]);
+  const toggle = (k) => onChange(value.includes(k) ? value.filter((x) => x !== k) : [...value, k]);
+  if (opts === null) return <p className="text-sm text-muted">Loading…</p>;
+  if (!opts.length) return <p className="text-sm text-muted">Nothing to pick yet. Add some in {f.source} first.</p>;
+  return (
+    <div className="rounded-xl border border-line bg-base/50 p-3">
+      <div className="flex flex-wrap gap-1.5">
+        {opts.map((o) => { const k = o[f.valueKey]; const on = value.includes(k); return <button type="button" key={o._id} onClick={() => toggle(k)} aria-pressed={on} className={cn('rounded-full border px-3 py-1 text-xs font-medium transition', on ? 'border-signal bg-signal text-white' : 'border-line text-body hover:border-signal/60')}>{o[f.labelKey]}</button>; })}
+      </div>
+      <p className="mt-2 text-xs text-muted">{value.length ? `${value.length} selected` : 'None selected: the site picks the latest matching work for you.'}</p>
     </div>
   );
 }

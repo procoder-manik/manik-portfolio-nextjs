@@ -8,7 +8,8 @@ import Motion from '@/components/site/Motion';
 import RefTracker from '@/components/site/RefTracker';
 import AnnouncementBar from '@/components/site/AnnouncementBar';
 import PopupManager from '@/components/site/PopupManager';
-import { getAllSettings, getNavPages, getApps, getPopups, getHiddenPaths } from '@/lib/data';
+import { getAllSettings, getNavPages, getApps, getPopups, getHiddenPaths, getAreas, getServiceAreas } from '@/lib/data';
+import { resolveMega, needsAreas } from '@/lib/mega';
 import { dropPaths } from '@/lib/menu';
 import { samePath } from '@/lib/system-pages';
 import { caseStudiesOn, isCaseStudyLink, accountsOn, backToTopOn, backToTopSide, chatSide } from '@/lib/features';
@@ -18,7 +19,9 @@ export default async function SiteLayout({ children }) {
   const chat = integrations.chat || {};
   const cs = caseStudiesOn(site);
   // Menus come only from Header and footer (each page's Menus switches write there). Case-study links hide when the feature is off.
-  const header = (navigation.header || []).filter((l) => cs || !isCaseStudyLink(l.href));
+  const header0 = (navigation.header || []).filter((l) => cs || !isCaseStudyLink(l.href));
+  const areaData = needsAreas(header0) ? await Promise.all([getAreas(), getServiceAreas()]) : [[], []];
+  const header = resolveMega(header0, { areas: areaData[0], pages: areaData[1] });
   const extra = pages.filter((p) => p.showInHeader && !header.some((l) => samePath(l.href, `/${p.slug}`))).map((p) => ({ label: p.title, href: `/${p.slug}` }));
   const headerLinks = dropPaths([...header, ...extra], hidden);
   let footerColumns = (navigation.footerColumns || []).map((c) => ({ ...c, links: (c.links || []).filter((l) => cs || !isCaseStudyLink(l.href)) }));
@@ -27,9 +30,10 @@ export default async function SiteLayout({ children }) {
   const cta = navigation.cta && hidden.some((h) => samePath(navigation.cta.href, h)) ? { ...navigation.cta, show: false } : navigation.cta;
   return (
     <>
+      <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `(function(){try{var c=${JSON.stringify({ m: site.theme?.defaultMode || 'system', t: site.theme?.defaultTone || 'blue' }).replace(/</g, '\\u003c')},d=document.documentElement,s=localStorage;if(!s.getItem('theme')&&c.m!=='system'){d.dataset.mode=c.m;d.dataset.theme=c.m;}if(!s.getItem('tone')&&c.t&&c.t!=='blue'){d.dataset.tone=c.t;}}catch(e){}})();` }} />
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-signal focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
       {announcement?.enabled && <AnnouncementBar cfg={announcement} />}
-      <Header site={site} links={headerLinks} cta={cta} account={accountsOn(site)} />
+      <Header theme={site.theme} site={site} links={headerLinks} cta={cta} account={accountsOn(site)} />
       <main id="main">{children}</main>
       <Footer site={site} nav={{ ...navigation, footerColumns }} pages={navigation.showPagesInFooter ? pages.filter((p) => p.showInFooter && !inColumns(p)) : []} apps={navigation.showAppsInFooter ? apps : []} />
       <Integrations cfg={integrations} />

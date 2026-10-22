@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 import { track } from '@/lib/track';
 
-export default function ContactForm({ services = [], defaultService = '' }) {
+export default function ContactForm({ services = [], defaultService = '', subject = '' }) {
   const [state, setState] = useState({ status: 'idle', error: '' });
   async function submit(e) {
     e.preventDefault();
@@ -25,6 +25,7 @@ export default function ContactForm({ services = [], defaultService = '' }) {
   return (
     <form onSubmit={submit} className="card grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+      {subject && <input type="hidden" name="subject" value={subject} />}
       <div><label className="label" htmlFor="c-name">Name</label><input id="c-name" name="name" required className="field" autoComplete="name" /></div>
       <div><label className="label" htmlFor="c-email">Email</label><input id="c-email" name="email" type="email" required className="field" autoComplete="email" /></div>
       <div><label className="label" htmlFor="c-phone">Phone or WhatsApp <span className="text-muted">(optional)</span></label><input id="c-phone" name="phone" className="field" autoComplete="tel" /></div>

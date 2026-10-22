@@ -2,14 +2,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X } from 'lucide-react';
+import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X, MapPin, Globe2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/site/Header';
 import { cn } from '@/lib/utils';
 import { can, areaForPath, ROLES } from '@/lib/roles';
 
 const NAV = [
   ['Overview', [['/admin', 'Dashboard', LayoutDashboard]]],
-  ['Content', [['/admin/projects', 'Portfolio', Briefcase], ['/admin/case-studies', 'Case studies', Trophy], ['/admin/posts', 'Blog posts', PenSquare], ['/admin/categories', 'Categories', Tags], ['/admin/pages', 'Pages', FileText], ['/admin/apps', 'Products', AppWindow], ['/admin/media', 'Media', Image]]],
+  ['Content', [['/admin/projects', 'Portfolio', Briefcase], ['/admin/case-studies', 'Case studies', Trophy], ['/admin/service-areas', 'Service areas', MapPin], ['/admin/area-categories', 'Area locations', Globe2], ['/admin/posts', 'Blog posts', PenSquare], ['/admin/categories', 'Categories', Tags], ['/admin/pages', 'Pages', FileText], ['/admin/apps', 'Products', AppWindow], ['/admin/media', 'Media', Image]]],
   ['AI', [['/admin/ai-writer', 'AI writer', Sparkles], ['/admin/ai-news', 'AI news', Newspaper], ['/admin/ai-iq', 'AI IQ (chatbot brain)', Brain], ['/admin/knowledge', 'Taught answers', HelpCircle]]],
   ['Marketing', [['/admin/forms', 'Forms', ClipboardList], ['/admin/entries', 'Form answers', MessageSquareText], ['/admin/popups', 'Popups', Megaphone], ['/admin/settings/announcement', 'Announcement bar', Bell], ['/admin/redirects', 'Redirects', ArrowRightLeft], ['/admin/not-found-log', '404 log', Unlink]]],
   ['SEO', [['/admin/seo-overview', 'SEO overview', SearchCheck], ['/admin/settings/seo', 'SEO settings', Settings]]],
@@ -45,7 +45,7 @@ export default function Sidebar({ role = 'administrator', name = '' }) {
         <p className="truncate border-t border-line px-5 pt-3 text-xs text-muted">{name ? `${name}, ` : ''}{ROLES[role]?.label}</p>
         <div className="flex items-center gap-2 p-3">
           <a href="/" target="_blank" className="btn-ghost btn-sm flex-1"><ExternalLink size={14} />View site</a>
-          <ThemeToggle className="h-9 w-9" />
+          <ThemeToggle className="h-9 w-9" up cfg={{ showTones: false }} />
           <button onClick={logout} className="grid h-9 w-9 place-items-center rounded-full border border-line text-muted hover:text-bad" aria-label="Sign out" title="Sign out"><LogOut size={15} /></button>
         </div>
       </aside>

@@ -14,7 +14,7 @@ export default function SchemaPanel({ doc }) {
   const resource = useContext(InfoScope);
   const [res, setRes] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [open, setOpen] = useState(false); const [copied, setCopied] = useState(false); const [done, setDone] = useState(false);
   const t = useRef(0); const first = useRef(true);
-  const ok = ['posts', 'projects', 'case-studies', 'pages', 'categories'].includes(resource);
+  const ok = ['posts', 'projects', 'case-studies', 'pages', 'categories', 'service-areas', 'area-categories'].includes(resource);
 
   const run = async (rebuild) => {
     setBusy(true); setErr('');

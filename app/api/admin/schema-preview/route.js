@@ -6,7 +6,7 @@ import { getSettingsFresh } from '@/lib/data';
 import { itemGraph, schemaChecks, EXPLAIN } from '@/lib/schema-item';
 import { refreshContent } from '@/lib/revalidate';
 const adminRoute = (h) => guard(h, 'seo');
-const OK = ['posts', 'projects', 'case-studies', 'pages', 'categories'];
+const OK = ['posts', 'projects', 'case-studies', 'pages', 'categories', 'service-areas', 'area-categories'];
 
 /* POST { resource, doc, rebuild } -> the page's schema built from the current form (saved or not), with what each part means.
    rebuild:true also refreshes the live page so it prints the new schema right away. */

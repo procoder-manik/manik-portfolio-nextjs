@@ -16,7 +16,7 @@ import { refreshContent } from '@/lib/revalidate';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-const SEO_RES = { pages: '/', posts: '/blog/', projects: '/portfolio/', 'case-studies': '/case-studies/', apps: '/apps/', categories: '/blog/category/' };
+const SEO_RES = { pages: '/', posts: '/blog/', projects: '/portfolio/', 'case-studies': '/case-studies/', 'service-areas': '/service-areas/', 'area-categories': '/service-areas/', apps: '/apps/', categories: '/blog/category/' };
 const WRITE = ['focusKeyword', 'keywords', 'seoTitle', 'seoDescription', 'ogTitle', 'ogDescription', 'breadcrumbTitle'];
 const empty = (v) => v == null || v === '' || (Array.isArray(v) && !v.length);
 const pathOf = (resource, d) => (resource === 'pages' ? pagePath(d) : `${SEO_RES[resource]}${d.slug || ''}`);

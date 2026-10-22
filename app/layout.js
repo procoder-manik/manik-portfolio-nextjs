@@ -25,11 +25,13 @@ export async function generateMetadata() {
 
 export const viewport = { themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#0C1526' }, { media: '(prefers-color-scheme: light)', color: '#F4F6FA' }] };
 
-const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(!t)t='dark';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='dark';}})();`;
+/* Runs before the page paints. The visitor's choice (theme: system | light | dark, tone) is read from localStorage;
+   with no choice yet it follows the device (system). data-theme is always the resolved light or dark. */
+const themeScript = `(function(){var d=document.documentElement;try{var s=localStorage,m=s.getItem('theme');if(m!=='light'&&m!=='dark'&&m!=='system')m='system';var r=m==='system'?(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m;d.dataset.mode=m;d.dataset.theme=r;var t=s.getItem('tone');if(t)d.dataset.tone=t;}catch(e){d.dataset.theme='light';d.dataset.mode='system';}})();`;
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="light" data-mode="system" suppressHydrationWarning>
       <head>
         {/* Browser extensions sometimes add attributes to this tag before React loads; this stops the harmless mismatch warning in development. */}
         <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeScript }} />
