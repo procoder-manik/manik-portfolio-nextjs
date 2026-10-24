@@ -7,6 +7,7 @@ import { renderMarkdown } from '@/lib/markdown';
 import PostCard from '@/components/site/PostCard';
 import Blocks from '@/components/site/blocks/Blocks';
 import ReadingProgress from '@/components/site/ReadingProgress';
+import RichText from '@/components/site/RichText';
 import ShareLinks from '@/components/site/ShareLinks';
 import { DesktopToc, MobileToc } from '@/components/site/PostToc';
 import JsonLd from '@/components/site/JsonLd';
@@ -80,7 +81,7 @@ export default async function PostPage(props) {
             <img src={site.avatar} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
             <div>
               <p className="font-display text-lg font-semibold text-ink">Written by {site.name}</p>
-              <p className="mt-1 text-[0.95rem] text-muted">{site.footerNote}</p>
+              <RichText as="p" html={site.footerNote} tokens={{ year: new Date().getFullYear(), site: site.name }} className="mt-1 text-[0.95rem] text-muted" />
               <Link href="/contact" className="mt-3 inline-block text-sm font-semibold text-signal hover:underline">Work with me</Link>
             </div>
           </div>

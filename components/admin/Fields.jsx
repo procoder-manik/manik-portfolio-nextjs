@@ -7,6 +7,7 @@ import { get, set, slugify, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/markdown';
 import { api, upload } from './api';
 import AiKeys from './AiKeys';
+import RichLine from './RichLine';
 import SchemaPanel from './SchemaPanel';
 import { BLOCKS, BLOCK_DEFAULTS, blockFields } from '@/lib/blocks';
 import * as Lucide from 'lucide-react';
@@ -113,6 +114,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
         : T === 'image' ? <MediaInput value={value} onChange={onChange} accept="image/*" />
         : T === 'file' ? <MediaInput value={value} onChange={onChange} accept={f.accept} file />
         : T === 'images' ? <Images value={value || []} onChange={onChange} />
+        : T === 'richline' ? <RichLine id={id} value={value} onChange={onChange} f={f} />
         : T === 'markdown' ? <Markdown value={value || ''} onChange={onChange} />
         : T === 'ref' ? <RefSelect id={id} f={f} value={value} onChange={onChange} />
         : T === 'refs' ? <RefMulti f={f} value={value || []} onChange={onChange} />

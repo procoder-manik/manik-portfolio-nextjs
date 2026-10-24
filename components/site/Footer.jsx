@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { ArrowUpRight, Mail, Phone, MapPin } from 'lucide-react';
 import SocialIcon from './SocialIcon';
+import RichText from './RichText';
 
 const ext = (h = '') => /^https?:/.test(h);
 const STATUS = { live: null, beta: 'Beta', 'coming-soon': 'Soon' };
 
 export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
   const year = new Date().getFullYear();
+  const tokens = { year, site: site.name };
   const cols = [...(nav.footerColumns || [])];
   if (pages.length) cols.push({ title: 'Legal', links: pages.map((p) => ({ label: p.title, href: `/${p.slug}` })) });
   return (
@@ -18,7 +20,7 @@ export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-signal font-display text-[15px] font-bold text-white">MH</span>
             <span className="font-display text-lg font-semibold text-ink">{site.name}</span>
           </Link>
-          <p className="mt-4 max-w-sm text-[0.95rem] text-muted">{site.footerNote}</p>
+          <RichText as="p" html={site.footerNote} tokens={tokens} className="mt-4 max-w-sm text-[0.95rem] text-muted" />
           <ul className="mt-6 space-y-2.5 text-[0.95rem]">
             <li><a href={`mailto:${site.email}`} className="inline-flex items-center gap-2.5 text-body hover:text-signal"><Mail size={15} className="text-muted" />{site.email}</a></li>
             <li><a href={`tel:${site.phoneTel}`} className="inline-flex items-center gap-2.5 text-body hover:text-signal"><Phone size={15} className="text-muted" />{site.phone}</a></li>
@@ -52,15 +54,9 @@ export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
         </div>
       </div>
       <div className="shell relative flex flex-col gap-3 border-t border-line py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          {nav.copyrightText
-            ? (nav.copyrightUrl
-              ? <a href={nav.copyrightUrl} {...(nav.copyrightNewTab || ext(nav.copyrightUrl) ? { target: '_blank', rel: 'noopener noreferrer' } : {})} className="hover:text-signal">{nav.copyrightText.replace(/\{year\}/g, year)}</a>
-              : nav.copyrightText.replace(/\{year\}/g, year))
-            : <>© {year} {site.name}. All rights reserved.</>}
-        </p>
+        <RichText as="p" html={nav.copyrightText || '© {year} {site}. All rights reserved.'} tokens={tokens} />
         <div className="flex items-center gap-5">
-          {nav.bottomText && <p>{nav.bottomText}</p>}
+          {nav.bottomText && <RichText as="p" html={nav.bottomText} tokens={tokens} />}
           <a href={site.calendly} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-ink hover:text-signal">Book a call <ArrowUpRight size={14} /></a>
         </div>
       </div>
