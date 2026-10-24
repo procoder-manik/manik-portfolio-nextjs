@@ -52,7 +52,13 @@ export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
         </div>
       </div>
       <div className="shell relative flex flex-col gap-3 border-t border-line py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-        <p>© {year} {site.name}. All rights reserved.</p>
+        <p>
+          {nav.copyrightText
+            ? (nav.copyrightUrl
+              ? <a href={nav.copyrightUrl} {...(nav.copyrightNewTab || ext(nav.copyrightUrl) ? { target: '_blank', rel: 'noopener noreferrer' } : {})} className="hover:text-signal">{nav.copyrightText.replace(/\{year\}/g, year)}</a>
+              : nav.copyrightText.replace(/\{year\}/g, year))
+            : <>© {year} {site.name}. All rights reserved.</>}
+        </p>
         <div className="flex items-center gap-5">
           {nav.bottomText && <p>{nav.bottomText}</p>}
           <a href={site.calendly} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-ink hover:text-signal">Book a call <ArrowUpRight size={14} /></a>
