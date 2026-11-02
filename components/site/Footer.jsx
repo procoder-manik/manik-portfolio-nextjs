@@ -5,6 +5,8 @@ import RichText from './RichText';
 
 const ext = (h = '') => /^https?:/.test(h);
 const STATUS = { live: null, beta: 'Beta', 'coming-soon': 'Soon' };
+/* Link columns per row on a wide screen, chosen in Admin > Header and footer. Written out in full so Tailwind keeps every class. */
+const COLS = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3', 4: 'md:grid-cols-4', 5: 'md:grid-cols-3 lg:grid-cols-5' };
 
 export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
   const year = new Date().getFullYear();
@@ -35,7 +37,7 @@ export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
             ))}
           </div>
         </div>
-        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+        <div className={`grid gap-10 sm:grid-cols-2 ${COLS[nav.footerColumnCount] || COLS[4]}`}>
           {cols.map((c) => <FooterCol key={c.title} title={c.title} links={c.links || []} />)}
           {apps.length > 0 && (
             <div>
