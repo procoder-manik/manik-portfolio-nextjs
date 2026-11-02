@@ -5,7 +5,7 @@ import { Customer } from '@/lib/models';
 import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { explainError } from '@/lib/explain-error';
 import { CUSTOMER_COOKIE } from '@/lib/auth';
-import { normEmail, sessionCookie, claimOrder, customerCookieOpts } from '@/lib/customers';
+import { normEmail, sessionCookie, claimOrder, customerCookieOpts, dummyHash } from '@/lib/customers';
 
 /* Customer sign in */
 export async function POST(req) {
@@ -17,15 +17,17 @@ export async function POST(req) {
     await dbConnect();
     const c = await Customer.findOne({ email }).select('+passwordHash');
     const fail = async () => { await new Promise((r) => setTimeout(r, 400)); return NextResponse.json({ error: 'That email and password do not match.' }, { status: 401 }); };
+    // The password is always checked (against a dummy when there is no account), and blocked or locked accounts answer like a wrong password,
+    // so nobody can learn which emails have an account.
+    const ok = await bcrypt.compare(String(b.password || ''), c?.passwordHash || await dummyHash());
     if (!c || !c.passwordHash) return fail();
-    if (c.disabled) return NextResponse.json({ error: 'This account is blocked. Email me if that is a mistake.' }, { status: 403 });
-    if (c.lockUntil && c.lockUntil > new Date()) return NextResponse.json({ error: 'This account is locked for a few minutes after too many wrong passwords.' }, { status: 423 });
-    const ok = await bcrypt.compare(String(b.password || ''), c.passwordHash);
+    if (c.lockUntil && c.lockUntil > new Date()) return NextResponse.json({ error: 'Too many sign-in attempts. Wait 15 minutes and try again.' }, { status: 429 });
     if (!ok) {
       const n = (c.failedLogins || 0) + 1;
       await Customer.updateOne({ _id: c._id }, n >= 5 ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) } } : { $set: { failedLogins: n } });
       return fail();
     }
+    if (c.disabled) return NextResponse.json({ error: 'This account is blocked. Email me if that is a mistake.' }, { status: 403 });
     await Customer.updateOne({ _id: c._id }, { $set: { failedLogins: 0, lastLoginAt: new Date(), lastLoginIp: ip }, $unset: { lockUntil: 1 } });
     if (b.claim && b.t) await claimOrder(c, b.claim, b.t);
     const res = NextResponse.json({ ok: true });

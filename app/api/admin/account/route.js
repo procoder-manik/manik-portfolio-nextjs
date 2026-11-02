@@ -4,7 +4,7 @@ import { dbConnect } from '@/lib/db';
 import { User } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
 import { COOKIE, signToken, adminCookieOpts } from '@/lib/auth';
-import { passwordProblem } from '@/lib/customers';
+import { adminPasswordProblem as passwordProblem } from '@/lib/customers';
 
 export const PUT = adminRoute(async (req, _ctx, admin) => {
   const { current, next, name } = await req.json();

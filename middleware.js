@@ -20,6 +20,17 @@ async function rules(origin) {
 export async function middleware(req, event) {
   const { pathname } = req.nextUrl;
 
+  // A browser attaches the real Origin to every change it makes. A change that claims to come from another site is refused,
+  // so a page on another site can never act with an admin's or customer's cookie.
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && (pathname.startsWith('/api/admin') || pathname.startsWith('/api/account'))) {
+    const origin = req.headers.get('origin');
+    if (origin) {
+      let same = false;
+      try { same = new URL(origin).host === (req.headers.get('x-forwarded-host') || req.headers.get('host')); } catch {}
+      if (!same) return NextResponse.json({ error: 'Blocked: this request did not come from this site.' }, { status: 403 });
+    }
+  }
+
   // Customer portal
   if (pathname === '/account' || pathname.startsWith('/account/') || pathname.startsWith('/api/account')) {
     if (ACCOUNT_OPEN.includes(pathname) || ACCOUNT_API_OPEN.includes(pathname)) return NextResponse.next();
@@ -32,7 +43,7 @@ export async function middleware(req, event) {
 
   // Admin
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    if (pathname === '/admin/login' || pathname === '/api/admin/auth') return NextResponse.next();
+    if (pathname === '/admin/login' || pathname === '/api/admin/auth' || pathname === '/api/admin/auth/2fa') return NextResponse.next();
     const ok = await verifyToken(req.cookies.get(COOKIE)?.value);
     if (ok) return NextResponse.next();
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Sign in to continue.' }, { status: 401 });

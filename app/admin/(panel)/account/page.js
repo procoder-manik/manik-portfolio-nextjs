@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { api } from '@/components/admin/api';
 import InfoTip from '@/components/site/InfoTip';
+import TwoFactor from '@/components/admin/TwoFactor';
 import { SECTION_INFO } from '@/lib/field-info';
 
 export default function Account() {
@@ -18,11 +19,12 @@ export default function Account() {
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-line bg-surface p-6">
         <div><label className="label" htmlFor="name">Display name</label><input id="name" name="name" className="field" /></div>
         <div><label className="label" htmlFor="current">Current password</label><input id="current" name="current" type="password" required className="field" autoComplete="current-password" /></div>
-        <div><label className="label" htmlFor="next">New password</label><input id="next" name="next" type="password" minLength={8} className="field" autoComplete="new-password" /></div>
+        <div><label className="label" htmlFor="next">New password</label><input id="next" name="next" type="password" minLength={10} className="field" autoComplete="new-password" /></div>
         <div><label className="label" htmlFor="confirm">Repeat new password</label><input id="confirm" name="confirm" type="password" className="field" autoComplete="new-password" /></div>
         {msg.m && <p className={`text-sm ${msg.t === 'ok' ? 'text-good' : 'text-bad'}`}>{msg.m}</p>}
         <button className="btn-primary btn-sm"><Save size={14} />Save account</button>
       </form>
+      <TwoFactor />
     </div>
   );
 }

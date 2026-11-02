@@ -24,6 +24,7 @@ export default function UsersView() {
     } catch (er) { setMsg(er.message); }
     setSaving(false);
   }
+  async function resetTwoFactor() { if (!confirm(`Turn off two-step verification for ${edit.email}? Do this when they lost their phone and backup codes. They are signed out everywhere and use the password alone until they set it up again.`)) return; try { await api('/api/admin/users', { method: 'PUT', body: { id: edit._id, resetTwoFactor: true } }); setEdit(null); load(); } catch (e) { setMsg(e.message); } }
   async function remove(u) { if (!confirm(`Delete ${u.email}? They can no longer sign in. This cannot be undone.`)) return; try { await api(`/api/admin/users?id=${u._id}`, { method: 'DELETE' }); load(); } catch (er) { setErr(er.message); } }
 
   return (
@@ -60,9 +61,10 @@ export default function UsersView() {
             <div><label className="label" htmlFor="u-email">Email</label><input id="u-email" type="email" required disabled={!!edit._id} className="field disabled:opacity-60" value={edit.email || ''} onChange={(e) => setEdit({ ...edit, email: e.target.value })} /></div>
             <div><div className="mb-1.5 flex items-center gap-1.5"><label className="text-sm font-medium text-ink" htmlFor="u-role">Role</label><InfoTip text="What this person can open and change. Administrators can do everything. Give people the smallest role that lets them do their job." /></div>
               <select id="u-role" className="field" value={edit.role} onChange={(e) => setEdit({ ...edit, role: e.target.value })}>{Object.entries(ROLES).map(([k, r]) => <option key={k} value={k}>{r.label}</option>)}</select><p className="mt-1.5 text-xs text-muted">{ROLES[edit.role]?.desc}</p></div>
-            <div><div className="mb-1.5 flex items-center gap-1.5"><label className="text-sm font-medium text-ink" htmlFor="u-pass">{edit._id ? 'New password (optional)' : 'Password'}</label><InfoTip text="At least 8 characters. Share it safely and ask the person to change it from Account after their first sign-in." /></div>
-              <input id="u-pass" type="password" minLength={8} required={!edit._id} autoComplete="new-password" className="field" value={edit.password || ''} onChange={(e) => setEdit({ ...edit, password: e.target.value })} /></div>
+            <div><div className="mb-1.5 flex items-center gap-1.5"><label className="text-sm font-medium text-ink" htmlFor="u-pass">{edit._id ? 'New password (optional)' : 'Password'}</label><InfoTip text="At least 10 characters. Share it safely and ask the person to change it from Account after their first sign-in." /></div>
+              <input id="u-pass" type="password" minLength={10} required={!edit._id} autoComplete="new-password" className="field" value={edit.password || ''} onChange={(e) => setEdit({ ...edit, password: e.target.value })} /></div>
             {edit._id && <label className="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm"><span className="flex items-center gap-1.5 font-medium text-ink">Block sign-in<InfoTip text="Stops this person from signing in at once, even if they are signed in now. Their account is kept." /></span><input type="checkbox" checked={!!edit.disabled} onChange={(e) => setEdit({ ...edit, disabled: e.target.checked })} className="h-4 w-4 accent-[rgb(var(--signal))]" /></label>}
+            {edit._id && edit.totpEnabled && <div className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 text-sm"><span className="font-medium text-ink">Two-step verification is on</span><button type="button" onClick={resetTwoFactor} className="btn-ghost btn-sm text-bad">Turn off</button></div>}
             {msg && <p role="alert" className="text-sm text-bad">{msg}</p>}
             <div className="flex justify-between pt-1">{edit._id ? <button type="button" onClick={() => remove(edit).then(() => setEdit(null))} className="btn-ghost btn-sm text-bad"><Trash2 size={14} />Delete</button> : <span />}<button className="btn-primary btn-sm" disabled={saving}>{saving ? 'Saving' : 'Save user'}</button></div>
           </form>

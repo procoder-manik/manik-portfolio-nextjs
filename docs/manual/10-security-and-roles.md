@@ -33,6 +33,15 @@ Roles are groups of **areas**: blog, content, media, marketing, seo, design, ent
 - Payment callbacks are verified with the provider before an order is marked paid. Order pages need the private token.
 - The cron endpoint needs `CRON_SECRET` (or a signed-in administrator).
 
+## Two-step verification and sign-in activity
+
+- Every admin user can turn on **two-step verification** in Admin > Account: scan the QR code with an authenticator app (Google Authenticator, Microsoft Authenticator, Authy), then sign in with the password **and** the 6-digit code. Setup also shows **8 backup codes**. Each works once; keep them somewhere safe, away from your phone.
+- Lost the phone: sign in with a backup code, or ask another administrator to press **Turn off** next to your name in Admin > Users, then set it up again. If you are the only administrator and have no backup codes, the database must be edited by hand (remove the `totp*` and `backupCodes` fields of your user).
+- The app secret is stored **encrypted** with `JWT_SECRET`. Changing `JWT_SECRET` makes saved app secrets unreadable: use backup codes, then set 2FA up again.
+- **Admin > Site health** (administrators only) lists every sign-in and failed attempt for 180 days: who, when, from which network and device, plus a short security checklist.
+- Admin passwords need at least 10 characters. Changing a password, turning 2FA on or off, or an administrator resetting it signs the account out on every other device.
+- Changes to `/api/admin` and `/api/account` are refused when the browser says they came from another website.
+
 ## If something goes wrong
 
 1. Suspected leak: change `JWT_SECRET`, `ADMIN_PASSWORD`, database password and any provider key; redeploy.

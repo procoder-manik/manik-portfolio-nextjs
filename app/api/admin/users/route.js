@@ -5,7 +5,9 @@ import { User } from '@/lib/models';
 import { adminRoute as guard } from '@/lib/server-auth';
 import { serialize } from '@/lib/utils';
 import { ROLES } from '@/lib/roles';
-import { passwordProblem } from '@/lib/customers';
+import { adminPasswordProblem as passwordProblem } from '@/lib/customers';
+import { logLogin } from '@/lib/login-log';
+import { clientIp } from '@/lib/ratelimit';
 import { COOKIE, signToken, adminCookieOpts } from '@/lib/auth';
 import { EMAIL_RE as EMAIL } from '@/lib/utils';
 const adminRoute = (h) => guard(h, 'system');
@@ -39,10 +41,16 @@ export const PUT = adminRoute(async (req, ctx, admin) => {
   if (b.name !== undefined) u.name = String(b.name).slice(0, 80);
   if (b.role !== undefined) { if (!ROLES[b.role]) throw new Error('Unknown role.'); u.role = b.role; }
   if (b.disabled !== undefined) u.disabled = !!b.disabled;
+  if (b.resetTwoFactor) {
+    if (u.email === admin.email) throw new Error('Turn off your own two-step verification from Account.');
+    u.totpEnabled = false; u.totpSecret = undefined; u.totpPending = undefined; u.backupCodes = undefined; u.totpLastStep = undefined;
+    u.tokenVersion = (u.tokenVersion || 0) + 1; // signs them out everywhere
+  }
   if (wasAdmin && ((u.role || 'administrator') !== 'administrator' || u.disabled) && admins <= 1) throw new Error('Keep at least one active administrator.');
   if (u.email === admin.email && u.disabled) throw new Error('You cannot block your own account.');
   if (b.password) { const problem = passwordProblem(b.password); if (problem) throw new Error(problem); u.passwordHash = await bcrypt.hash(String(b.password), 10); u.failedLogins = 0; u.lockUntil = undefined; u.tokenVersion = (u.tokenVersion || 0) + 1; }
   await u.save();
+  if (b.resetTwoFactor) await logLogin({ email: u.email, userId: u._id, ok: true, event: 'security', reason: `2fa_reset_by_${admin.email}`, ip: await clientIp() });
   const res = NextResponse.json({ ok: true });
   if (b.password && u.email === admin.email) res.cookies.set(COOKIE, await signToken({ email: u.email, name: u.name, v: u.tokenVersion }), adminCookieOpts);
   return res;

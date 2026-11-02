@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X, MapPin, Globe2, Send } from 'lucide-react';
+import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X, MapPin, Globe2, Send, ShieldCheck } from 'lucide-react';
 import { ThemeToggle } from '@/components/site/Header';
 import { cn } from '@/lib/utils';
 import { can, areaForPath, ROLES } from '@/lib/roles';
@@ -14,7 +14,7 @@ const NAV = [
   ['Marketing', [['/admin/pitches', 'Pitches', Send], ['/admin/forms', 'Forms', ClipboardList], ['/admin/entries', 'Form answers', MessageSquareText], ['/admin/popups', 'Popups', Megaphone], ['/admin/settings/announcement', 'Announcement bar', Bell], ['/admin/redirects', 'Redirects', ArrowRightLeft], ['/admin/not-found-log', '404 log', Unlink]]],
   ['SEO', [['/admin/seo-overview', 'SEO overview', SearchCheck], ['/admin/settings/seo', 'SEO settings', Settings]]],
   ['Shop', [['/admin/services', 'Services', Layers], ['/admin/packages', 'Packages', Package], ['/admin/orders', 'Orders', ShoppingBag], ['/admin/customers', 'Customers', UserRoundCheck], ['/admin/coupons', 'Coupons', TicketPercent], ['/admin/affiliates', 'Referrals and affiliates', Handshake], ['/admin/messages', 'Messages', Inbox], ['/admin/crm', 'CRM', Users]]],
-  ['Site', [['/admin/settings/home', 'Home page', Home], ['/admin/settings/resume', 'Resume', ScrollText], ['/admin/settings/site', 'Site and contact', Settings], ['/admin/settings/navigation', 'Header and footer', PanelsTopLeft], ['/admin/settings/popups', 'Popup rules', Megaphone], ['/admin/settings/payments', 'Payments', CreditCard], ['/admin/settings/referrals', 'Referral settings', Gift], ['/admin/settings/email', 'Emails', MailCheck], ['/admin/settings/integrations', 'Analytics and integrations', Plug], ['/admin/users', 'Users', UserCog], ['/admin/account', 'Account', User]]],
+  ['Site', [['/admin/settings/home', 'Home page', Home], ['/admin/settings/resume', 'Resume', ScrollText], ['/admin/settings/site', 'Site and contact', Settings], ['/admin/settings/navigation', 'Header and footer', PanelsTopLeft], ['/admin/settings/popups', 'Popup rules', Megaphone], ['/admin/settings/payments', 'Payments', CreditCard], ['/admin/settings/referrals', 'Referral settings', Gift], ['/admin/settings/email', 'Emails', MailCheck], ['/admin/settings/integrations', 'Analytics and integrations', Plug], ['/admin/users', 'Users', UserCog], ['/admin/site-health', 'Site health', ShieldCheck], ['/admin/account', 'Account', User]]],
 ];
 
 export default function Sidebar({ role = 'administrator', name = '' }) {
