@@ -240,7 +240,7 @@ function FieldView({ f, values, set, error, upload, uploading, totals, pay, labe
       </div>); break;
     case 'consent': return (
       <div className={span(f.width)}>
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-body"><input id={id} type="checkbox" checked={v === true} onChange={(e) => set(f.key, e.target.checked)} className="mt-1 h-4 w-4 accent-[rgb(var(--signal))]" /><span dangerouslySetInnerHTML={{ __html: String(f.text || f.label).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-signal underline">$1</a>') }} />{f.required && <span className="text-bad">*</span>}</label>
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-body"><input id={id} type="checkbox" checked={v === true} onChange={(e) => set(f.key, e.target.checked)} className="mt-1 h-4 w-4 accent-[rgb(var(--signal))]" /><span dangerouslySetInnerHTML={{ __html: String(f.text || f.label).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])).replace(/\[([^\]]+)\]\((https?:\/\/[^)\s"']+|\/[^)\s"']*)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-signal underline">$1</a>') }} />{f.required && <span className="text-bad">*</span>}</label>
         {error && <p id={`${id}-e`} className="mt-1.5 text-xs text-bad">{error}</p>}
       </div>);
     case 'file': {

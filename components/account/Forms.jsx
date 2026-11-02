@@ -36,7 +36,7 @@ export function AuthForm({ mode }) {
   const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [done, setDone] = useState('');
   const claim = sp.get('claim'); const t = sp.get('t');
   const next = sp.get('next');
-  const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+  const safeNext = next && /^\/(?![/\\])/.test(next) ? next : null;
   const qs = claim && t ? `?claim=${encodeURIComponent(claim)}&t=${encodeURIComponent(t)}` : safeNext ? `?next=${encodeURIComponent(safeNext)}` : '';
 
   async function submit(e) {

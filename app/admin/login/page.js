@@ -10,7 +10,8 @@ function LoginForm() {
     e.preventDefault(); setBusy(true); setErr('');
     const r = await fetch('/api/admin/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))) });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) router.replace(sp.get('next') || '/admin'); else { setErr(j.error || 'Sign-in failed.'); setBusy(false); }
+    const next = sp.get('next') || '';
+    if (r.ok) router.replace(/^\/(?![/\\])/.test(next) ? next : '/admin'); // only addresses on this site else { setErr(j.error || 'Sign-in failed.'); setBusy(false); }
   }
   return (
     <form onSubmit={submit} className="w-full max-w-sm rounded-[24px] border border-line bg-surface p-8">

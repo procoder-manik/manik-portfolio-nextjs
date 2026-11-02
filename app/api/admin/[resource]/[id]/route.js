@@ -7,6 +7,7 @@ import { activateSubscription } from '@/lib/subscriptions';
 import { dbConnect, hasDB } from '@/lib/db';
 import { MODELS, Redirect } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
+import { assertCustomCode } from '@/lib/custom-code';
 import { slugify, serialize } from '@/lib/utils';
 import { RESOURCES } from '@/lib/admin-schema';
 import { RESOURCE_AREA } from '@/lib/roles';
@@ -40,7 +41,7 @@ export const GET = adminRoute(async (req, { params }) => {
   return NextResponse.json({ item: serialize(item) });
 }, area);
 
-export const PUT = adminRoute(async (req, { params }) => {
+export const PUT = adminRoute(async (req, { params }, admin) => {
   const M = MODELS[params.resource]; if (!M) throw new Error('Unknown section.');
   if (!hasDB()) throw noDB();
   await dbConnect();
@@ -50,6 +51,7 @@ export const PUT = adminRoute(async (req, { params }) => {
   if (params.resource === 'redirects') Object.assign(body, cleanRedirect(body));
   const prev = await M.findById(params.id).lean();
   if (!prev) throw Object.assign(new Error('Not found. It may have been deleted permanently.'), { status: 404 });
+  assertCustomCode(admin.role, body, prev);
   if (params.resource === 'pitches') { body.code = prev.code; ['log', 'views', 'firstViewAt', 'lastViewAt', 'lastAlertAt', 'enquiredAt'].forEach((k) => delete body[k]); }
   if (params.resource === 'pages') {
     if (!prev.builtin && SYSTEM_PAGES.some((d) => d.slug === body.slug)) throw new Error(`The address /${body.slug} belongs to a built-in page. Pick another URL slug.`);

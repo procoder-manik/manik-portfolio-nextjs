@@ -3,6 +3,7 @@ import { refreshContent } from '@/lib/revalidate';
 import { dbConnect, hasDB } from '@/lib/db';
 import { Setting } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
+import { assertCustomCode } from '@/lib/custom-code';
 import { getSettingsFresh, getPageSeoFresh } from '@/lib/data';
 import { SETTINGS } from '@/lib/admin-schema';
 import { settingsArea } from '@/lib/roles';
@@ -16,11 +17,12 @@ export const GET = adminRoute(async (req, { params }) => {
   return NextResponse.json({ item, readOnly: !hasDB() });
 }, area);
 
-export const PUT = adminRoute(async (req, { params }) => {
+export const PUT = adminRoute(async (req, { params }, admin) => {
   if (!SETTINGS[params.key]) throw new Error('Unknown settings group.');
   if (!hasDB()) throw Object.assign(new Error('Connect MongoDB (set MONGODB_URI) to save changes.'), { status: 503 });
   await dbConnect();
   const data = await req.json();
+  assertCustomCode(admin.role, data, isPageSeo(params.key) ? await getPageSeoFresh(params.key.slice(4)) : await getSettingsFresh(params.key));
   await Setting.findOneAndUpdate({ key: params.key }, { key: params.key, data }, { upsert: true });
   refreshContent();
   const item = isPageSeo(params.key) ? await getPageSeoFresh(params.key.slice(4)) : await getSettingsFresh(params.key);

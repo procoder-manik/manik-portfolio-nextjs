@@ -6,8 +6,9 @@ import { adminRoute as guard } from '@/lib/server-auth';
 import { serialize } from '@/lib/utils';
 import { ROLES } from '@/lib/roles';
 import { passwordProblem } from '@/lib/customers';
+import { COOKIE, signToken, adminCookieOpts } from '@/lib/auth';
+import { EMAIL_RE as EMAIL } from '@/lib/utils';
 const adminRoute = (h) => guard(h, 'system');
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const needDB = () => { if (!hasDB()) throw Object.assign(new Error('Connect MongoDB (set MONGODB_URI) to manage users.'), { status: 503 }); };
 
 export const GET = adminRoute(async () => {
@@ -40,9 +41,11 @@ export const PUT = adminRoute(async (req, ctx, admin) => {
   if (b.disabled !== undefined) u.disabled = !!b.disabled;
   if (wasAdmin && ((u.role || 'administrator') !== 'administrator' || u.disabled) && admins <= 1) throw new Error('Keep at least one active administrator.');
   if (u.email === admin.email && u.disabled) throw new Error('You cannot block your own account.');
-  if (b.password) { const problem = passwordProblem(b.password); if (problem) throw new Error(problem); u.passwordHash = await bcrypt.hash(String(b.password), 10); u.failedLogins = 0; u.lockUntil = undefined; }
+  if (b.password) { const problem = passwordProblem(b.password); if (problem) throw new Error(problem); u.passwordHash = await bcrypt.hash(String(b.password), 10); u.failedLogins = 0; u.lockUntil = undefined; u.tokenVersion = (u.tokenVersion || 0) + 1; }
   await u.save();
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  if (b.password && u.email === admin.email) res.cookies.set(COOKIE, await signToken({ email: u.email, name: u.name, v: u.tokenVersion }), adminCookieOpts);
+  return res;
 });
 
 export const DELETE = adminRoute(async (req, ctx, admin) => {

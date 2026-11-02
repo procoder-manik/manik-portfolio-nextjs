@@ -3,6 +3,7 @@ import { refreshContent } from '@/lib/revalidate';
 import { dbConnect, hasDB } from '@/lib/db';
 import { MODELS } from '@/lib/models';
 import { adminRoute } from '@/lib/server-auth';
+import { assertCustomCode } from '@/lib/custom-code';
 import { slugify, serialize } from '@/lib/utils';
 import { RESOURCES } from '@/lib/admin-schema';
 import { RESOURCE_AREA } from '@/lib/roles';
@@ -56,11 +57,12 @@ export const GET = adminRoute(async (req, { params }) => {
   return NextResponse.json({ items: params.resource === 'pages' ? pageRows(await withSeo(serialize(items)), await getSettingsFresh('navigation'), await ownHostsNow()) : serialize(items), counts: counts ? { all: counts[0], live: counts[1], draft: counts[2], trash: counts[3] } : null });
 }, area);
 
-export const POST = adminRoute(async (req, { params }) => {
+export const POST = adminRoute(async (req, { params }, admin) => {
   const M = MODELS[params.resource]; if (!M) throw new Error('Unknown section.');
   if (!hasDB()) throw noDB();
   await dbConnect();
   let body = await req.json(); delete body._id; delete body.trashedAt; delete body.trashState;
+  assertCustomCode(admin.role, body);
   const conf = RESOURCES[params.resource];
   if (conf?.slugFrom && !body.slug) body.slug = slugify(body[conf.slugFrom]);
   else if (body.slug) body.slug = slugify(body.slug);

@@ -11,7 +11,7 @@ export async function POST(req, props) {
   const b = await req.json().catch(() => ({}));
   if (!b.transactionId?.trim()) return NextResponse.json({ error: 'Enter the transaction ID from your payment.' }, { status: 400 });
   await dbConnect();
-  const o = await Order.findOne({ number: params.number, token: b.t });
+  const o = typeof b.t === 'string' && b.t ? await Order.findOne({ number: params.number, token: b.t }) : null; // a string only: an object here would be a database operator
   if (!o) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
   if (!['pending_payment', 'failed', 'verifying'].includes(o.status)) return NextResponse.json({ error: 'This order is already confirmed.' }, { status: 400 });
   o.payment.transactionId = b.transactionId.trim().slice(0, 80);

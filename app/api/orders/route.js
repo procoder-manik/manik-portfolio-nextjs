@@ -9,7 +9,7 @@ import { paypalEnabled, paypalCreate } from '@/lib/payments/paypal';
 import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { touchContact } from '@/lib/crm';
 import { sendOrderEmail, alertNewOrder } from '@/lib/notifications';
-import { siteUrl } from '@/lib/utils';
+import { siteUrl, EMAIL_RE } from '@/lib/utils';
 import { getBaseUrl } from '@/lib/base-url';
 import { explainError } from '@/lib/explain-error';
 import { getCustomer } from '@/lib/customers';
@@ -28,7 +28,7 @@ async function create(req) {
   if (!(await rateLimit(`order:${await clientIp()}`, 10, 3600))) return NextResponse.json({ error: 'Too many orders from this network. Try again later or email me.' }, { status: 429 });
   const b = await req.json().catch(() => ({}));
   const c = b.customer || {};
-  if (!c.name?.trim() || !/^\S+@\S+\.\S+$/.test(c.email || '')) return NextResponse.json({ error: 'Add your name and a valid email.' }, { status: 400 });
+  if (!c.name?.trim() || !EMAIL_RE.test(String(c.email || '').trim())) return NextResponse.json({ error: 'Add your name and a valid email.' }, { status: 400 });
   const pkg = await getPackage(b.package);
   if (!pkg || pkg.checkoutMode === 'quote') return NextResponse.json({ error: 'This package is not available for checkout.' }, { status: 400 });
   const pay = await getSettings('payments');
@@ -38,7 +38,7 @@ async function create(req) {
 
   await dbConnect();
   const me = await getCustomer();
-  const email = (me?.email || c.email.trim()).slice(0, 160);
+  const email = (me?.email || String(c.email).trim()).slice(0, 160);
   const r = await refSettings();
 
   // Coupon (validated again here; the price always comes from the package)

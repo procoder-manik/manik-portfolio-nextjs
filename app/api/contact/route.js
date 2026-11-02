@@ -6,6 +6,7 @@ import { explainError } from '@/lib/explain-error';
 import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { touchContact } from '@/lib/crm';
 import { sendThanks, alertNewMessage } from '@/lib/notifications';
+import { EMAIL_RE } from '@/lib/utils';
 
 export async function POST(req) {
   const b = await req.json().catch(() => ({}));
@@ -13,7 +14,7 @@ export async function POST(req) {
   if (!(await rateLimit(`contact:${await clientIp()}`, 5, 600))) return NextResponse.json({ error: 'Too many messages in a short time. Try again in a few minutes.' }, { status: 429 });
 
   const name = String(b.name || '').trim().slice(0, 100); const email = String(b.email || '').trim().slice(0, 160); const message = String(b.message || '').trim();
-  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || message.length < 10)
+  if (!name || !EMAIL_RE.test(email) || message.length < 10)
     return NextResponse.json({ error: 'Add your name, a valid email and a message of at least 10 characters.' }, { status: 400 });
 
   const clip = (v, n = 120) => (v ? String(v).slice(0, n) : undefined);
@@ -30,7 +31,9 @@ export async function POST(req) {
   }
 
   if (saved || mailEnabled()) {
-    const [thanks] = await Promise.all([sendThanks(doc), alertNewMessage(doc)]);
+    // At most 2 thank-you mails a day to one address, so the form cannot be used to flood a stranger.
+    const mayThank = await rateLimit(`thanks:${email.toLowerCase()}`, 2, 86400);
+    const [thanks] = await Promise.all([mayThank ? sendThanks(doc) : null, alertNewMessage(doc)]);
     if (saved && thanks?.ok) await Message.updateOne({ _id: saved._id }, { autoReplied: true }).catch(() => {});
     return NextResponse.json({ ok: true });
   }

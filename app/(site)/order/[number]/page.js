@@ -22,7 +22,7 @@ export default async function OrderPage(props) {
   const params = await props.params;
   if (!hasDB()) notFound();
   await dbConnect();
-  const o = serialize(await Order.findOne({ number: params.number, token: searchParams.t }).lean());
+  const o = serialize(await Order.findOne({ number: params.number, token: String(searchParams.t || '') }).lean());
   if (!o) notFound();
   const [{ site, payments: pay, integrations: ig }, me] = await Promise.all([getAllSettings(), getCustomer()]);
   const accounts = accountsOn(site);

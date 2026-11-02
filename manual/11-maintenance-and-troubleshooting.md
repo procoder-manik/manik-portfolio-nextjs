@@ -35,7 +35,7 @@ Do not run `npm audit fix --force`; it can break Tailwind and Next. Update one p
 
 ## Health check
 
-`/api/health` reports whether the database connects, how many admin users exist, and which environment variables are set (yes or no only, never the values). Use it after a deploy.
+While you are signed in to the admin, `/api/health` reports whether the database connects, how many admin users exist, and which environment variables are set (yes or no only, never the values). Use it after a deploy.
 
 ## Error guide
 

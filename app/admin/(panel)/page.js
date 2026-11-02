@@ -14,7 +14,7 @@ export default function Dashboard() {
   useEffect(() => { api('/api/admin/stats').then(setS).catch(() => setS({ noDB: true })); }, []);
   const cards = s && !s.noDB ? [
     ['Projects', s.projects, Briefcase, '/admin/projects'], ['Posts', s.posts, PenSquare, '/admin/posts'],
-    ['Open orders', s.openOrders, ShoppingBag, '/admin/orders'], ['Unread messages', s.unread, Inbox, '/admin/messages'],
+    ...(s.shop ? [['Open orders', s.openOrders, ShoppingBag, '/admin/orders'], ['Unread messages', s.unread, Inbox, '/admin/messages']] : []),
   ] : [];
   return (
     <div>
@@ -36,7 +36,7 @@ export default function Dashboard() {
         ))}
       </div>
       {s?.revenue?.length > 0 && <p className="mt-4 text-sm text-muted">Paid so far: {s.revenue.map((r) => money(r.total, r._id)).join(', ')}</p>}
-      {s && !s.noDB && (
+      {s && !s.noDB && s.shop && (
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <Panel title="Latest orders" href="/admin/orders">
             {s.recentOrders.length ? s.recentOrders.map((o) => (

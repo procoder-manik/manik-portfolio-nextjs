@@ -57,7 +57,7 @@
 | `/api/cron/subscriptions` | GET | public | Daily subscription check: reminders before a plan ends, and switching ended plans off. Vercel Cron calls this once a day with the header  Authorization: Bearer <CRON_SEC... |
 | `/api/forms/:slug` | GET, POST | public, rate-limited | Public: the form definition (used by popups and the form block). Never includes private settings. |
 | `/api/forms/upload` | POST | public, rate-limited | Public upload for "File upload" fields. Checks the form, the allowed types and the size you set. |
-| `/api/health` | GET | public | Open /api/health to check setup. Shows only whether values exist, never the values. |
+| `/api/health` | GET | public | Open /api/health to check setup. Visitors see only whether the site is healthy; signed-in admins also see which values exist, never the values. |
 | `/api/orders` | POST | public, rate-limited |  |
 | `/api/orders/:number` | POST | public, rate-limited | Buyer submits the transaction ID for a manual payment (bKash, Nagad, Rocket, bank, PayPal, Payoneer). |
 | `/api/payments/paypal` | GET | public |  |

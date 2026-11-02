@@ -14,7 +14,7 @@ export default async function InvoicePage(props) {
   const params = await props.params;
   if (!hasDB()) notFound();
   await dbConnect();
-  const o = serialize(await Order.findOne({ number: params.number, token: searchParams.t }).lean());
+  const o = serialize(await Order.findOne({ number: params.number, token: String(searchParams.t || '') }).lean());
   if (!o) notFound();
   const { site, payments } = await getAllSettings();
   const paid = ['paid', 'in_progress', 'completed'].includes(o.status);
