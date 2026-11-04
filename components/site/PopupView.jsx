@@ -68,7 +68,7 @@ function Body({ popup, theme, onClose, onEvent }) {
   const img = c.image && <img src={c.image} alt="" className={cn('w-full object-cover', pos === 'top' ? 'aspect-[16/8]' : 'h-full min-h-[200px]')} loading="lazy" />;
   if (pos === 'left' || pos === 'right') return <div className={cn('grid', compact ? 'grid-cols-[36%_1fr]' : 'sm:grid-cols-2')}><div className={cn('relative', !compact && 'hidden sm:block', pos === 'right' && 'order-2')}>{img}</div>{text}</div>;
   if (pos === 'top') return <div>{img}{text}</div>;
-  if (pos === 'background') return <div className="relative text-white"><img src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-black/55" />{text}</div>;
+  if (pos === 'background') return <div className="relative text-white"><img loading="lazy" decoding="async" src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-black/55" />{text}</div>;
   return text;
 }
 
@@ -106,7 +106,7 @@ export default function PopupView({ popup, preview = false, onClose, onEvent }) 
     const inner2 = bgImg ? <Body popup={{ ...popup, content: { ...popup.content, image: '' } }} theme={theme} onClose={onClose} onEvent={onEvent} /> : inner;
     return (
       <div className={cn(abs, 'inset-0 z-[90] overflow-y-auto', anim)} {...common} style={{ ...panelStyle, border: 0, outline: 'none', ...(bgImg ? { color: '#fff' } : {}) }}>
-        {bgImg && <><img src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" /><div className="pointer-events-none absolute inset-0 bg-black/55" /></>}
+        {bgImg && <><img loading="lazy" decoding="async" src={bgImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" /><div className="pointer-events-none absolute inset-0 bg-black/55" /></>}
         {close}<div className="relative mx-auto grid min-h-full max-w-3xl place-items-center">{inner2}</div>
       </div>
     );

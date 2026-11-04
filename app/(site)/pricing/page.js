@@ -13,6 +13,9 @@ import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs, catalogNode, faqNode } from '@/lib/schema';
 import { PAYMENT_METHODS } from '@/lib/options';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('pricing'), { title: 'Pricing and packages', description: 'Web design, SEO, automation and maintenance packages with clear starting prices. Pay by bKash, Nagad, Rocket, card, bank, PayPal or Payoneer.', path: '/pricing' , ogKind: 'page' });
 }

@@ -155,7 +155,7 @@ export default async function CaseStudyPage({ params }) {
               <blockquote className="font-display text-[1.45rem] leading-snug text-ink sm:text-[1.7rem]">{c.testimonial.quote}</blockquote>
               <figcaption className="mt-7 flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {c.testimonial.avatar && <img src={c.testimonial.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />}
+                {c.testimonial.avatar && <img loading="lazy" decoding="async" src={c.testimonial.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />}
                 <span><span className="block font-semibold text-ink">{c.testimonial.name}</span><span className="text-sm text-muted">{c.testimonial.role}</span></span>
               </figcaption>
             </figure>

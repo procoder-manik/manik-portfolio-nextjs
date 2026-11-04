@@ -23,7 +23,7 @@ function Cover({ c, className }) {
       <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-white/20 bg-black/40 py-1.5 pl-1.5 pr-3 text-xs font-semibold text-white backdrop-blur">
         {c.clientLogo
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={c.clientLogo} alt="" className="h-6 w-6 rounded-full bg-white object-contain p-0.5" />
+          ? <img loading="lazy" decoding="async" src={c.clientLogo} alt="" className="h-6 w-6 rounded-full bg-white object-contain p-0.5" />
           : <span className="grid h-6 w-6 place-items-center rounded-full text-[11px]" style={{ background: c.accent }}>{c.client?.[0]}</span>}
         {c.client}
       </div>

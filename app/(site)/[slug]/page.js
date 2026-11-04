@@ -7,6 +7,9 @@ import { buildGraph, crumbs, faqNode, faqFromMarkdown } from '@/lib/schema';
 import Blocks from '@/components/site/blocks/Blocks';
 import { fmtDate } from '@/lib/utils';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata(props) {
   const params = await props.params;
   const p = await getPage(params.slug);

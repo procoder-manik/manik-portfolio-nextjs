@@ -14,6 +14,9 @@ import HelpSearch from '@/components/site/HelpSearch';
 
 const ICONS = { Search, Globe, Workflow, Wrench, Gauge, ShieldCheck, CreditCard, User, Server, HelpCircle };
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('help'), { title: 'Help center', description: 'Search answers about web design, SEO, automation, maintenance, pricing, billing and how we work together.', path: '/help' , ogKind: 'page' });
 }

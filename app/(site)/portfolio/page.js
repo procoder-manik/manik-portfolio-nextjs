@@ -9,6 +9,9 @@ import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('portfolio'), { title: 'Portfolio', description: 'Websites I have designed and built on WordPress, Shopify, Webflow and custom code.', path: '/portfolio' , ogKind: 'page' });
 }

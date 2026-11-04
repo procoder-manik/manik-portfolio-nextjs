@@ -14,6 +14,9 @@ import Timeline from '@/components/site/Timeline';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('resume'), { title: 'Resume', description: 'Experience, education and skills of Manik Hossain, web designer, WordPress expert and SEO specialist.', path: '/resume' , ogKind: 'page' });
 }

@@ -5,6 +5,9 @@ import BlogIndex from '@/components/site/BlogIndex';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata(props) {
   const params = await props.params;
   const [cats, seo] = await Promise.all([getCategories(), getSettings('seo')]);

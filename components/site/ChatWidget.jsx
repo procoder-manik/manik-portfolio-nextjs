@@ -48,7 +48,7 @@ export default function ChatWidget({ cfg = {}, site = {} }) {
             className="mb-3 flex h-[min(560px,calc(100vh-120px))] w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-[22px] border border-line bg-surface shadow-[0_40px_90px_-30px_rgba(0,0,0,.7)]" role="dialog" aria-label={cfg.title}>
             <div className="flex items-center gap-3 border-b border-line bg-gradient-to-br from-signal/20 to-transparent px-4 py-3.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <span className="relative"><img src={site.avatar} alt="" className="h-10 w-10 rounded-full object-cover" /><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-good ring-2 ring-surface" /></span>
+              <span className="relative"><img loading="lazy" decoding="async" src={site.avatar} alt="" className="h-10 w-10 rounded-full object-cover" /><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-good ring-2 ring-surface" /></span>
               <div className="min-w-0 flex-1"><p className="font-display font-semibold text-ink">{cfg.title}</p><p className="text-xs text-muted">Replies {String(site.replyTime || '').toLowerCase()}</p></div>
               <button onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-raised hover:text-ink" aria-label="Close chat"><X size={17} /></button>
             </div>

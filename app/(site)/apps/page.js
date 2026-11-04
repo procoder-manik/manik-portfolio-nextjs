@@ -8,6 +8,9 @@ import AppCard from '@/components/site/AppCard';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('apps'), { title: 'Products', description: 'Apps and SaaS tools built by Manik Hossain.', path: '/apps' , ogKind: 'page' });
 }

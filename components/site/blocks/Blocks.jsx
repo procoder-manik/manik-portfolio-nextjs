@@ -61,7 +61,7 @@ async function Block({ b, first, ctx }) {
             <div className={cn('mt-9 flex flex-wrap gap-3', c && 'justify-center')}><Btn b={b.primary} primary /><Btn b={b.secondary} /></div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {b.image && <img src={b.image} alt="" className={cn('w-full rounded-[24px] border border-line object-cover', c && 'mx-auto mt-12 max-w-5xl')} />}
+          {b.image && <img loading="lazy" decoding="async" src={b.image} alt="" className={cn('w-full rounded-[24px] border border-line object-cover', c && 'mx-auto mt-12 max-w-5xl')} />}
         </div>);
     }
     case 'richText':

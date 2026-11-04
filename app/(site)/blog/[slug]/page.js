@@ -55,7 +55,7 @@ export default async function PostPage(props) {
           {p.excerpt && <p className="mt-6 text-xl text-muted">{p.excerpt}</p>}
           <div className="mt-8 flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
+            <img loading="lazy" decoding="async" src={site.avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
             <div><p className="font-medium text-ink">{site.name}</p><p className="text-sm text-muted">{site.role}</p></div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default async function PostPage(props) {
           </div>
           <div className="mt-10 flex gap-5 rounded-[22px] border border-line bg-surface p-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.avatar} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+            <img loading="lazy" decoding="async" src={site.avatar} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
             <div>
               <p className="font-display text-lg font-semibold text-ink">Written by {site.name}</p>
               <RichText as="p" html={site.footerNote} tokens={{ year: new Date().getFullYear(), site: site.name }} className="mt-1 text-[0.95rem] text-muted" />

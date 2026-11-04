@@ -11,6 +11,9 @@ import { slugify } from '@/lib/utils';
 import JsonLd from '@/components/site/JsonLd';
 import FaqExplorer from '@/components/site/FaqExplorer';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   return seoMeta(await getPageSeo('faq'), { title: 'Frequently asked questions', description: 'Answers about web design, SEO, automation, maintenance, pricing, timelines and payment.', path: '/faq' , ogKind: 'page' });
 }

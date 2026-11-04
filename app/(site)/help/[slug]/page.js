@@ -10,6 +10,9 @@ import { siteUrl } from '@/lib/utils';
 import JsonLd from '@/components/site/JsonLd';
 import HelpSearch from '@/components/site/HelpSearch';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata(props) {
   const { slug } = await props.params;
   const a = buildHelp(await getKnowledge()).bySlug[slug];

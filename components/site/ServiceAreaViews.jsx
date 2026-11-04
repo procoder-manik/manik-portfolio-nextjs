@@ -293,7 +293,7 @@ export function AreaView({ area, pages = [], children = [], childPages = {}, par
       <header className="relative overflow-hidden pb-14 pt-32 sm:pt-40">
         <div className="grid-paper pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_70%_70%_at_30%_0%,#000,transparent)]" />
         <div className="pointer-events-none absolute -top-40 left-1/3 h-[520px] w-[520px] rounded-full blur-[140px]" style={{ background: `${accent}40` }} />
-        {area.cover && (/* eslint-disable-next-line @next/next/no-img-element */ <img src={area.cover} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12] [mask-image:linear-gradient(to_bottom,#000,transparent)]" />)}
+        {area.cover && (/* eslint-disable-next-line @next/next/no-img-element */ <img loading="lazy" decoding="async" src={area.cover} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12] [mask-image:linear-gradient(to_bottom,#000,transparent)]" />)}
         <div className="shell relative space-y-6">
           <Crumbs items={crumbs} />
           <div className="flex flex-wrap items-center gap-2"><span className="chip border-transparent font-semibold text-white" style={{ background: accent }}><MapPin size={12} /> {area.kind || 'Place'}</span><span className="chip">{pages.length + Object.values(childPages).reduce((n, l) => n + l.length, 0)} service pages</span></div>

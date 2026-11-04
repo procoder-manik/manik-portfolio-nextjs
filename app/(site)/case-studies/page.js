@@ -11,6 +11,9 @@ import { siteUrl } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
+export const dynamic = 'force-static';
+export const revalidate = 600;
+
 export async function generateMetadata() {
   const [{ home }, own] = await Promise.all([getAllSettings(), getPageSeo('caseStudies')]);
   return seoMeta(own, { title: home.caseStudies?.heading || 'Case studies', description: home.caseStudies?.intro, path: '/case-studies' , ogKind: 'case' });
