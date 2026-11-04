@@ -4,7 +4,7 @@
 
 :root, [data-theme='dark'] {
   color-scheme: dark;
-  --base: 0 0 0; --surface: 28 28 30; --raised: 44 44 46; --line: 58 58 60;
+  --base: 18 19 23; --surface: 29 30 36; --raised: 43 45 53; --line: 60 63 73;
   --ink: 245 245 247; --body: 209 209 214; --muted: 152 152 157;
   --signal: 10 132 255; --amber: 255 159 10; --good: 48 209 88; --bad: 255 69 58;
   --grid: 255 255 255; --on-signal: 255 255 255;

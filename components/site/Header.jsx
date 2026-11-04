@@ -113,7 +113,7 @@ export default function Header({ site, links = [], cta = {}, account = false, th
   return (
     <header style={{ top: 'var(--bar-h, 0px)' }} className={cn('no-print header-enter fixed inset-x-0 z-50 px-3 pt-3 sm:px-5', hidden && !open && 'header-hidden')}>
       <div onMouseLeave={laterClose} className={cn('relative mx-auto flex max-w-shell items-center justify-between gap-4 rounded-full px-3 py-2 transition-all duration-500 ease-out sm:px-4',
-        scrolled || open || mega ? 'border border-line/50 bg-base/60 shadow-[0_1px_2px_rgba(0,0,0,.05),0_18px_44px_-24px_rgba(0,0,0,.35)] backdrop-blur-2xl backdrop-saturate-[1.8]' : 'border border-transparent')}>
+        scrolled || open || mega ? 'border border-line bg-base/80 shadow-[0_20px_50px_-30px_rgba(0,0,0,.6)] backdrop-blur-xl' : 'border border-transparent')}>
         <Link href="/" className="group flex items-center gap-2.5" aria-label={`${site.name}, home`}>
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-signal font-display text-[15px] font-bold text-white transition-transform duration-500 group-hover:rotate-[-8deg]">MH</span>
           <span className="hidden font-display text-[17px] font-semibold tracking-tight text-ink sm:block">{site.name}</span>
@@ -153,7 +153,7 @@ export default function Header({ site, links = [], cta = {}, account = false, th
           </button>
         </div>
       </div>
-      <div className={cn('mx-auto mt-2 max-w-shell overflow-hidden rounded-3xl border border-line/50 bg-base/75 backdrop-blur-2xl backdrop-saturate-[1.8] transition-all duration-500 ease-out lg:hidden', open ? 'max-h-[85vh] overflow-y-auto opacity-100' : 'pointer-events-none max-h-0 border-transparent opacity-0')}>
+      <div className={cn('mx-auto mt-2 max-w-shell overflow-hidden rounded-3xl border border-line bg-base/95 backdrop-blur-xl transition-all duration-500 ease-out lg:hidden', open ? 'max-h-[85vh] overflow-y-auto opacity-100' : 'pointer-events-none max-h-0 border-transparent opacity-0')}>
         <nav className="flex flex-col p-3" aria-label="Mobile">
           {[...NAV, ...(account ? [{ label: 'My account', href: '/account' }] : []), ...(cta.show !== false ? [{ label: cta.label || 'Contact', href: cta.href || '/contact' }] : [])].map((n) => (n.mega
             ? <MegaMobile key={n.label + n.href} n={n} open={mobMega === n.label + n.href} onToggle={() => setMobMega(mobMega === n.label + n.href ? '' : n.label + n.href)} onGo={() => setOpen(false)} />

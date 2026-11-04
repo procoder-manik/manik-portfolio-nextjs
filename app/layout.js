@@ -27,7 +27,7 @@ export async function generateMetadata() {
   };
 }
 
-export const viewport = { themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#000000' }, { media: '(prefers-color-scheme: light)', color: '#F5F5F7' }] };
+export const viewport = { themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#121317' }, { media: '(prefers-color-scheme: light)', color: '#F5F5F7' }] };
 
 /* Runs before the page paints. The visitor's choice (theme: system | light | dark, tone) is read from localStorage;
    with no choice yet it follows the device (system). data-theme is always the resolved light or dark. */

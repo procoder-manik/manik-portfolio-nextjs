@@ -62,6 +62,9 @@ export default function Footer({ site, nav = {}, pages = [], apps = [] }) {
           <a href={site.calendly} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-ink hover:text-signal">Book a call <ArrowUpRight size={14} /></a>
         </div>
       </div>
+      <div className="shell relative overflow-hidden pb-6 pt-2" aria-hidden="true">
+        <p className="select-none whitespace-nowrap bg-gradient-to-b from-ink/25 to-ink/0 bg-clip-text text-center font-display font-semibold leading-[.9] tracking-[-0.05em] text-transparent" style={{ fontSize: 'clamp(2.6rem, 11.5vw, 10.5rem)' }}>{site.name}</p>
+      </div>
     </footer>
   );
 }
