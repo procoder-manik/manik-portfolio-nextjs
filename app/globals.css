@@ -4,16 +4,16 @@
 
 :root, [data-theme='dark'] {
   color-scheme: dark;
-  --base: 12 21 38; --surface: 17 29 51; --raised: 25 40 68; --line: 38 55 88;
-  --ink: 236 241 248; --body: 194 205 224; --muted: 134 151 182;
-  --signal: 99 145 255; --amber: 255 180 70; --good: 52 211 153; --bad: 248 113 113;
+  --base: 0 0 0; --surface: 28 28 30; --raised: 44 44 46; --line: 58 58 60;
+  --ink: 245 245 247; --body: 209 209 214; --muted: 152 152 157;
+  --signal: 10 132 255; --amber: 255 159 10; --good: 48 209 88; --bad: 255 69 58;
   --grid: 255 255 255; --on-signal: 255 255 255;
 }
 [data-theme='light'] {
   color-scheme: light;
-  --base: 244 246 250; --surface: 255 255 255; --raised: 234 239 247; --line: 219 226 237;
-  --ink: 12 21 38; --body: 51 64 90; --muted: 98 113 141;
-  --signal: 41 92 224; --amber: 184 112 0; --good: 5 150 105; --bad: 220 38 38;
+  --base: 245 245 247; --surface: 255 255 255; --raised: 235 235 240; --line: 220 220 226;
+  --ink: 29 29 31; --body: 66 66 69; --muted: 110 110 115;
+  --signal: 0 113 227; --amber: 177 99 0; --good: 36 138 61; --bad: 215 0 21;
   --grid: 12 21 38;
 }
 
@@ -33,8 +33,8 @@
 
 @layer base {
   html { scroll-behavior: smooth; scroll-padding-top: 96px; -webkit-text-size-adjust: 100%; }
-  body { @apply bg-base text-body font-sans antialiased; font-size: 1.0625rem; line-height: 1.65; text-rendering: optimizeLegibility; }
-  h1, h2, h3, h4 { @apply font-display text-ink; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; }
+  body { @apply bg-base text-body font-sans antialiased; font-size: 1.0625rem; line-height: 1.6; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { @apply font-display text-ink; font-weight: 600; letter-spacing: -0.025em; line-height: 1.1; text-wrap: balance; }
   p { text-wrap: pretty; }
   ::selection { background: rgb(var(--signal) / .3); color: rgb(var(--ink)); }
   :focus-visible { outline: 2px solid rgb(var(--signal)); outline-offset: 3px; border-radius: 6px; }
@@ -48,19 +48,20 @@
 @layer components {
   .shell { @apply mx-auto w-full max-w-shell px-5 sm:px-8; }
   .section { @apply py-20 sm:py-28; }
-  .h-display { font-size: clamp(2.5rem, 5vw, 4.6rem); line-height: .98; letter-spacing: -0.035em; font-weight: 700; }
-  .h-section { font-size: clamp(2rem, 4.2vw, 3.4rem); letter-spacing: -0.03em; font-weight: 650; }
+  .h-display { font-size: clamp(2.6rem, 5.4vw, 5rem); line-height: 1.02; letter-spacing: -0.045em; font-weight: 600; }
+  .h-section { font-size: clamp(2rem, 4.2vw, 3.4rem); letter-spacing: -0.035em; font-weight: 600; }
   .lede { @apply text-muted; font-size: 1.125rem; max-width: 34rem; }
 
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[0.95rem] font-semibold transition duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed; }
-  .btn-primary { @apply btn bg-signal hover:brightness-110; color: rgb(var(--on-signal)); box-shadow: 0 10px 30px -12px rgb(var(--signal) / .8); }
-  .btn-ghost { @apply btn border border-line text-ink hover:border-ink/40 hover:bg-raised/60; }
+  .btn-primary { @apply btn bg-signal hover:brightness-110; color: rgb(var(--on-signal)); box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 8px 24px -10px rgb(var(--signal) / .55); }
+  .btn-ghost { @apply btn bg-raised/70 text-ink backdrop-blur hover:bg-raised; }
   .btn-sm { @apply px-3.5 py-2 text-sm; }
 
-  .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/60 px-2.5 py-1 text-xs font-medium text-body; }
-  .card { @apply rounded-[22px] border border-line bg-surface; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full bg-raised/70 px-2.5 py-1 text-xs font-medium text-body backdrop-blur; }
+  .card { @apply rounded-[28px] border border-line/70 bg-surface; box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 12px 40px -24px rgb(0 0 0 / .18); }
+  .glass { background: rgb(var(--surface) / .62); border: 1px solid rgb(var(--line) / .55); -webkit-backdrop-filter: saturate(180%) blur(28px); backdrop-filter: saturate(180%) blur(28px); }
 
-  .field { @apply w-full rounded-xl border border-line bg-base/60 px-4 py-3 text-ink placeholder:text-muted/70 outline-none transition focus:border-signal focus:ring-4 focus:ring-signal/15; }
+  .field { @apply w-full rounded-2xl border border-line/70 bg-surface px-4 py-3 text-ink placeholder:text-muted/70 outline-none transition focus:border-signal focus:ring-4 focus:ring-signal/20; }
   .label { @apply mb-1.5 block text-sm font-medium text-ink; }
 
   .grid-paper { background-image: linear-gradient(rgb(var(--grid) / .045) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--grid) / .045) 1px, transparent 1px); background-size: 48px 48px; }
@@ -123,9 +124,9 @@
 
 /* Hover polish */
 a.card, .card[data-hover] { transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .45s; }
-a.card:hover, .card[data-hover]:hover { transform: translateY(-4px); box-shadow: 0 24px 50px -30px rgb(0 0 0 / .55); }
+a.card:hover, .card[data-hover]:hover { transform: translateY(-2px) scale(1.008); box-shadow: 0 2px 4px rgb(0 0 0 / .05), 0 28px 60px -30px rgb(0 0 0 / .3); }
 .btn-primary { position: relative; overflow: hidden; isolation: isolate; }
-.btn-primary::after { content: ''; position: absolute; inset: 0; z-index: -1; width: 40%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .28), transparent); transform: translateX(-120%) skewX(-20deg); pointer-events: none; }
+.btn-primary::after { content: ''; display: none; position: absolute; inset: 0; z-index: -1; width: 40%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .28), transparent); transform: translateX(-120%) skewX(-20deg); pointer-events: none; }
 .btn-primary:hover::after { animation: shine .9s ease; }
 .btn:active { transform: scale(.97); }
 

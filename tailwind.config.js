@@ -11,9 +11,9 @@ module.exports = {
         signal: v('signal'), amber: v('amber'), good: v('good'), bad: v('bad'),
       },
       fontFamily: {
-        display: ['var(--f-display, "Bricolage Grotesque")', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-        sans: ['var(--f-body, "Instrument Sans")', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--f-display, -apple-system)', 'BlinkMacSystemFont', '"SF Pro Display"', 'var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', '"SF Mono"', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+        sans: ['var(--f-body, -apple-system)', 'BlinkMacSystemFont', '"SF Pro Text"', 'var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       maxWidth: { shell: '1240px' },
       borderRadius: { '4xl': '2rem' },

@@ -1,8 +1,12 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
 import { getSettings } from '@/lib/data';
 import { siteUrl } from '@/lib/utils';
 
 export const revalidate = 600;
+
+/* SF Pro on Apple devices; Inter (served from this site, no extra request to Google) everywhere else. */
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 
 export async function generateMetadata() {
   const [s, i, seo] = await Promise.all([getSettings('site'), getSettings('integrations'), getSettings('seo')]);
@@ -23,7 +27,7 @@ export async function generateMetadata() {
   };
 }
 
-export const viewport = { themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#0C1526' }, { media: '(prefers-color-scheme: light)', color: '#F4F6FA' }] };
+export const viewport = { themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#000000' }, { media: '(prefers-color-scheme: light)', color: '#F5F5F7' }] };
 
 /* Runs before the page paints. The visitor's choice (theme: system | light | dark, tone) is read from localStorage;
    with no choice yet it follows the device (system). data-theme is always the resolved light or dark. */
@@ -31,13 +35,10 @@ const themeScript = `(function(){var d=document.documentElement;try{var s=localS
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light" data-mode="system" suppressHydrationWarning>
+    <html lang="en" data-theme="light" data-mode="system" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Browser extensions sometimes add attributes to this tag before React loads; this stops the harmless mismatch warning in development. */}
         <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
       </head>
       <body>{children}</body>
     </html>
