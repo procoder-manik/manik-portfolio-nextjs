@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { seoMeta, pageMeta } from '@/lib/seo';
-import { getPage, getSettings } from '@/lib/data';
+import { getPage, getSettings, getLanding } from '@/lib/data';
+import LandingPage from '@/components/site/landing/LandingPage';
+import { landingMeta, landingGraph, landingKey } from '@/lib/landing';
 import { renderMarkdown } from '@/lib/markdown';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs, faqNode, faqFromMarkdown } from '@/lib/schema';
@@ -13,13 +15,20 @@ export const revalidate = 600;
 export async function generateMetadata(props) {
   const params = await props.params;
   const p = await getPage(params.slug);
-  return p ? seoMeta(p, { title: p.title, path: `/${p.slug}`, ogKind: 'page' }) : {};
+  if (p) return seoMeta(p, { title: p.title, path: `/${p.slug}`, ogKind: 'page' });
+  const l = await getLanding(landingKey(params.slug));
+  return l ? landingMeta(l) : {};
 }
 
 export default async function CustomPage(props) {
   const params = await props.params;
   const [p, site] = await Promise.all([getPage(params.slug), getSettings('site')]);
-  if (!p) notFound();
+  if (!p) {
+    // Not a page: it may be a landing page (Admin > Landing pages), found by its address or any other address.
+    const l = await getLanding(landingKey(params.slug));
+    if (!l) notFound();
+    return (<><JsonLd item={l} data={buildGraph(site, landingGraph(l))} /><LandingPage l={l} /></>);
+  }
   const blocks = (p.blocks || []).filter((b) => b && !b.hidden);
   const heroFirst = blocks[0]?.type === 'hero';
   const showTitle = !p.hideTitle && !heroFirst;

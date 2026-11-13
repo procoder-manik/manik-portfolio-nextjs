@@ -2,14 +2,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X, MapPin, Globe2, Send, ShieldCheck } from 'lucide-react';
+import { Sparkles, Brain, Newspaper, HelpCircle, ClipboardList, MessageSquareText, Megaphone, ArrowRightLeft, SearchCheck, Unlink, UserCog, Bell, Trophy, Users, UserRoundCheck, TicketPercent, Handshake, Gift, AppWindow, Plug, PanelsTopLeft, MailCheck, LayoutDashboard, Briefcase, PenSquare, Tags, Layers, Package, ShoppingBag, Inbox, FileText, Image, Home, User, Settings, CreditCard, ScrollText, LogOut, ExternalLink, Menu, X, MapPin, Globe2, Send, ShieldCheck, Rocket } from 'lucide-react';
 import { ThemeToggle } from '@/components/site/Header';
 import { cn } from '@/lib/utils';
 import { can, areaForPath, ROLES } from '@/lib/roles';
 
 const NAV = [
   ['Overview', [['/admin', 'Dashboard', LayoutDashboard]]],
-  ['Content', [['/admin/projects', 'Portfolio', Briefcase], ['/admin/case-studies', 'Case studies', Trophy], ['/admin/service-areas', 'Service areas', MapPin], ['/admin/area-categories', 'Area locations', Globe2], ['/admin/posts', 'Blog posts', PenSquare], ['/admin/categories', 'Categories', Tags], ['/admin/pages', 'Pages', FileText], ['/admin/apps', 'Products', AppWindow], ['/admin/media', 'Media', Image]]],
+  ['Content', [['/admin/projects', 'Portfolio', Briefcase], ['/admin/case-studies', 'Case studies', Trophy], ['/admin/service-areas', 'Service areas', MapPin], ['/admin/area-categories', 'Area locations', Globe2], ['/admin/posts', 'Blog posts', PenSquare], ['/admin/categories', 'Categories', Tags], ['/admin/pages', 'Pages', FileText], ['/admin/landings', 'Landing pages', Rocket], ['/admin/apps', 'Products', AppWindow], ['/admin/media', 'Media', Image]]],
   ['AI', [['/admin/ai-writer', 'AI writer', Sparkles], ['/admin/ai-news', 'AI news', Newspaper], ['/admin/ai-iq', 'AI IQ (chatbot brain)', Brain], ['/admin/knowledge', 'Taught answers', HelpCircle]]],
   ['Marketing', [['/admin/pitches', 'Pitches', Send], ['/admin/forms', 'Forms', ClipboardList], ['/admin/entries', 'Form answers', MessageSquareText], ['/admin/popups', 'Popups', Megaphone], ['/admin/settings/announcement', 'Announcement bar', Bell], ['/admin/redirects', 'Redirects', ArrowRightLeft], ['/admin/not-found-log', '404 log', Unlink]]],
   ['SEO', [['/admin/seo-overview', 'SEO overview', SearchCheck], ['/admin/settings/seo', 'SEO settings', Settings]]],

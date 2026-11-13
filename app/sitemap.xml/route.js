@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-import { getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge, getHiddenPaths, getAreas, getServiceAreas } from '@/lib/data';
+import { getLandings, getProjects, getPosts, getCategories, getAllPages, getCaseStudies, getSettings, getPageSeo, getKnowledge, getHiddenPaths, getAreas, getServiceAreas } from '@/lib/data';
 import { buildHelp } from '@/lib/help';
 import { BUILTIN_PAGES } from '@/lib/admin-schema';
 import { caseStudiesOn } from '@/lib/features';
@@ -35,6 +35,7 @@ export async function GET() {
     sm.projects !== false ? getProjects() : [], sm.posts !== false ? getPosts() : [], sm.categories !== false ? getCategories() : [], sm.pages !== false ? getAllPages() : [],
     sm.caseStudies !== false && caseStudiesOn(site) ? getCaseStudies() : [],
   ]);
+  (await getLandings()).filter((x) => !skip(x)).forEach((l) => push(encodeURI(`/${l.canonicalAlias && l.aliases?.[0] ? l.aliases[0] : l.slug}`), l, { priority: 0.8, images: [l.heroImage, l.seoImage] }));
   if (sm.serviceAreas !== false && !(await getHiddenPaths()).includes('/service-areas')) {
     const [areaList, saList] = await Promise.all([getAreas(), getServiceAreas()]);
     areaList.filter((x) => !skip(x)).forEach((a) => push(`/service-areas/${a.slug}`, a, { priority: 0.6, images: [a.cover, a.seoImage] }));

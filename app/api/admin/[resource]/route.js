@@ -14,6 +14,7 @@ import * as seed from '@/lib/seed-data';
 import { cleanRedirect } from '@/lib/redirects';
 import { ensureSystemPages, prepareSave, SEO_FIELDS, ownHostsNow } from '@/lib/system-pages-server';
 import { ensureStarterAnswers } from '@/lib/content-updates';
+import { ensureLandings } from '@/lib/landing-seed';
 import { pitchRows, newPitchCode, validCode } from '@/lib/pitch';
 /* Built-in pages keep their SEO in settings (seo-<key>); add it so the SEO column scores the real values. */
 const withSeo = async (items) => Promise.all(items.map(async (x) => { if (!x.builtin) return x; const seo = await getPageSeoFresh(x.builtin).catch(() => ({})); return { ...x, ...Object.fromEntries(SEO_FIELDS.filter((k) => seo[k] !== undefined).map((k) => [k, seo[k]])) }; }));
@@ -39,6 +40,7 @@ export const GET = adminRoute(async (req, { params }) => {
   }
   await dbConnect();
   await ensureStarterAnswers();
+  await ensureLandings();
   if (params.resource === 'pages') await ensureSystemPages();
   const view = req.nextUrl.searchParams.get('view') || 'all';
   const s = STATUS[params.resource];

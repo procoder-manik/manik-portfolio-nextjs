@@ -229,3 +229,34 @@ html { scrollbar-width: thin; scrollbar-color: rgb(var(--signal)) rgb(var(--base
 *::-webkit-scrollbar-thumb:hover { filter: brightness(1.12); }
 *::-webkit-scrollbar-corner { background: rgb(var(--base)); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ------------------------------------------------------------------
+   Landing pages (Admin > Landing pages). Colour sets and the two designs.
+   The tokens are switched on the whole page, so the header and footer match too.
+   ------------------------------------------------------------------ */
+.lp { --lp-a: 255 176 87; --lp-b: 255 99 140; --lp-c: 168 112 255; --lp-d1: 11 10 31; --lp-d2: 45 27 105; --lp-accent: 109 40 217; }
+.lp[data-palette='emerald'] { --lp-a: 134 239 172; --lp-b: 52 211 153; --lp-c: 45 212 191; --lp-d1: 4 20 15; --lp-d2: 11 74 56; --lp-accent: 4 120 87; }
+.lp[data-palette='ocean'] { --lp-a: 125 211 252; --lp-b: 96 165 250; --lp-c: 129 140 248; --lp-d1: 6 11 31; --lp-d2: 18 48 122; --lp-accent: 10 99 216; }
+.lp[data-palette='mono'] { --lp-a: 229 229 234; --lp-b: 161 161 170; --lp-c: 113 113 122; --lp-d1: 11 11 13; --lp-d2: 38 38 43; --lp-accent: 29 29 31; }
+
+html:has(.lp[data-mode='light']) { color-scheme: light; --base: 255 255 255; --surface: 245 245 247; --raised: 236 236 241; --line: 224 224 230; --ink: 29 29 31; --body: 66 66 69; --muted: 110 110 115; }
+html:has(.lp[data-mode='dark'][data-palette='sunset']) { color-scheme: dark; --base: 11 10 31; --surface: 22 20 52; --raised: 34 30 74; --line: 56 50 104; --ink: 245 245 252; --body: 205 205 224; --muted: 150 150 182; }
+html:has(.lp[data-mode='dark'][data-palette='emerald']) { color-scheme: dark; --base: 4 20 15; --surface: 10 34 27; --raised: 16 50 40; --line: 28 74 60; --ink: 240 252 247; --body: 195 226 214; --muted: 130 170 154; }
+html:has(.lp[data-mode='dark'][data-palette='ocean']) { color-scheme: dark; --base: 6 11 31; --surface: 13 22 56; --raised: 20 34 82; --line: 36 54 112; --ink: 240 246 255; --body: 196 212 240; --muted: 130 150 190; }
+html:has(.lp[data-mode='dark'][data-palette='mono']) { color-scheme: dark; --base: 11 11 13; --surface: 23 23 26; --raised: 33 33 38; --line: 52 52 60; --ink: 244 244 245; --body: 205 205 210; --muted: 150 150 160; }
+
+.lp-grad { background-image: linear-gradient(90deg, rgb(var(--lp-a)), rgb(var(--lp-b)) 55%, rgb(var(--lp-c))); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.lp-panel { position: relative; isolation: isolate; color: #fff; background:
+  radial-gradient(60% 80% at 88% 0%, rgb(var(--lp-c) / .38), transparent 62%),
+  radial-gradient(55% 70% at 8% 100%, rgb(var(--lp-b) / .22), transparent 62%),
+  linear-gradient(160deg, rgb(var(--lp-d1)), rgb(var(--lp-d2))); }
+.lp-panel::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5; background-image: radial-gradient(rgb(255 255 255 / .09) 1px, transparent 1px); background-size: 26px 26px; -webkit-mask-image: linear-gradient(180deg, #000, transparent 85%); mask-image: linear-gradient(180deg, #000, transparent 85%); }
+.lp-btn { background: rgb(var(--lp-accent)); color: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .14), 0 14px 30px -14px rgb(var(--lp-accent) / .75); transition: filter .25s, transform .25s; }
+.lp-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.lp-btn:active { transform: scale(.98); }
+.lp-soft { background: rgb(var(--raised)); color: rgb(var(--ink)); transition: background .25s, transform .25s; }
+.lp-soft:hover { background: rgb(var(--line)); }
+.lp-glass { background: rgb(255 255 255 / .08); border: 1px solid rgb(255 255 255 / .16); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); }
+.lp-pop { box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 40px 80px -36px rgb(var(--lp-d2) / .55); }
+.lp { --signal: var(--lp-accent); }
+.lp-bn, .lp-bn * { font-family: var(--font-inter), var(--font-bn), ui-sans-serif, system-ui, sans-serif; }
