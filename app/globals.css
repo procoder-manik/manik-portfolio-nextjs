@@ -260,3 +260,60 @@ html:has(.lp[data-mode='dark'][data-palette='mono']) { color-scheme: dark; --bas
 .lp-pop { box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 40px 80px -36px rgb(var(--lp-d2) / .55); }
 .lp { --signal: var(--lp-accent); }
 .lp-bn, .lp-bn * { font-family: var(--font-inter), var(--font-bn), ui-sans-serif, system-ui, sans-serif; }
+
+/* ------------------------------------------------------------------
+   Landing pages: motion. All of it stops for visitors who prefer less motion (rule near the top of this file).
+   ------------------------------------------------------------------ */
+@property --lp-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes lpWord { from { opacity: 0; transform: translate3d(0, .55em, 0); filter: blur(12px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes lpRise { from { opacity: 0; transform: translate3d(0, 24px, 0); } to { opacity: 1; transform: none; } }
+@keyframes lpShimmer { to { background-position: 200% 0; } }
+@keyframes lpSpin { to { transform: rotate(360deg); } }
+@keyframes lpRing { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes lpFloat { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -9px, 0); } }
+@keyframes lpBar { 0%, 100% { height: 4px; } 50% { height: var(--h, 22px); } }
+@keyframes lpCaret { 50% { opacity: 0; } }
+@keyframes lpPulse { 0%, 100% { box-shadow: 0 0 0 0 rgb(255 59 78 / .6); } 70% { box-shadow: 0 0 0 10px rgb(255 59 78 / 0); } }
+@keyframes lpDrift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-9%, 12%, 0) scale(1.18); } }
+@keyframes lpAng { to { --lp-ang: 360deg; } }
+@keyframes lpMarquee { to { transform: translateX(-50%); } }
+
+.lp-w { display: inline-block; opacity: 0; animation: lpWord 1s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: calc(var(--i, 0) * 85ms + 120ms); }
+.lp-in { opacity: 0; animation: lpRise 1s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: var(--d, 0ms); }
+.lp-grad.lp-grad-live { display: inline-block; background-image: linear-gradient(90deg, rgb(var(--lp-a)), rgb(var(--lp-b)), rgb(var(--lp-c)), rgb(var(--lp-b)), rgb(var(--lp-a))); background-size: 200% 100%; animation: lpRise 1s cubic-bezier(.16, 1, .3, 1) forwards, lpShimmer 7s linear infinite; animation-delay: var(--d, 0ms), 0s; opacity: 0; }
+
+.lp-orb { position: relative; display: grid; place-items: center; width: 84px; height: 84px; margin: 0 auto 26px; }
+.lp-orb-halo { position: absolute; inset: -34%; border-radius: 50%; background: conic-gradient(from 0deg, rgb(var(--lp-a)), rgb(var(--lp-b)), rgb(var(--lp-c)), rgb(var(--lp-a))); filter: blur(28px); opacity: .62; animation: lpSpin 9s linear infinite; }
+.lp-orb-ring { position: absolute; inset: 0; border-radius: 24px; border: 2px solid rgb(var(--lp-b) / .55); animation: lpRing 3.8s cubic-bezier(.2, .6, .3, 1) infinite; }
+.lp-orb-img { position: relative; width: 84px; height: 84px; border-radius: 22px; animation: lpFloat 5.5s ease-in-out infinite; box-shadow: 0 20px 44px -14px rgb(var(--lp-b) / .6), inset 0 0 0 1px rgb(255 255 255 / .28); }
+
+.lp-caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: -.15em; background: rgb(var(--lp-accent)); animation: lpCaret 1s steps(1) infinite; }
+.lp-bar { height: 4px; transition: height .3s; }
+.lp-bar[data-on='1'] { animation: lpBar .9s ease-in-out infinite; animation-delay: var(--d); }
+.lp-rec { transition: opacity .3s; opacity: .55; }
+.lp-rec.is-on { opacity: 1; animation: lpPulse 1.4s infinite; }
+.lp-key { transition: transform .2s, background .2s, box-shadow .2s; box-shadow: 0 3px 0 rgb(255 255 255 / .18); }
+.lp-key.is-down { transform: translateY(3px); box-shadow: 0 0 0 rgb(0 0 0 / 0); background: rgb(var(--lp-b) / .5); }
+.lp-chip { white-space: nowrap; animation: lpFloat 6s ease-in-out infinite; }
+.lp-chip-0 { left: 0; top: 2%; } .lp-chip-1 { right: 0; top: 14%; } .lp-chip-2 { right: 5%; bottom: 17%; }
+@media (max-width: 640px) { .lp-chip-2 { display: none; } .lp-chip { font-size: 12px; padding: 4px 10px; } }
+
+.lp-spot { position: relative; overflow: hidden; }
+.lp-spot::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .45s; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--lp-b) / .2), transparent 70%); }
+.lp-spot:hover::before { opacity: 1; }
+.lp-spot > * { position: relative; }
+
+.lp-line { background: linear-gradient(180deg, rgb(var(--lp-a)), rgb(var(--lp-b)) 55%, rgb(var(--lp-c))); box-shadow: 0 0 14px rgb(var(--lp-b) / .5); }
+.lp-art-ring { position: absolute; width: 4.5rem; height: 4.5rem; border-radius: 1.4rem; border: 2px solid rgb(255 255 255 / .4); animation: lpRing 3.4s cubic-bezier(.2, .6, .3, 1) infinite; }
+.lp-art-icon { background: linear-gradient(135deg, rgb(var(--lp-b)), rgb(var(--lp-c))); box-shadow: 0 14px 30px -10px rgb(var(--lp-b) / .75); animation: lpFloat 5s ease-in-out infinite; }
+
+.lp-marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.lp-marquee-track { display: flex; width: max-content; gap: 12px; animation: lpMarquee 42s linear infinite; }
+.lp-marquee:hover .lp-marquee-track { animation-play-state: paused; }
+
+.lp-shine { position: relative; }
+.lp-shine::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 2px; pointer-events: none; background: conic-gradient(from var(--lp-ang), transparent 0 55%, rgb(255 255 255 / .95) 76%, rgb(var(--lp-a)) 88%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: lpAng 5s linear infinite; }
+
+.lp-panel::after { content: ''; position: absolute; z-index: -1; width: 48%; aspect-ratio: 1; right: -8%; top: -22%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgb(var(--lp-c) / .4), transparent 66%); animation: lpDrift 15s ease-in-out infinite alternate; }
+
+.lp-glass.lp-chip { background: rgb(var(--lp-d1) / .82); border-color: rgb(255 255 255 / .22); box-shadow: 0 10px 24px -10px rgb(0 0 0 / .55); }
