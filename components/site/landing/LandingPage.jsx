@@ -16,6 +16,9 @@ const T = {
 const Win = (p) => <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}><path d="M3 5.6 10.6 4.5v7H3V5.6Zm8.8-1.3L21 3v8.5h-9.2V4.3ZM3 12.6h7.6v7L3 18.4v-5.8Zm8.8 0H21V21l-9.2-1.3v-7.1Z" /></svg>;
 const PLATFORM = { windows: Win, mac: Apple, linux: Terminal, android: Smartphone, ios: Smartphone, web: Globe2 };
 
+/* Steps fill the rows evenly: three across, then whatever is left shares the last row. Class names are written out so Tailwind keeps them. */
+const SPAN = { 2: 'lg:col-span-2', 3: 'lg:col-span-3', 6: 'lg:col-span-6' };
+const stepSpan = (i, n) => SPAN[n <= 3 ? 6 / n : i < 3 ? 2 : 6 / Math.min(n - 3, 3)];
 const lines = (s) => String(s || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
 const rgb = (hex = '') => { const m = String(hex).trim().match(/^#?([0-9a-f]{6})$/i); if (!m) return null; const n = parseInt(m[1], 16); return `${n >> 16} ${(n >> 8) & 255} ${n & 255}`; };
 
@@ -46,7 +49,7 @@ export default function LandingPage({ l }) {
   return (
     <div className={cn('lp', l.lang === 'bn' && 'lp-bn', bengali.variable)} data-mode={mode} data-palette={l.palette || 'sunset'} style={accent ? { '--lp-accent': accent } : undefined}>
       {/* Hero */}
-      <section className="relative overflow-hidden pb-6 pt-32 sm:pt-40">
+      <section className="relative overflow-x-clip pb-14 pt-32 sm:pt-40">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[620px]" style={{ background: 'radial-gradient(55% 60% at 50% 0%, rgb(var(--lp-c) / .18), transparent 70%), radial-gradient(35% 40% at 85% 10%, rgb(var(--lp-a) / .14), transparent 70%)' }} />
         <div className="shell relative text-center">
           {l.logo && /* eslint-disable-next-line @next/next/no-img-element */ <img src={l.logo} alt={`${l.name} logo`} width={84} height={84} className="mx-auto mb-6 h-[84px] w-[84px] rounded-[22px] shadow-[0_18px_40px_-16px_rgba(0,0,0,.45)]" />}
@@ -57,8 +60,8 @@ export default function LandingPage({ l }) {
           </h1>
           {l.subheadline && <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted sm:text-[1.3rem]">{l.subheadline}</p>}
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            {primary && <a href="#download" className="lp-btn inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-base font-semibold">{(() => { const P = PLATFORM[primary.platform] || Download; return <P size={19} />; })()}{t.download}</a>}
-            {hasVideo && <a href="#video" className="lp-soft inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold"><Play size={16} fill="currentColor" />{t.watch}</a>}
+            {primary && <a href="#download" className="lp-btn inline-flex items-center gap-2.5 whitespace-nowrap rounded-full px-7 py-3.5 text-[1rem] font-semibold">{(() => { const P = PLATFORM[primary.platform] || Download; return <P size={19} />; })()}{t.download}</a>}
+            {hasVideo && <a href="#video" className="lp-soft inline-flex items-center gap-2 whitespace-nowrap rounded-full px-6 py-3.5 text-[1rem] font-semibold"><Play size={16} fill="currentColor" />{t.watch}</a>}
           </div>
           {facts.length > 0 && <p className="mx-auto mt-5 flex max-w-2xl flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted">{facts.map((f, i) => <span key={i} className="inline-flex items-center gap-4">{i > 0 && <span aria-hidden="true" className="h-1 w-1 rounded-full bg-muted/50" />}{f}</span>)}</p>}
         </div>
@@ -102,7 +105,7 @@ export default function LandingPage({ l }) {
                       {p.eyebrow && <p className={cn('text-sm font-semibold uppercase tracking-[0.12em]', dark ? 'lp-grad' : 'text-signal')}>{p.eyebrow}</p>}
                       <h2 className={cn('mt-3 text-[clamp(1.9rem,4.2vw,3.3rem)] font-semibold leading-[1.1] tracking-[-0.035em]', dark ? 'text-white' : 'text-ink')}>{p.title}</h2>
                       {p.body && <p className={cn('mt-5 text-lg leading-relaxed', dark ? 'text-white/70' : 'text-muted')}>{p.body}</p>}
-                      {pts.length > 0 && <ul className="mt-7 space-y-3.5 text-base">{pts.map((x, k) => <Check2 key={k} dark={dark}>{x}</Check2>)}</ul>}
+                      {pts.length > 0 && <ul className="mt-7 space-y-3.5 text-[1rem]">{pts.map((x, k) => <Check2 key={k} dark={dark}>{x}</Check2>)}</ul>}
                     </div>
                     {p.image && (
                       <div className={p.reverse ? 'lg:order-1' : ''}>
@@ -161,7 +164,7 @@ export default function LandingPage({ l }) {
             </Reveal>
             <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
               {steps.map((s, i) => (
-                <Reveal key={i} delay={(i % 3) * 0.07} className={cn('h-full', i < 3 ? 'lg:col-span-2' : 'lg:col-span-3')}>
+                <Reveal key={i} delay={(i % 3) * 0.07} className={cn('h-full', stepSpan(i, steps.length), i === steps.length - 1 && steps.length % 2 === 1 && 'sm:col-span-2')}>
                   <article className="flex h-full flex-col overflow-hidden rounded-[28px] bg-raised">
                     {s.image && /* eslint-disable-next-line @next/next/no-img-element */ <img src={s.image} alt={s.title} loading="lazy" decoding="async" className="aspect-video w-full object-cover" />}
                     <div className="flex flex-1 flex-col p-6 sm:p-7">
@@ -199,8 +202,8 @@ export default function LandingPage({ l }) {
                         {d.size && <p className="mt-1 text-sm font-medium text-white/60">{d.size}</p>}
                         {d.note && <p className="mt-4 flex-1 leading-relaxed text-white/75">{d.note}</p>}
                         {off
-                          ? <span className="mt-7 inline-flex cursor-not-allowed items-center justify-center rounded-full bg-white/15 px-6 py-3.5 text-base font-semibold text-white/60">{t.soon}</span>
-                          : <a href={d.url} download rel="noopener" className="mt-7 inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-6 py-3.5 text-base font-semibold text-[#1d1d1f] transition hover:scale-[1.02] active:scale-[0.98]"><Download size={18} />{t.download}</a>}
+                          ? <span className="mt-7 inline-flex cursor-not-allowed items-center justify-center rounded-full bg-white/15 px-6 py-3.5 text-[1rem] font-semibold text-white/60">{t.soon}</span>
+                          : <a href={d.url} download rel="noopener" className="mt-7 inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-6 py-3.5 text-[1rem] font-semibold text-[#1d1d1f] transition hover:scale-[1.02] active:scale-[0.98]"><Download size={18} />{t.download}</a>}
                       </div>
                     );
                   })}
