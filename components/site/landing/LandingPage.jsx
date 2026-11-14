@@ -11,13 +11,14 @@ import HeroDemo from './HeroDemo';
 import LpCount from './LpCount';
 import Spot from './Spot';
 import Tilt from './Tilt';
+import MeetingDemo from './MeetingDemo';
 import { cn } from '@/lib/utils';
 
 const bengali = Noto_Sans_Bengali({ subsets: ['bengali', 'latin'], weight: ['400', '500', '600', '700'], display: 'swap', variable: '--font-bn' });
 
 const T = {
-  en: { download: 'Download', watch: 'Watch the intro', features: 'Why {name}', steps: 'How it works', dl: 'Download', dlIntro: 'Pick the version that suits you.', needs: 'What you need', soon: 'Coming soon', recommended: 'Recommended', faq: 'Questions, answered', step: 'Step', madeBy: 'Made by', video: 'Watch the intro', listening: 'Listening…' },
-  bn: { download: 'ডাউনলোড করুন', watch: 'ভিডিও দেখুন', features: 'কেন {name}', steps: 'কীভাবে শুরু করবেন', dl: 'ডাউনলোড', dlIntro: 'আপনার কাজের সংস্করণটি বেছে নিন।', needs: 'যা লাগবে', soon: 'শীঘ্রই আসছে', recommended: 'সুপারিশ করা', faq: 'প্রশ্ন ও উত্তর', step: 'ধাপ', madeBy: 'নির্মাতা', video: 'ইন্ট্রো ভিডিও', listening: 'শুনছি…' },
+  en: { download: 'Download', watch: 'Watch the intro', features: 'Why {name}', steps: 'How it works', dl: 'Download', dlIntro: 'Pick the version that suits you.', needs: 'What you need', soon: 'Coming soon', recommended: 'Recommended', faq: 'Questions, answered', step: 'Step', madeBy: 'Made by', video: 'Watch the intro', listening: 'Listening…', recording: 'Recording', notesReady: 'Notes ready' },
+  bn: { download: 'ডাউনলোড করুন', watch: 'ভিডিও দেখুন', features: 'কেন {name}', steps: 'কীভাবে শুরু করবেন', dl: 'ডাউনলোড', dlIntro: 'আপনার কাজের সংস্করণটি বেছে নিন।', needs: 'যা লাগবে', soon: 'শীঘ্রই আসছে', recommended: 'সুপারিশ করা', faq: 'প্রশ্ন ও উত্তর', step: 'ধাপ', madeBy: 'নির্মাতা', video: 'ইন্ট্রো ভিডিও', listening: 'শুনছি…', recording: 'রেকর্ড হচ্ছে', notesReady: 'নোট তৈরি' },
 };
 
 const Win = (p) => <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}><path d="M3 5.6 10.6 4.5v7H3V5.6Zm8.8-1.3L21 3v8.5h-9.2V4.3ZM3 12.6h7.6v7L3 18.4v-5.8Zm8.8 0H21V21l-9.2-1.3v-7.1Z" /></svg>;
@@ -70,6 +71,7 @@ export default function LandingPage({ l }) {
     <div className={cn('lp', l.lang === 'bn' && 'lp-bn', bengali.variable)} data-mode={mode} data-palette={l.palette || 'sunset'} style={accent ? { '--lp-accent': accent } : undefined}>
       {/* Hero */}
       <section className="relative overflow-x-clip pb-16 pt-28 sm:pt-36">
+        <div aria-hidden="true" className="lp-aurora" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[640px]" style={{ background: 'radial-gradient(55% 60% at 50% 0%, rgb(var(--lp-c) / .18), transparent 70%), radial-gradient(35% 40% at 85% 10%, rgb(var(--lp-a) / .14), transparent 70%)' }} />
         {l.heroEffect !== 'none' && <HeroFx />}
         <div className="shell relative text-center">
@@ -157,7 +159,12 @@ export default function LandingPage({ l }) {
                       {p.body && <p className={cn('mt-5 text-lg leading-relaxed', dark ? 'text-white/70' : 'text-muted')}>{p.body}</p>}
                       {pts.length > 0 && <ul className="mt-7 space-y-3.5 text-[1rem]">{pts.map((x, k) => <Check2 key={k} dark={dark}>{x}</Check2>)}</ul>}
                     </div>
-                    {p.image && (
+                    {p.visual === 'meeting' && (
+                      <div className={p.reverse ? 'lg:order-1' : ''}>
+                        <MeetingDemo title={p.meetingTitle || p.title} items={lines(p.meetingItems)} live={t.recording} done={t.notesReady} />
+                      </div>
+                    )}
+                    {p.visual !== 'meeting' && p.image && (
                       <div className={p.reverse ? 'lg:order-1' : ''}>
                         <Tilt max={4}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -235,12 +235,14 @@ html { scrollbar-width: thin; scrollbar-color: rgb(var(--signal)) rgb(var(--base
    The tokens are switched on the whole page, so the header and footer match too.
    ------------------------------------------------------------------ */
 .lp { --lp-a: 255 176 87; --lp-b: 255 99 140; --lp-c: 168 112 255; --lp-d1: 11 10 31; --lp-d2: 45 27 105; --lp-accent: 109 40 217; }
+.lp[data-palette='kotha'] { --lp-a: 52 231 168; --lp-b: 255 77 109; --lp-c: 150 105 255; --lp-d1: 5 12 24; --lp-d2: 24 28 92; --lp-accent: 8 140 98; }
 .lp[data-palette='emerald'] { --lp-a: 134 239 172; --lp-b: 52 211 153; --lp-c: 45 212 191; --lp-d1: 4 20 15; --lp-d2: 11 74 56; --lp-accent: 4 120 87; }
 .lp[data-palette='ocean'] { --lp-a: 125 211 252; --lp-b: 96 165 250; --lp-c: 129 140 248; --lp-d1: 6 11 31; --lp-d2: 18 48 122; --lp-accent: 10 99 216; }
 .lp[data-palette='mono'] { --lp-a: 229 229 234; --lp-b: 161 161 170; --lp-c: 113 113 122; --lp-d1: 11 11 13; --lp-d2: 38 38 43; --lp-accent: 29 29 31; }
 
 html:has(.lp[data-mode='light']) { color-scheme: light; --base: 255 255 255; --surface: 245 245 247; --raised: 236 236 241; --line: 224 224 230; --ink: 29 29 31; --body: 66 66 69; --muted: 110 110 115; }
 html:has(.lp[data-mode='dark'][data-palette='sunset']) { color-scheme: dark; --base: 11 10 31; --surface: 22 20 52; --raised: 34 30 74; --line: 56 50 104; --ink: 245 245 252; --body: 205 205 224; --muted: 150 150 182; }
+html:has(.lp[data-mode='dark'][data-palette='kotha']) { color-scheme: dark; --base: 5 12 24; --surface: 12 22 42; --raised: 20 34 66; --line: 38 56 104; --ink: 240 248 252; --body: 200 218 232; --muted: 140 164 190; }
 html:has(.lp[data-mode='dark'][data-palette='emerald']) { color-scheme: dark; --base: 4 20 15; --surface: 10 34 27; --raised: 16 50 40; --line: 28 74 60; --ink: 240 252 247; --body: 195 226 214; --muted: 130 170 154; }
 html:has(.lp[data-mode='dark'][data-palette='ocean']) { color-scheme: dark; --base: 6 11 31; --surface: 13 22 56; --raised: 20 34 82; --line: 36 54 112; --ink: 240 246 255; --body: 196 212 240; --muted: 130 150 190; }
 html:has(.lp[data-mode='dark'][data-palette='mono']) { color-scheme: dark; --base: 11 11 13; --surface: 23 23 26; --raised: 33 33 38; --line: 52 52 60; --ink: 244 244 245; --body: 205 205 210; --muted: 150 150 160; }
@@ -317,3 +319,15 @@ html:has(.lp[data-mode='dark'][data-palette='mono']) { color-scheme: dark; --bas
 .lp-panel::after { content: ''; position: absolute; z-index: -1; width: 48%; aspect-ratio: 1; right: -8%; top: -22%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgb(var(--lp-c) / .4), transparent 66%); animation: lpDrift 15s ease-in-out infinite alternate; }
 
 .lp-glass.lp-chip { background: rgb(var(--lp-d1) / .82); border-color: rgb(255 255 255 / .22); box-shadow: 0 10px 24px -10px rgb(0 0 0 / .55); }
+
+/* Colour boost: a third glow in every dark panel, a livelier headline and soft colour behind the numbers. */
+.lp-panel { background:
+  radial-gradient(55% 75% at 90% 0%, rgb(var(--lp-c) / .55), transparent 62%),
+  radial-gradient(50% 70% at 6% 100%, rgb(var(--lp-b) / .38), transparent 62%),
+  radial-gradient(40% 55% at 55% 105%, rgb(var(--lp-a) / .28), transparent 65%),
+  linear-gradient(160deg, rgb(var(--lp-d1)), rgb(var(--lp-d2))); }
+.lp-grad { filter: saturate(1.35) brightness(1.05); }
+.lp-glass { border-color: rgb(255 255 255 / .2); }
+@keyframes lpAurora { 0% { transform: translate3d(-4%, 0, 0) scale(1); } 100% { transform: translate3d(5%, 6%, 0) scale(1.12); } }
+.lp-aurora { position: absolute; inset: -10% -5% auto; height: 520px; pointer-events: none; filter: blur(70px); opacity: .5; background: radial-gradient(40% 60% at 25% 40%, rgb(var(--lp-a) / .45), transparent 70%), radial-gradient(40% 60% at 70% 30%, rgb(var(--lp-c) / .5), transparent 70%), radial-gradient(35% 55% at 50% 80%, rgb(var(--lp-b) / .4), transparent 70%); animation: lpAurora 14s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .lp-aurora { animation: none; } }
