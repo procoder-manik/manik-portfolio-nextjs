@@ -51,7 +51,9 @@ export default function LandingPage({ l }) {
   const mode = l.template === 'night' ? 'dark' : 'light';
   const accent = rgb(l.accent);
   // Downloads switched off with "Hide on the page" stay in the admin but are not shown.
-  const dls = (l.downloads || []).filter((d) => d && (d.label || d.url) && !d.hidden);
+  // Windows first, then Mac, then the rest, whatever order they were typed in: with two columns that puts the Windows pair on the top row and the Mac pair below.
+  const RANK = { windows: 0, mac: 1, linux: 2 };
+  const dls = (l.downloads || []).filter((d) => d && (d.label || d.url) && !d.hidden).map((d, i) => [d, i]).sort((x, y) => (RANK[x[0].platform] ?? 9) - (RANK[y[0].platform] ?? 9) || x[1] - y[1]).map(([d]) => d);
   const primary = dls.find((d) => d.recommended && !d.soon && d.url) || dls.find((d) => !d.soon && d.url);
   const facts = String(l.heroNote || '').split('·').map((x) => x.trim()).filter(Boolean);
   const hasVideo = !!l.video?.url?.trim();
