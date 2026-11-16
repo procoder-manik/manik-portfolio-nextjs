@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { COOKIE, CUSTOMER_COOKIE, verifyToken, verifyCustomerToken } from './lib/auth';
 import { matchRedirect } from './lib/redirects';
+import { dbConnect, hasDB } from './lib/db';
+import { PitchSite } from './lib/models';
 
 const ACCOUNT_OPEN = ['/account/login', '/account/register', '/account/forgot', '/account/reset'];
 const ACCOUNT_API_OPEN = ['/api/account/auth', '/api/account/register', '/api/account/forgot', '/api/account/reset', '/api/account/verify'];
@@ -18,15 +20,18 @@ async function rules(origin) {
 }
 
 /* Addresses of pitch websites (Admin > Pitch websites), kept for 20 seconds. Those addresses are answered by
-   /api/pitch-sites/page/<slug>, which sends the saved HTML alone, without this site's layout, styles or scripts. */
+   /api/pitch-sites/page/<slug>, which sends the saved HTML alone, without this site's layout, styles or scripts.
+   The list is read straight from the database (this middleware runs on Node.js). An earlier version asked the site's own
+   /api address over the internet, which failed behind the hosting CDN, so pitch websites answered 404. */
 let pitchCache = { at: 0, slugs: new Map() };
-async function pitchSlugs(origin) {
+async function pitchSlugs() {
   if (Date.now() - pitchCache.at < 20000) return pitchCache.slugs;
+  if (!hasDB()) return pitchCache.slugs;
   try {
-    const r = await fetch(`${origin}/api/pitch-sites/slugs`, { headers: { 'x-mw': '1' }, signal: AbortSignal.timeout(1500) });
-    if (r.ok) pitchCache = { at: Date.now(), slugs: new Map(((await r.json()).sites || []).map((x) => [x.slug, x])) };
-    else pitchCache.at = Date.now() - 15000;
-  } catch { pitchCache.at = Date.now() - 15000; }
+    await dbConnect();
+    const rows = await PitchSite.find({ published: { $ne: false }, trashedAt: null }).select('slug sandbox').lean();
+    pitchCache = { at: Date.now(), slugs: new Map(rows.filter((r) => r.slug).map((r) => [r.slug, { slug: r.slug, sandbox: r.sandbox !== false }])) };
+  } catch (e) { console.error('[pitch-sites] list failed:', e.message); pitchCache.at = Date.now() - 15000; }
   return pitchCache.slugs;
 }
 
@@ -91,7 +96,7 @@ async function handle(req, event) {
   const one = pathname.match(/^\/([^/.]+)\/?$/);
   if (one) {
     let slug = ''; try { slug = decodeURIComponent(one[1]).toLowerCase(); } catch {}
-    const site = slug ? (await pitchSlugs(req.nextUrl.origin)).get(slug) : null;
+    const site = slug ? (await pitchSlugs()).get(slug) : null;
     if (site) {
       const url = req.nextUrl.clone(); url.pathname = `/api/pitch-sites/page/${encodeURIComponent(slug)}`;
       const out = NextResponse.rewrite(url);
@@ -103,4 +108,4 @@ async function handle(req, event) {
   return NextResponse.next({ request: { headers } });
 }
 
-export const config = { matcher: ['/admin/:path*', '/api/admin/:path*', '/account', '/account/:path*', '/api/account/:path*', '/((?!api/|_next/|seed/|media/|docs/|favicon\\.ico|icon\\.svg|.*\\..*).*)'] };
+export const config = { runtime: 'nodejs', matcher: ['/admin/:path*', '/api/admin/:path*', '/account', '/account/:path*', '/api/account/:path*', '/((?!api/|_next/|seed/|media/|docs/|favicon\\.ico|icon\\.svg|.*\\..*).*)'] };
