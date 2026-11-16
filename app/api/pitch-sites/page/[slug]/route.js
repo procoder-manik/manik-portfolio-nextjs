@@ -22,8 +22,10 @@ export async function GET(req, { params }) {
   if (!site) return notFound();
 
   const s = await getSettings('site');
-  const html = buildPitchPage(site, { name: s.name || 'Manik Hossain', url: req.nextUrl.origin });
-  countView(site).catch((e) => console.error('[pitch-sites]', e.message));
+  // ?card=1 is the small live preview on your own cards: no credit strip, and it is not a visit by the prospect.
+  const card = req.nextUrl.searchParams.get('card') === '1';
+  const html = buildPitchPage(card ? { ...site, credit: { ...site.credit, show: false } } : site, { name: s.name || 'Manik Hossain', url: req.nextUrl.origin });
+  if (!card && (await headers()).get('sec-fetch-dest') !== 'iframe') countView(site).catch((e) => console.error('[pitch-sites]', e.message));
 
   return new Response(html, {
     headers: {

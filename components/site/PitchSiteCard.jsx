@@ -11,11 +11,9 @@ export default function PitchSiteCard({ site: s }) {
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={s.cover} alt={`${s.name} website`} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-[1.2s] ease-out group-hover:scale-[1.04]" />
           : (
-            <div className="grid h-full w-full place-items-center p-6 text-center text-white" style={{ background: `radial-gradient(120% 90% at 85% 0%, ${accent}cc, transparent 60%), linear-gradient(150deg, #0b1220, #111827)` }}>
-              <span>
-                <span className="block text-2xl font-semibold tracking-[-0.02em]">{s.name}</span>
-                {meta && <span className="mt-2 block text-sm text-white/70">{meta}</span>}
-              </span>
+            <div className="h-full w-full" style={{ background: `radial-gradient(120% 90% at 85% 0%, ${accent}cc, transparent 60%), linear-gradient(150deg, #0b1220, #111827)` }}>
+              <iframe src={`/${s.slug}?card=1`} title={`${s.client || s.name} website preview`} loading="lazy" tabIndex={-1} aria-hidden="true" scrolling="no"
+                className="pointer-events-none h-[400%] w-[400%] origin-top-left scale-[.25] border-0 transition duration-[1.2s] ease-out group-hover:scale-[.262]" />
             </div>
           )}
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur">One-page website</span>
