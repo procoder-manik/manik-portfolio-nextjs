@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Quote } from 'lucide-react';
-import { getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getSettings, getCaseStudies, getForm } from '@/lib/data';
+import { getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getSettings, getCaseStudies, getForm, getPitchSites } from '@/lib/data';
 import CaseStudyCard from '../CaseStudyCard';
 import { caseStudiesOn } from '@/lib/features';
 import { renderMarkdown } from '@/lib/markdown';
@@ -16,6 +16,7 @@ import FormView from '../FormView';
 import Cards from '../cards/Cards';
 import Timeline from '../Timeline';
 import AppCard from '../AppCard';
+import PitchSiteCard from '../PitchSiteCard';
 import Icon from '../Icon';
 import HtmlBlock from '../HtmlBlock';
 import Reveal from '../Reveal';
@@ -115,6 +116,10 @@ async function Block({ b, first, ctx }) {
       if (!caseStudiesOn(await getSettings('site'))) return null;
       const cs = (await getCaseStudies()).slice(0, b.count || 3);
       return cs.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><div className="space-y-6"><CaseStudyCard c={cs[0]} variant="feature" />{cs.length > 1 && <div className="grid gap-6 md:grid-cols-2">{cs.slice(1).map((c) => <CaseStudyCard key={c.slug} c={c} />)}</div>}</div></>) : null;
+    }
+    case 'pitchSites': {
+      const sites = await getPitchSites({ all: b.source === 'all', limit: b.count || 6 });
+      return sites.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><CardLayout layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} label="Websites">{sites.map((s) => <PitchSiteCard key={s.slug} site={s} />)}</CardLayout></>) : null;
     }
     case 'apps':
       return ctx.apps.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{ctx.apps.map((a) => <AppCard key={a.slug} app={a} />)}</div></>) : null;

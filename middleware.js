@@ -17,7 +17,32 @@ async function rules(origin) {
   return cache.rules;
 }
 
+/* Addresses of pitch websites (Admin > Pitch websites), kept for 20 seconds. Those addresses are answered by
+   /api/pitch-sites/page/<slug>, which sends the saved HTML alone, without this site's layout, styles or scripts. */
+let pitchCache = { at: 0, slugs: new Map() };
+async function pitchSlugs(origin) {
+  if (Date.now() - pitchCache.at < 20000) return pitchCache.slugs;
+  try {
+    const r = await fetch(`${origin}/api/pitch-sites/slugs`, { headers: { 'x-mw': '1' }, signal: AbortSignal.timeout(1500) });
+    if (r.ok) pitchCache = { at: Date.now(), slugs: new Map(((await r.json()).sites || []).map((x) => [x.slug, x])) };
+    else pitchCache.at = Date.now() - 15000;
+  } catch { pitchCache.at = Date.now() - 15000; }
+  return pitchCache.slugs;
+}
+
+/* The page security policy for one-part addresses (/contact, /kotha, /<pitch website>). next.config.mjs sets the same value for every other address.
+   A pitch website also gets the sandbox: its scripts run with a private origin, so they cannot read this site's cookies or reach the admin. */
+const CSP = "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://*.sslcommerz.com https://*.paypal.com; object-src 'none'" + ((process.env.VERCEL || process.env.FORCE_HTTPS) ? '; upgrade-insecure-requests' : '');
+const SANDBOX = 'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation allow-top-navigation-by-user-activation';
+const ONE_PART = /^\/[^/]+\/?$/;
+
 export async function middleware(req, event) {
+  const res = await handle(req, event);
+  if (ONE_PART.test(req.nextUrl.pathname) && !res.headers.has('content-security-policy')) res.headers.set('Content-Security-Policy', CSP);
+  return res;
+}
+
+async function handle(req, event) {
   const { pathname } = req.nextUrl;
 
   // A browser attaches the real Origin to every change it makes. A change that claims to come from another site is refused,
@@ -62,6 +87,17 @@ export async function middleware(req, event) {
     if (hit.q !== false && !dest.search) dest.search = req.nextUrl.search;
     if (dest.href === req.nextUrl.href) return NextResponse.next();
     return NextResponse.redirect(dest, hit.code || 301);
+  }
+  const one = pathname.match(/^\/([^/.]+)\/?$/);
+  if (one) {
+    let slug = ''; try { slug = decodeURIComponent(one[1]).toLowerCase(); } catch {}
+    const site = slug ? (await pitchSlugs(req.nextUrl.origin)).get(slug) : null;
+    if (site) {
+      const url = req.nextUrl.clone(); url.pathname = `/api/pitch-sites/page/${encodeURIComponent(slug)}`;
+      const out = NextResponse.rewrite(url);
+      out.headers.set('Content-Security-Policy', site.sandbox === false ? CSP : `${CSP}; ${SANDBOX}`);
+      return out;
+    }
   }
   const headers = new Headers(req.headers); headers.set('x-pathname', pathname);
   return NextResponse.next({ request: { headers } });

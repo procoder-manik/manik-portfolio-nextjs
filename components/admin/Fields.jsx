@@ -122,7 +122,7 @@ export function Field({ f, value, onChange, doc, slugFrom, setDoc }) {
         : T === 'blocks' ? <BlocksField value={value || []} onChange={onChange} builtin={doc?.builtin} />
         : T === 'cardTemplate' ? <CardTemplatePicker value={value || 'service'} onChange={onChange} />
         : T === 'datetime' ? <input id={id} type="datetime-local" value={value ? String(value).slice(0, 16) : ''} onChange={(e) => onChange(e.target.value || null)} className="field" />
-        : T === 'code' ? <textarea id={id} rows={8} spellCheck={false} value={value || ''} placeholder={f.placeholder || ''} onChange={(e) => onChange(e.target.value)} className="field resize-y font-mono text-[0.85rem] leading-relaxed" />
+        : T === 'code' ? <textarea id={id} rows={f.rows || 8} spellCheck={false} value={value || ''} placeholder={f.placeholder || ''} onChange={(e) => onChange(e.target.value)} className="field resize-y font-mono text-[0.85rem] leading-relaxed" />
         : T === 'json' ? <JsonInput id={id} value={value} onChange={onChange} />
         : <input id={id} value={value || ''} onChange={(e) => onChange(e.target.value)} className="field" />}
       {T !== 'repeater' && <Hint f={f} />}

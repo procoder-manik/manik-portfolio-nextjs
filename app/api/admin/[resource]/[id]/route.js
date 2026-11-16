@@ -6,6 +6,7 @@ import { rewardOrder, unwindOrder } from '@/lib/referrals';
 import { activateSubscription } from '@/lib/subscriptions';
 import { dbConnect, hasDB } from '@/lib/db';
 import { MODELS, Redirect } from '@/lib/models';
+import { assertFreeAddress } from '@/lib/pitch-sites';
 import { adminRoute } from '@/lib/server-auth';
 import { assertCustomCode } from '@/lib/custom-code';
 import { slugify, serialize } from '@/lib/utils';
@@ -52,6 +53,8 @@ export const PUT = adminRoute(async (req, { params }, admin) => {
   const prev = await M.findById(params.id).lean();
   if (!prev) throw Object.assign(new Error('Not found. It may have been deleted permanently.'), { status: 404 });
   assertCustomCode(admin.role, body, prev);
+  if (['pitch-sites', 'pages', 'landings'].includes(params.resource) && body.slug && body.slug !== prev.slug) await assertFreeAddress(body.slug, { kind: params.resource, id: prev._id });
+  if (params.resource === 'pitch-sites') ['log', 'views', 'clicks', 'firstViewAt', 'lastViewAt', 'lastAlertAt'].forEach((k) => delete body[k]);
   if (params.resource === 'pitches') { body.code = prev.code; ['log', 'views', 'firstViewAt', 'lastViewAt', 'lastAlertAt', 'enquiredAt'].forEach((k) => delete body[k]); }
   if (params.resource === 'pages') {
     if (!prev.builtin && SYSTEM_PAGES.some((d) => d.slug === body.slug)) throw new Error(`The address /${body.slug} belongs to a built-in page. Pick another URL slug.`);

@@ -16,6 +16,7 @@ import { ensureSystemPages, prepareSave, SEO_FIELDS, ownHostsNow } from '@/lib/s
 import { ensureStarterAnswers } from '@/lib/content-updates';
 import { ensureLandings } from '@/lib/landing-seed';
 import { pitchRows, newPitchCode, validCode } from '@/lib/pitch';
+import { assertFreeAddress } from '@/lib/pitch-sites';
 /* Built-in pages keep their SEO in settings (seo-<key>); add it so the SEO column scores the real values. */
 const withSeo = async (items) => Promise.all(items.map(async (x) => { if (!x.builtin) return x; const seo = await getPageSeoFresh(x.builtin).catch(() => ({})); return { ...x, ...Object.fromEntries(SEO_FIELDS.filter((k) => seo[k] !== undefined).map((k) => [k, seo[k]])) }; }));
 import { SYSTEM_PAGES, SYSTEM_BY_KEY, pagePath, pagePaths } from '@/lib/system-pages';
@@ -73,6 +74,9 @@ export const POST = adminRoute(async (req, { params }, admin) => {
     body = await prepareSave(body, null);
   }
   if (params.resource === 'redirects') Object.assign(body, cleanRedirect(body));
+  // One address, one owner: a pitch website, a page and a landing page can never share yoursite.com/<slug>.
+  if (['pitch-sites', 'pages', 'landings'].includes(params.resource) && body.slug) await assertFreeAddress(body.slug, { kind: params.resource });
+  if (params.resource === 'pitch-sites') ['log', 'views', 'clicks', 'firstViewAt', 'lastViewAt', 'lastAlertAt'].forEach((k) => delete body[k]);
   if (params.resource === 'pitches') { delete body.log; delete body.views; if (!validCode(body.code) || await M.exists({ code: body.code })) body.code = await newPitchCode(body.name); }
   const doc = await M.create(body);
   refreshContent();
