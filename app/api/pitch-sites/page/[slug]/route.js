@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/data';
 import { COOKIE, verifyToken } from '@/lib/auth';
 import { rateLimit, clientIp } from '@/lib/ratelimit';
 import { notify } from '@/lib/mail';
-import { buildPitchPage, isBot, deviceOf } from '@/lib/pitch-sites';
+import { buildPitchPage, isBot, deviceOf, publicOrigin } from '@/lib/pitch-sites';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +24,7 @@ export async function GET(req, { params }) {
   const s = await getSettings('site');
   // ?card=1 is the small live preview on your own cards: no credit strip, and it is not a visit by the prospect.
   const card = req.nextUrl.searchParams.get('card') === '1';
-  const html = buildPitchPage(card ? { ...site, credit: { ...site.credit, show: false } } : site, { name: s.name || 'Manik Hossain', url: req.nextUrl.origin });
+  const html = buildPitchPage(card ? { ...site, credit: { ...site.credit, show: false } } : site, { name: s.name || 'Manik Hossain', url: publicOrigin(await headers()) });
   if (!card && (await headers()).get('sec-fetch-dest') !== 'iframe') countView(site).catch((e) => console.error('[pitch-sites]', e.message));
 
   return new Response(html, {
