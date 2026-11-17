@@ -4,7 +4,7 @@ import { getProjects, getPosts, getCategories, getServicesWithPackages, getApps,
 import CaseStudyCard from '../CaseStudyCard';
 import { caseStudiesOn } from '@/lib/features';
 import { renderMarkdown } from '@/lib/markdown';
-import { videoEmbed, cn } from '@/lib/utils';
+import { videoEmbed, cn, forPricing } from '@/lib/utils';
 import ProjectCard from '../ProjectCard';
 import PostCard from '../PostCard';
 import PricingTabs, { PackageGrid } from '../PricingTabs';
@@ -110,7 +110,7 @@ async function Block({ b, first, ctx }) {
         <Head heading={b.heading} intro={b.intro} />
         {b.service && svc[0]
           ? <PackageGrid packages={svc[0].packages} lay={b} />
-          : <PricingTabs services={svc} compact lay={b} />}</>);
+          : <PricingTabs services={forPricing(svc)} compact lay={b} />}</>);
     }
     case 'caseStudies': {
       if (!caseStudiesOn(await getSettings('site'))) return null;

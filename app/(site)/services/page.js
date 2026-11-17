@@ -7,6 +7,7 @@ import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 import { siteUrl } from '@/lib/utils';
 
+export const dynamic = 'force-static';
 export const revalidate = 600;
 
 export const metadata = seoMeta({}, {

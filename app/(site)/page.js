@@ -24,8 +24,8 @@ import Reveal from '@/components/site/Reveal';
 import SplitText from '@/components/site/SplitText';
 import JsonLd from '@/components/site/JsonLd';
 import { renderMarkdown } from '@/lib/markdown';
-import { buildGraph, faqNode, catalogNode } from '@/lib/schema';
-import { fmtDate } from '@/lib/utils';
+import { buildGraph, faqNode } from '@/lib/schema';
+import { fmtDate, forPricing } from '@/lib/utils';
 
 /* Home page SEO from Pages > Home (or the older Site and contact > Footer and SEO fields). */
 export const dynamic = 'force-static';
@@ -56,7 +56,7 @@ export default async function Home() {
 
   return (
     <>
-      <JsonLd builtin="home" data={buildGraph(site, [on('faq') && faqNode(home.faq?.items), on('pricing') && catalogNode(services)])} />
+      <JsonLd builtin="home" data={buildGraph(site, [on('faq') && faqNode(home.faq?.items)])} />
 
       <SystemSections layout={layout} tops={['hero']} parts={{
         hero: () => (
@@ -212,7 +212,7 @@ export default async function Home() {
             <SectionHead title={home.pricing.heading} intro={home.pricing.intro}>
               <Link href="/pricing" className="btn-ghost">Full pricing <ArrowRight size={16} /></Link>
             </SectionHead>
-            <PricingTabs services={services} compact lay={home.pricing || {}} />
+            <PricingTabs services={forPricing(services)} compact lay={home.pricing || {}} />
           </div>
         </section>
       ),
