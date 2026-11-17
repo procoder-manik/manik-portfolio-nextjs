@@ -57,6 +57,10 @@ export const GET = adminRoute(async (req, { params }) => {
     canTrash ? Promise.all([M.countDocuments(notTrashed), s ? M.countDocuments({ ...notTrashed, ...live }) : 0, s ? M.countDocuments({ ...notTrashed, ...draft }) : 0, M.countDocuments({ trashedAt: { $ne: null } })]) : null,
   ]);
   if (params.resource === 'pitches') return NextResponse.json({ items: await pitchRows(serialize(items)), counts: null });
+  if (params.resource === 'pitch-sites') {
+    const STAGE = { draft: 'Not sent', sent: 'Sent', opened: 'Opened', interested: 'Clicked', won: 'Won', lost: 'Lost' };
+    return NextResponse.json({ items: serialize(items).map(({ html, ...x }) => ({ ...x, stage: STAGE[x.status] || x.status || 'Not sent' })), counts });
+  }
   return NextResponse.json({ items: params.resource === 'pages' ? pageRows(await withSeo(serialize(items)), await getSettingsFresh('navigation'), await ownHostsNow()) : serialize(items), counts: counts ? { all: counts[0], live: counts[1], draft: counts[2], trash: counts[3] } : null });
 }, area);
 

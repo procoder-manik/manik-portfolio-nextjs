@@ -16,7 +16,7 @@ import FormView from '../FormView';
 import Cards from '../cards/Cards';
 import Timeline from '../Timeline';
 import AppCard from '../AppCard';
-import PitchSiteCard from '../PitchSiteCard';
+import PitchCardsLive from '../PitchCardsLive';
 import Icon from '../Icon';
 import HtmlBlock from '../HtmlBlock';
 import Reveal from '../Reveal';
@@ -119,7 +119,8 @@ async function Block({ b, first, ctx }) {
     }
     case 'pitchSites': {
       const sites = await getPitchSites({ all: b.source === 'all', limit: b.count || 6 });
-      return sites.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><CardLayout layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} label="Websites">{sites.map((s) => <PitchSiteCard key={s.slug} site={s} />)}</CardLayout></>) : null;
+      // The cards refresh themselves in the browser, so new websites show even while this page is a saved copy.
+      return wrap(<><Head heading={b.heading} intro={b.intro} /><PitchCardsLive initial={sites} all={b.source === 'all'} limit={b.count || 6} layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} /></>);
     }
     case 'apps':
       return ctx.apps.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{ctx.apps.map((a) => <AppCard key={a.slug} app={a} />)}</div></>) : null;
