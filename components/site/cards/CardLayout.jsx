@@ -4,11 +4,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const COLS = { 1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-2 lg:grid-cols-3', 4: 'md:grid-cols-2 xl:grid-cols-4' };
+/* Phones: one full-width card per swipe, the same width as the grid. Wider screens show the next card peeking in. */
 const WIDTH = {
   1: 'basis-full',
-  2: 'basis-[88%] md:basis-[calc((100%-0.75rem)/1.5)]',
-  3: 'basis-[86%] md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-2.25rem)/2.5)]',
-  4: 'basis-[86%] md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-3.75rem)/3.5)]',
+  2: 'basis-full md:basis-[calc((100%-0.75rem)/1.5)]',
+  3: 'basis-full md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-2.25rem)/2.5)]',
+  4: 'basis-full md:basis-[calc((100%-0.75rem)/1.5)] xl:basis-[calc((100%-3.75rem)/3.5)]',
 };
 
 /* Shows any list of cards (pricing, services, reviews, projects, posts) as a grid or a sliding carousel.
@@ -48,7 +49,7 @@ export default function CardLayout({ layout = 'grid', columns = 3, autoplay = fa
     <div className="relative" role="region" aria-roledescription="carousel" aria-label={label}>
       {/* Scroll areas clip anything outside them, so the padding below gives card shadows and the Most popular badge room, and negative margins keep the layout where it was. */}
       <div ref={ref} className="no-scrollbar -mx-5 -mb-8 -mt-3 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-5 pb-11 pt-7 scroll-px-5" style={{ scrollbarWidth: 'none' }}>
-        {nodes.map((n, i) => <div key={i} className={cn('shrink-0 snap-start', WIDTH[cols])}>{n}</div>)}
+        {nodes.map((n, i) => <div key={i} className={cn('shrink-0 snap-start snap-always md:snap-normal', WIDTH[cols])}>{n}</div>)}
       </div>
       {pages > 1 && (
         <div className="relative mt-2 flex items-center justify-between">
