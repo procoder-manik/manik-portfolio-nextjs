@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search } from 'lucide-react';
 import ProjectCard from './ProjectCard';
-import { cn } from '@/lib/utils';
+import ScrollTabs from './ScrollTabs';
 
 const label = (p) => (p.platformType === 'custom' ? 'Custom code' : p.cms || 'Other');
 
@@ -21,17 +21,9 @@ export default function PortfolioGrid({ projects }) {
 
   return (
     <div>
-      <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter by platform">
-          {filters.map(([name, n]) => (
-            <button key={name} role="tab" aria-selected={f === name} onClick={() => setF(name)}
-              className={cn('relative rounded-full border px-4 py-2 text-[0.92rem] font-medium transition', f === name ? 'border-transparent text-white' : 'border-line text-body hover:text-ink')}>
-              {f === name && <motion.span layoutId="pf-pill" className="absolute inset-0 -z-10 rounded-full bg-signal" transition={{ type: 'spring', bounce: .2, duration: .5 }} />}
-              {name} <span className={f === name ? 'text-white/70' : 'text-muted'}>{n}</span>
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
+      <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+        <ScrollTabs items={filters.map(([name, n]) => ({ key: name, name, n }))} active={f} onChange={setF} label="Filter by platform" pillId="pf-pill" className="lg:flex-1" />
+        <div className="flex shrink-0 gap-2">
           {techs.length > 0 && (
             <select value={tech} onChange={(e) => setTech(e.target.value)} className="field w-auto py-2.5 text-sm" aria-label="Filter by technology">
               <option value="">Any technology</option>{techs.map((t) => <option key={t}>{t}</option>)}
