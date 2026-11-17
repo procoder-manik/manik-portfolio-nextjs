@@ -5,6 +5,7 @@ import { layoutOf, pageLive } from '@/lib/system-pages';
 
 import { seoMeta } from '@/lib/seo';
 import AppCard from '@/components/site/AppCard';
+import AppsGrid from '@/components/site/AppsGrid';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs } from '@/lib/schema';
 
@@ -20,7 +21,7 @@ export default async function AppsPage() {
   if (!pageLive(sp)) notFound();
   return (
     <>
-      <JsonLd builtin="apps" data={buildGraph(site, [crumbs([['Home', '/'], ['Products', '/apps']]), ...apps.map((a) => ({ '@type': 'SoftwareApplication', name: a.name, description: a.tagline, url: a.url || undefined, applicationCategory: a.category || 'BusinessApplication', operatingSystem: 'Web', author: { '@id': `${process.env.NEXT_PUBLIC_SITE_URL || ''}/#person` } }))])} />
+      <JsonLd builtin="apps" data={buildGraph(site, [crumbs([['Home', '/'], ['Products', '/apps']]), ...apps.map((a) => ({ '@type': 'SoftwareApplication', name: a.name, description: a.tagline, url: a.landing ? `${process.env.NEXT_PUBLIC_SITE_URL || ''}/${a.landing}` : a.url || undefined, applicationCategory: a.category || 'BusinessApplication', operatingSystem: 'Web', author: { '@id': `${process.env.NEXT_PUBLIC_SITE_URL || ''}/#person` } }))])} />
       <SystemSections layout={layoutOf('apps', sp)} tops={['intro']} parts={{
         intro: (b) => (
           <section className="relative overflow-hidden pb-10 pt-36 sm:pt-44">
@@ -30,7 +31,7 @@ export default async function AppsPage() {
         ),
         list: () => (
           <section className="pb-28"><div className="shell">
-            {apps.length ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{apps.map((a) => <AppCard key={a.slug} app={a} />)}</div>
+            {apps.length ? <AppsGrid apps={apps.map(({ slug, category }) => ({ slug, category }))} cards={apps.map((a) => <AppCard key={a.slug} app={a} />)} />
               : <p className="rounded-2xl border border-dashed border-line p-12 text-center text-muted">New products are on the way.</p>}
           </div></section>
         ),

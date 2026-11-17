@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { seoMeta } from '@/lib/seo';
-import { getService, getServicePages, getProjects, getCaseStudies, getPitchSites, getSettings } from '@/lib/data';
+import { getService, getServicePages, getProjects, getCaseStudies, getPitchSites, getSettings, getApps } from '@/lib/data';
 import ServiceView from '@/components/site/ServiceView';
 import JsonLd from '@/components/site/JsonLd';
 import { buildGraph, crumbs, faqNode } from '@/lib/schema';
@@ -37,8 +37,8 @@ export default async function ServicePage({ params }) {
   const { slug } = await params;
   const s = await getService(slug);
   if (!s) notFound();
-  const [site, list, projects, cases, sites] = await Promise.all([
-    getSettings('site'), getServicePages(), getProjects(), getCaseStudies(), s.showPitch ? getPitchSites({ all: true, limit: 60 }) : [],
+  const [site, list, projects, cases, sites, apps] = await Promise.all([
+    getSettings('site'), getServicePages(), getProjects(), getCaseStudies(), s.showPitch ? getPitchSites({ all: true, limit: 60 }) : [], s.showApps ? getApps() : [],
   ]);
   const cats = (s.pitchCategories || []).map(low).filter(Boolean);
   const pitch = sites.filter((x) => !cats.length || cats.includes(low(x.category))).slice(0, 6);
@@ -59,7 +59,7 @@ export default async function ServicePage({ params }) {
         },
         faqNode((s.faqs || []).filter((f) => f.q && f.a)),
       ])} />
-      <ServiceView s={s} projects={relatedProjects(s, projects)} cases={caseList} pitch={pitch} others={others} />
+      <ServiceView s={s} projects={relatedProjects(s, projects)} cases={caseList} pitch={pitch} apps={apps.slice(0, 6)} others={others} />
     </>
   );
 }

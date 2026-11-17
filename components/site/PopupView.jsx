@@ -41,13 +41,22 @@ function Body({ popup, theme, onClose, onEvent }) {
       </div>
     );
   }
-  const pos = c.image ? c.imagePosition || 'top' : 'none';
+  const st = d.style || 'classic';
+  const spot = st === 'spotlight' && c.image;
+  const pos = spot ? 'none' : c.image ? c.imagePosition || 'top' : 'none';
   const compact = ['slidein', 'drawer'].includes(popup.layout) || popup.size === 'sm';
   const text = (
     <div className={cn('p-6 sm:p-8', center ? 'text-center' : 'text-left', pos === 'background' && 'relative z-10')}>
+      {spot && (
+        <div className="relative mb-7">
+          <div className="pointer-events-none absolute inset-x-6 -bottom-6 h-16 rounded-full blur-2xl" style={{ background: theme.glow }} />
+          <div className="pp-float relative overflow-hidden rounded-2xl border border-white/15 shadow-[0_30px_70px_-25px_rgba(0,0,0,.7)]"><img src={c.image} alt="" className="aspect-[16/9] w-full object-cover object-top" loading="lazy" /></div>
+        </div>
+      )}
+      {c.logo && <img src={c.logo} alt="" className={cn('mb-4 h-14 w-14 rounded-2xl object-cover shadow-lg', center && 'mx-auto')} loading="lazy" />}
       {c.icon && <div className="mb-3 text-4xl leading-none">{c.icon}</div>}
-      {c.badge && <span className="mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold" style={{ background: theme.accent, color: theme.accentText }}>{c.badge}</span>}
-      {c.heading && <h3 className={cn('break-words font-display font-bold leading-tight', compact ? 'text-xl' : 'text-2xl sm:text-3xl')}>{c.heading}</h3>}
+      {c.badge && st !== 'ticket' && <span className={cn('mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold', st !== 'classic' && 'pp-badge')} style={{ background: theme.accent, color: theme.accentText }}>{st !== 'classic' && <span className="h-1.5 w-1.5 rounded-full" style={{ background: theme.accentText }} />}{c.badge}</span>}
+      {c.heading && <h3 className={cn('break-words font-display font-bold leading-tight [color:inherit]', compact ? 'text-xl' : 'text-2xl sm:text-3xl')}>{c.heading}</h3>}
       {c.body && <p className="mt-3 text-[0.97rem] leading-relaxed opacity-85">{c.body}</p>}
       {c.countdownTo && <div className="mt-5">{c.countdownLabel && <p className="mb-2 text-xs opacity-75">{c.countdownLabel}</p>}<Countdown to={c.countdownTo} big /></div>}
       {c.coupon && (
@@ -66,6 +75,20 @@ function Body({ popup, theme, onClose, onEvent }) {
     </div>
   );
   const img = c.image && <img src={c.image} alt="" className={cn('w-full object-cover', pos === 'top' ? 'aspect-[16/8]' : 'h-full min-h-[200px]')} loading="lazy" />;
+  if (st === 'ticket') {
+    return (
+      <div className="grid sm:grid-cols-[38%_1fr]">
+        <div className="relative flex flex-col items-center justify-center gap-2 overflow-hidden p-8 text-center text-white" style={{ background: `linear-gradient(150deg, ${theme.hex}, ${theme.hex}bb)` }}>
+          <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+          {c.icon && <div className="text-4xl leading-none">{c.icon}</div>}
+          {c.badge && <p className="font-display text-[2.6rem] font-black leading-none tracking-tight">{c.badge}</p>}
+          {c.countdownTo && <div className="mt-3">{c.countdownLabel && <p className="mb-1.5 text-[11px] uppercase tracking-[0.15em] opacity-80">{c.countdownLabel}</p>}<Countdown to={c.countdownTo} /></div>}
+          <span aria-hidden className="absolute inset-y-4 right-0 hidden border-r-2 border-dashed border-white/50 sm:block" />
+        </div>
+        <Body popup={{ ...popup, design: { ...d, style: 'classic' }, content: { ...c, badge: '', icon: '', countdownTo: '' } }} theme={theme} onClose={onClose} onEvent={onEvent} />
+      </div>
+    );
+  }
   if (pos === 'left' || pos === 'right') return <div className={cn('grid', compact ? 'grid-cols-[36%_1fr]' : 'sm:grid-cols-2')}><div className={cn('relative', !compact && 'hidden sm:block', pos === 'right' && 'order-2')}>{img}</div>{text}</div>;
   if (pos === 'top') return <div>{img}{text}</div>;
   if (pos === 'background') return <div className="relative text-white"><img loading="lazy" decoding="async" src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-black/55" />{text}</div>;
@@ -76,7 +99,17 @@ function Body({ popup, theme, onClose, onEvent }) {
 export default function PopupView({ popup, preview = false, onClose, onEvent }) {
   const d = popup.design || {};
   const base = d.theme === 'custom' ? { bg: d.bg || '#0C1526', text: d.text || '#ECF1F8', accent: d.accent || '#6391FF', border: 'rgba(128,128,128,.3)' } : THEMES[d.theme] || THEMES.site;
-  const theme = { ...base, accentText: d.theme === 'brand' ? '#2F63E6' : '#FFFFFF' };
+  const hex = /^#[0-9a-f]{6}$/i.test(d.accent || '') ? d.accent : /^#[0-9a-f]{6}$/i.test(base.accent) ? base.accent : '#6391FF';
+  const st = d.style || 'classic';
+  // Premium styles bring their own colours; the accent tints them.
+  const STYLE = {
+    aurora: { bg: '#070B1A', text: '#EEF2FF', accent: hex, border: 'rgba(255,255,255,.12)' },
+    spotlight: { bg: '#0A0E1A', text: '#F1F5FF', accent: hex, border: 'rgba(255,255,255,.12)' },
+    gradient: { bg: `linear-gradient(135deg, ${hex}, #7C3AED 60%, #DB2777)`, text: '#FFFFFF', accent: '#FFFFFF', border: 'rgba(255,255,255,.28)' },
+    glass: { bg: 'rgb(var(--surface) / .72)', text: 'rgb(var(--ink))', accent: hex, border: 'rgba(255,255,255,.4)' },
+    ticket: { ...base, accent: hex },
+  }[st];
+  const theme = { ...(STYLE || base), hex, glow: `${hex}99`, accentText: st === 'gradient' ? hex : d.theme === 'brand' && !STYLE ? '#2F63E6' : '#FFFFFF' };
   const layout = popup.layout || 'modal'; const pos = popup.position || 'center';
   const ref = useRef(null);
   useEffect(() => {
@@ -90,12 +123,35 @@ export default function PopupView({ popup, preview = false, onClose, onEvent }) 
 
   const radius = layout === 'bar' || layout === 'fullscreen' ? '0' : layout === 'drawer' ? '0' : RADIUS[d.radius] || RADIUS.round;
   const anim = { zoom: 'pp-zoom', fade: 'pp-fade', 'slide-up': 'pp-slide-up', 'slide-left': pos === 'left' ? 'pp-slide-right' : 'pp-slide-left', none: '' }[d.animation || 'zoom'];
-  const panelStyle = { background: theme.bg, color: theme.text, borderRadius: radius, border: `1px solid ${theme.border}`, '--pp-accent': theme.accent };
+  const glassFx = { backdropFilter: 'blur(28px) saturate(160%)', WebkitBackdropFilter: 'blur(28px) saturate(160%)', boxShadow: `0 40px 100px -30px ${hex}88, inset 0 1px 0 rgba(255,255,255,.35)` };
+  const panelStyle = { background: theme.bg, color: theme.text, borderRadius: radius, border: `1px solid ${theme.border}`, '--pp-accent': theme.accent, ...(st === 'glass' ? glassFx : st !== 'classic' ? { boxShadow: `0 40px 110px -30px ${hex}aa` } : {}) };
   const abs = preview ? 'absolute' : 'fixed';
   const close = d.closeButton !== false && (
     <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/25 text-white backdrop-blur transition hover:bg-black/40"><X size={17} /></button>
   );
-  const inner = <Body popup={popup} theme={theme} onClose={onClose} onEvent={onEvent} />;
+  // Premium styles add a moving glow, a light sweep or a soft colour edge behind the content.
+  const layer = 'pointer-events-none absolute inset-0 overflow-hidden';
+  const deco = st === 'aurora' ? (
+    <div aria-hidden className={layer} style={{ borderRadius: 'inherit' }}>
+      <div className="pp-blob absolute -left-16 -top-20 h-64 w-64 rounded-full opacity-70 blur-3xl" style={{ background: hex }} />
+      <div className="pp-blob pp-blob-2 absolute -bottom-24 -right-10 h-72 w-72 rounded-full opacity-60 blur-3xl" style={{ background: '#A855F7' }} />
+      <div className="pp-blob pp-blob-3 absolute left-1/3 top-1/3 h-40 w-40 rounded-full opacity-40 blur-3xl" style={{ background: '#22D3EE' }} />
+      <div className="absolute inset-0 bg-[#070B1A]/40" />
+    </div>
+  ) : st === 'spotlight' ? (
+    <div aria-hidden className={layer} style={{ borderRadius: 'inherit' }}>
+      <div className="absolute left-1/2 top-0 h-72 w-[130%] -translate-x-1/2 -translate-y-1/3 rounded-full opacity-60 blur-3xl" style={{ background: `radial-gradient(closest-side, ${hex}, transparent)` }} />
+      <div className="absolute inset-0 opacity-[.07]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+    </div>
+  ) : st === 'gradient' ? (
+    <div aria-hidden className={layer} style={{ borderRadius: 'inherit' }}><div className="pp-shine absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent" /></div>
+  ) : st === 'glass' ? (
+    <div aria-hidden className={layer} style={{ borderRadius: 'inherit' }}>
+      <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full opacity-40 blur-3xl" style={{ background: hex }} />
+      <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full opacity-25 blur-3xl" style={{ background: '#A855F7' }} />
+    </div>
+  ) : null;
+  const inner = <>{deco}<div className="relative z-[1]"><Body popup={popup} theme={theme} onClose={onClose} onEvent={onEvent} /></div></>;
   const overlay = d.overlay && !['slidein', 'bar'].includes(layout) && (
     <div onClick={() => d.closeOnOverlay !== false && onClose?.()} className={cn(abs, 'inset-0 pp-fade', d.blur && 'backdrop-blur-sm')} style={{ background: `rgba(5,10,20,${Math.min(0.9, (Number(d.overlayOpacity ?? 60)) / 100)})` }} aria-hidden />
   );

@@ -8,6 +8,8 @@ import CaseStudyCard from './CaseStudyCard';
 import PitchSiteCard from './PitchSiteCard';
 import ContactForm from './ContactForm';
 import { PackageGrid } from './PricingTabs';
+import CardLayout from './cards/CardLayout';
+import AppCard from './AppCard';
 import { renderMarkdown } from '@/lib/markdown';
 import { cn, money, BILLING } from '@/lib/utils';
 
@@ -52,21 +54,25 @@ export function ServiceCard({ s, i = 0 }) {
   );
 }
 
-/* Service cards grouped under small headings (Websites, Care and growth...). */
+/* Service cards grouped under small headings (Websites, Care and growth...).
+   A group of up to three cards is a grid; four or more slide as a carousel. */
 export function ServiceGroups({ services = [] }) {
   const groups = [];
   services.forEach((s) => { const g = s.group || ''; const hit = groups.find((x) => x.name === g); if (hit) hit.items.push(s); else groups.push({ name: g, items: [s] }); });
   let n = 0;
   return (
     <div className="space-y-16">
-      {groups.map((g) => (
-        <div key={g.name || 'all'}>
-          {g.name && <div className="mb-7 flex items-center gap-4"><p className={cn('text-signal', MONO)}>{g.name}</p><span className="h-px flex-1 bg-line" /></div>}
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {g.items.map((s) => { const i = n; n += 1; return <Reveal key={s.slug} delay={(i % 3) * 0.07} className="h-full"><ServiceCard s={s} i={i} /></Reveal>; })}
+      {groups.map((g) => {
+        const cards = g.items.map((s) => { const i = n; n += 1; return <Reveal key={s.slug} delay={(i % 3) * 0.07} className="h-full"><ServiceCard s={s} i={i} /></Reveal>; });
+        return (
+          <div key={g.name || 'all'}>
+            {g.name && <div className="mb-7 flex items-center gap-4"><p className={cn('text-signal', MONO)}>{g.name}</p><span className="h-px flex-1 bg-line" /><span className="text-sm text-muted">{g.items.length} services</span></div>}
+            {g.items.length >= 4
+              ? <CardLayout layout="carousel" columns={3} label={g.name || 'Services'}>{cards}</CardLayout>
+              : <div className={cn('grid gap-6', g.items.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-3')}>{cards}</div>}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -85,7 +91,7 @@ function SectionTitle({ eyebrow, title, intro, children }) {
 }
 
 /* /services/<slug>: everything about one service, its packages with Buy buttons, related work, questions and a contact form. */
-export default function ServiceView({ s, projects = [], cases = [], pitch = [], others = [] }) {
+export default function ServiceView({ s, projects = [], cases = [], pitch = [], apps = [], others = [] }) {
   const accent = full(s.accent) ? s.accent : '#6391FF';
   const html = s.content?.trim() ? renderMarkdown(s.content).html : '';
   const pts = (s.highlights || []).filter((h) => h.title);
@@ -93,7 +99,7 @@ export default function ServiceView({ s, projects = [], cases = [], pitch = [], 
   const faqs = (s.faqs || []).filter((f) => f.q && f.a);
   const stats = (s.stats || []).filter((x) => x.value && x.label).slice(0, 4);
   const packages = s.packages || [];
-  const hasWork = projects.length + cases.length + pitch.length > 0;
+  const hasWork = projects.length + cases.length + pitch.length + apps.length > 0;
 
   return (
     <article style={{ '--a': accent }}>
@@ -216,6 +222,12 @@ export default function ServiceView({ s, projects = [], cases = [], pitch = [], 
               <div>
                 <SectionTitle eyebrow="Proof" title="Work I have done like this"><Link href="/portfolio" className="btn-ghost btn-sm">All projects <ArrowRight size={15} /></Link></SectionTitle>
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">{projects.map((p, i) => <ProjectCard key={p.slug} project={p} priority={i < 2} />)}</div>
+              </div>
+            )}
+            {apps.length > 0 && (
+              <div>
+                <SectionTitle eyebrow="Built by me" title="Products I have built" intro="My own apps and software, designed, built and run by me."><Link href="/apps" className="btn-ghost btn-sm">All products <ArrowRight size={15} /></Link></SectionTitle>
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">{apps.map((a) => <AppCard key={a.slug} app={a} />)}</div>
               </div>
             )}
             {pitch.length > 0 && (

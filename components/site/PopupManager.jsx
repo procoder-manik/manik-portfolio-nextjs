@@ -54,6 +54,15 @@ export default function PopupManager({ popups = [], rules = {} }) {
       const t = pp.trigger || {};
       if (!targeted(pp, ctx())) continue;
       if (t.load?.enabled) { const id = setTimeout(() => fire(pp), Math.max(0, Number(t.load.delay) || 0) * 1000); cleanups.push(() => clearTimeout(id)); }
+      // Engaged: only after the visitor has stayed a while AND scrolled part of the page (never right on arrival).
+      if (t.engaged?.enabled) {
+        const need = Math.max(0, Number(t.engaged.percent ?? 25)); let timeOk = false; let scrollOk = need === 0;
+        const check = () => { if (timeOk && scrollOk) { fire(pp); window.removeEventListener('scroll', on); } };
+        const on = () => { const h = document.documentElement; const pct = (window.scrollY / Math.max(1, h.scrollHeight - window.innerHeight)) * 100; if (pct >= need) { scrollOk = true; check(); } };
+        const id = setTimeout(() => { timeOk = true; check(); }, Math.max(0, Number(t.engaged.seconds ?? 12)) * 1000);
+        window.addEventListener('scroll', on, { passive: true }); on();
+        cleanups.push(() => { clearTimeout(id); window.removeEventListener('scroll', on); });
+      }
       if (t.scroll?.enabled) {
         const on = () => { const h = document.documentElement; const pct = (window.scrollY / Math.max(1, h.scrollHeight - window.innerHeight)) * 100; if (pct >= (Number(t.scroll.percent) || 50)) { fire(pp); window.removeEventListener('scroll', on); } };
         window.addEventListener('scroll', on, { passive: true }); cleanups.push(() => window.removeEventListener('scroll', on));
@@ -72,9 +81,11 @@ export default function PopupManager({ popups = [], rules = {} }) {
       }
       if (t.pageviews?.enabled && ss.pages >= (Number(t.pageviews.count) || 2)) { const id = setTimeout(() => fire(pp), 1500); cleanups.push(() => clearTimeout(id)); }
     }
-    // Click triggers and manual links: <a href="#popup-id"> or data-popup="id"
+    // Click triggers and manual links: <a href="#popup-id">, data-popup="id" or class="open-popup-id"
     const click = (e) => {
-      const el = e.target.closest?.('a[href^="#popup-"], [data-popup]'); const id = el?.getAttribute('data-popup') || el?.getAttribute('href')?.replace('#popup-', '');
+      const el = e.target.closest?.('a[href^="#popup-"], [data-popup], [class*="open-popup-"]');
+      const cls = el && !el.getAttribute('data-popup') && !el.getAttribute('href')?.startsWith('#popup-') ? ([...el.classList].find((c) => c.startsWith('open-popup-')) || '').replace('open-popup-', '') : '';
+      const id = el?.getAttribute('data-popup') || cls || el?.getAttribute('href')?.replace('#popup-', '');
       let pp = id && popups.find((p) => p.slug === id);
       if (!pp) for (const p of popups) { const sel = p.trigger?.click?.enabled && p.trigger.click.selector; try { if (sel && e.target.closest?.(sel)) { pp = p; break; } } catch {} }
       if (pp && targeted(pp, { ...ctx(), now: Date.now() })) { e.preventDefault(); show(pp, true); }
