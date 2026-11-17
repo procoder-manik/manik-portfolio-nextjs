@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import ScrollTabs from './ScrollTabs';
 import Link from 'next/link';
 import { Check, ArrowRight, Clock3, BadgePercent } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,22 +11,17 @@ import CardLayout from './cards/CardLayout';
 const autoCols = (n) => (n >= 4 ? 4 : n === 3 ? 3 : 2);
 
 /* lay: { layout: 'grid' | 'carousel', columns, autoplay, interval } from the admin. */
-export default function PricingTabs({ services = [], compact, lay = {} }) {
+export default function PricingTabs({ services: all = [], compact, lay = {} }) {
+  const services = all.filter((s) => (s.packages || []).length > 0);
   const [sel, setSel] = useState(services[0]?.slug);
+  // /pricing#<service-slug> opens that service's tab.
+  useEffect(() => { const h = decodeURIComponent(window.location.hash.slice(1)); if (h && services.some((s) => s.slug === h)) setSel(h); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const svc = services.find((s) => s.slug === sel) || services[0];
   if (!svc) return null;
   return (
     <div>
-      <div className="mb-10 flex flex-wrap gap-2" role="tablist" aria-label="Services">
-        {services.map((s) => (
-          <button key={s.slug} role="tab" aria-selected={s.slug === sel} onClick={() => setSel(s.slug)}
-            className={cn('relative rounded-full border px-4 py-2.5 text-[0.95rem] font-medium transition', s.slug === sel ? 'border-transparent text-white' : 'border-line text-body hover:text-ink')}>
-            {s.slug === sel && <motion.span layoutId="svc-pill" className="absolute inset-0 -z-10 rounded-full bg-signal" transition={{ type: 'spring', bounce: .2, duration: .5 }} />}
-            {s.name}
-          </button>
-        ))}
-      </div>
-      {!compact && svc.summary && <p className="lede mb-8">{svc.summary}</p>}
+      <ScrollTabs items={services.map((s) => ({ key: s.slug, name: s.name }))} active={svc.slug} onChange={setSel} label="Services" pillId="svc-pill" className="mb-10" />
+      {!compact && svc.summary && <p className="lede mb-8">{svc.summary}{svc.page !== false && <> <Link href={`/services/${svc.slug}`} className="whitespace-nowrap text-signal hover:underline">About this service</Link></>}</p>}
       <AnimatePresence mode="wait">
         <motion.div key={svc.slug} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: .35, ease: [0.16, 1, 0.3, 1] }}>
           <PackageGrid packages={svc.packages} lay={lay} />

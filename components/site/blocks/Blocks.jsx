@@ -47,7 +47,7 @@ export default async function Blocks({ blocks = [], atTop = true }) {
 
 async function Block({ b, first, ctx }) {
   const wrap = (children, cls = '') => (
-    <section id={b.anchor || undefined} className={cn('relative', first && b.type === 'hero' ? 'pb-20 pt-36 sm:pt-44' : 'py-16 sm:py-24', BG[b.background], cls)}>
+    <section id={b.anchor || (b.type === 'pitchSites' ? 'websites' : undefined)} className={cn('relative', first && b.type === 'hero' ? 'pb-20 pt-36 sm:pt-44' : 'py-16 sm:py-24', BG[b.background], cls)}>
       <div className="shell relative">{children}</div>
     </section>
   );
@@ -120,7 +120,8 @@ async function Block({ b, first, ctx }) {
     case 'pitchSites': {
       const sites = await getPitchSites({ all: b.source === 'all', limit: b.count || 6 });
       // The cards refresh themselves in the browser, so new websites show even while this page is a saved copy.
-      return wrap(<><Head heading={b.heading} intro={b.intro} /><PitchCardsLive initial={sites} all={b.source === 'all'} limit={b.count || 6} tabs={b.tabs !== false} layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} /></>);
+      return wrap(<><Head heading={b.heading} intro={b.intro} /><PitchCardsLive initial={sites} all={b.source === 'all'} limit={b.count || 6} tabs={b.tabs !== false} layout={b.layout} columns={b.columns || 3} autoplay={b.autoplay} interval={b.interval} />
+        {(b.viewAll ?? b.layout === 'carousel') && <div className="mt-14 flex justify-center"><Link href={b.viewAllHref || '/portfolio#websites'} className="btn-primary">{b.viewAllLabel || 'View all websites'} <ArrowRight size={16} /></Link></div>}</>);
     }
     case 'apps':
       return ctx.apps.length ? wrap(<><Head heading={b.heading} intro={b.intro} /><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{ctx.apps.map((a) => <AppCard key={a.slug} app={a} />)}</div></>) : null;

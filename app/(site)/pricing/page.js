@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { seoMeta } from '@/lib/seo';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import { getServicesWithPackages, getAllSettings, getPageSeo, getSystemPage } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import SystemSections from '@/components/site/SystemSections';
@@ -21,7 +21,7 @@ export async function generateMetadata() {
 }
 
 export default async function PricingPage() {
-  const [services, { site, home, payments }, sp] = await Promise.all([getServicesWithPackages(), getAllSettings(), getSystemPage('pricing')]);
+  const [services, { site, home, payments }, sp] = await Promise.all([getServicesWithPackages().then((l) => l.filter((s) => s.packages.length)), getAllSettings(), getSystemPage('pricing')]);
   if (!pageLive(sp)) notFound();
   const methods = PAYMENT_METHODS.filter((m) => payments[m.id]?.enabled);
   return (
@@ -55,7 +55,7 @@ export default async function PricingPage() {
                   <div className="mb-10 grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-end">
                     <div className="flex items-start gap-4">
                       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-signal/15 text-signal"><Icon name={s.icon} size={22} /></span>
-                      <h2 className="h-section text-[clamp(1.8rem,3.4vw,2.6rem)]">{s.name}</h2>
+                      <div><h2 className="h-section text-[clamp(1.8rem,3.4vw,2.6rem)]">{s.name}</h2>{s.page !== false && <Link href={`/services/${s.slug}`} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-signal hover:underline">What is included <ArrowRight size={15} /></Link>}</div>
                     </div>
                     <p className="lede md:ml-auto md:text-right">{s.summary}</p>
                   </div>

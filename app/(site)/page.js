@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Download, MapPin, MessageCircle, Clock3, Quote } from 'lucide-react';
-import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies, getPageSeo, getSystemPage } from '@/lib/data';
+import { getAllSettings, getProjects, getPosts, getCategories, getServicesWithPackages, getApps, getCaseStudies, getPageSeo, getSystemPage, getServicePages } from '@/lib/data';
+import { ServiceGroups } from '@/components/site/ServiceView';
 import SystemSections from '@/components/site/SystemSections';
 import { layoutOf, partOn } from '@/lib/system-pages';
 import { seoMeta } from '@/lib/seo';
@@ -46,6 +47,8 @@ export default async function Home() {
   const layout = layoutOf('home', sp, home);
   const on = (id) => partOn(layout, id);
   const apps = on('apps') ? await getApps({ featured: true }) : [];
+  // Services with their own page show as cards that open it; without any, the cards typed under Home > Services show.
+  const svcCards = on('services') ? (await getServicePages()).filter((x) => x.showOnHome !== false) : [];
   const cases = caseStudiesOn(site) && on('caseStudies') ? (await getCaseStudies({ featured: true })).slice(0, home.caseStudies?.count || 3) : [];
   const work = (featured.length ? featured : all).slice(0, home.work?.count || 6);
   const catMap = Object.fromEntries(cats.map((c) => [c.slug, c]));
@@ -128,7 +131,10 @@ export default async function Home() {
         services: () => (
         <section id="services" className="section border-t border-line">
           <div className="shell">
-            <SectionHead title={home.services.heading} intro={home.services.intro} />
+            <SectionHead title={home.services.heading} intro={home.services.intro}>
+              {svcCards.length > 0 && <Link href="/services" className="btn-ghost">All services <ArrowRight size={16} /></Link>}
+            </SectionHead>
+            {svcCards.length > 0 ? <ServiceGroups services={svcCards} /> : (
             <div className="space-y-14">
               {(home.services.groups || []).map((g) => (
                 <div key={g.title}>
@@ -137,6 +143,7 @@ export default async function Home() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </section>
       ),
