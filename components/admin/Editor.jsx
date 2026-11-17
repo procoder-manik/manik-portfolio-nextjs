@@ -8,7 +8,7 @@ import { AiCtx, PageAiWizard, CaseStudyAiWizard, AreaPageAiWizard } from './AiAs
 import { PitchLinkButton } from './PitchFields';
 import { DeleteDialog } from './Dialog';
 import { STATUS, TRASHABLE } from '@/lib/trash';
-import { FieldList, InfoScope } from './Fields';
+import { FieldList, InfoScope, PopupPreviewBox, PopupFullPreview } from './Fields';
 import { SEO_RES } from '@/lib/admin-schema';
 import { analyzeDoc } from '@/lib/seo-analysis';
 import { getSeoTpl } from './seoTpl';
@@ -85,6 +85,7 @@ export default function Editor({ resource, id, settingsKey }) {
           {aiSa && !readOnly && <button onClick={() => setSaAi(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {(aiPage || aiCase) && !readOnly && <button onClick={() => (aiPage ? setPageAi(true) : setCaseAi(true))} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
           {aiProject && !readOnly && <button onClick={() => setAiOpen(true)} className="btn-ghost btn-sm"><Sparkles size={14} className="text-signal" />Write with AI</button>}
+          {resource === 'popups' && !settingsKey && <PopupFullPreview doc={doc} />}
           {preview && <a href={preview} target="_blank" className="btn-ghost btn-sm"><ExternalLink size={14} />View</a>}
           {!settingsKey && !isNew && !doc.builtin && <button onClick={() => setDlg(true)} className="btn-ghost btn-sm text-bad"><Trash2 size={14} />{doc.trashedAt ? 'Trash options' : 'Delete'}</button>}
           <button onClick={save} disabled={status.t === 'saving' || readOnly} className="btn-primary btn-sm">{status.t === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{isNew ? 'Create' : 'Save changes'}</button>
@@ -102,10 +103,21 @@ export default function Editor({ resource, id, settingsKey }) {
       )}
       <div className="grid gap-6">
         {sections.map((s, i) => (sections.length <= 3 || tab === i) && (
+          resource === 'popups' && !settingsKey && ['Content', 'Design'].includes(s.title) ? (
+            // Popups: the live preview stays beside the fields while you edit.
+            <div key={s.title} className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_440px]">
+              <section className="rounded-2xl border border-line bg-surface p-5 sm:p-7">
+                <h2 className="mb-6 text-lg font-semibold">{s.title}</h2>
+                <FieldList fields={s.fields} value={doc} slugFrom={conf.slugFrom} onChange={(v) => { setDoc(v); setDirty(true); }} />
+              </section>
+              <aside className="rounded-2xl border border-line bg-surface p-4 xl:sticky xl:top-24"><PopupPreviewBox doc={doc} compact /></aside>
+            </div>
+          ) : (
           <section key={s.title} className="rounded-2xl border border-line bg-surface p-5 sm:p-7">
             <h2 className="mb-6 text-lg font-semibold">{s.title}</h2>
             <FieldList fields={s.fields} value={doc} slugFrom={conf.slugFrom} onChange={(v) => { setDoc(v); setDirty(true); }} />
           </section>
+          )
         ))}
       </div>
       {sections.length > 3 && (

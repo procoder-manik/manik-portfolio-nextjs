@@ -52,7 +52,8 @@ export function PackageGrid({ packages = [], lay = {} }) {
           {best > 0 && <span className="inline-flex items-center gap-1.5 rounded-full bg-good/15 px-3 py-1 text-sm font-medium text-good"><BadgePercent size={15} />Save up to {best}% with yearly</span>}
         </div>
       )}
-      <CardLayout layout={lay.layout || 'grid'} columns={lay.columns || autoCols(packages.length)} autoplay={lay.autoplay} interval={lay.interval} label="Packages">
+      {/* Never more columns than cards, so three cards fill the whole row instead of leaving an empty space. */}
+      <CardLayout layout={lay.layout || 'grid'} columns={Math.max(2, Math.min(Number(lay.columns) || autoCols(packages.length), packages.length))} autoplay={lay.autoplay} interval={lay.interval} label="Packages">
         {packages.map((p) => <PackageCard key={p.slug} p={p} period={period} />)}
       </CardLayout>
     </div>

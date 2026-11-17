@@ -615,24 +615,65 @@ function PopupTemplates({ doc, setDoc }) {
   return (
     <div>
       <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">Start from a template<InfoTip text="Pick a ready-made design, then change the text, image, colours and rules. You can change everything afterwards, or write your own HTML." /></p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {POPUP_TEMPLATES.map((t) => (
-          <button type="button" key={t.id} onClick={() => apply(t)} className={cn('rounded-xl border p-3 text-left transition hover:border-signal', doc.template === t.id ? 'border-signal bg-signal/10' : 'border-line bg-base/40')}>
-            <span className="block text-sm font-semibold text-ink">{t.name}</span><span className="mt-0.5 block text-xs text-muted">{t.desc}</span>
-          </button>
-        ))}
+      {/* Each template drawn small, exactly as it looks, so you can pick by eye. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {POPUP_TEMPLATES.map((t) => {
+          const d = deepMerge(POPUP_DEFAULTS, t.doc);
+          const sample = d.content.source && !d.content.heading ? { ...d, content: { ...d.content, heading: 'Your product name', body: 'Filled from your landing page or product.' } } : d;
+          return (
+            <button type="button" key={t.id} onClick={() => apply(t)} aria-pressed={doc.template === t.id} className={cn('overflow-hidden rounded-2xl border text-left transition hover:border-signal', doc.template === t.id ? 'border-signal bg-signal/10 ring-2 ring-signal/30' : 'border-line bg-base/40')}>
+              <div className="pointer-events-none relative h-48 overflow-hidden border-b border-line bg-[repeating-linear-gradient(45deg,rgb(var(--raised)/.5),rgb(var(--raised)/.5)_10px,transparent_10px,transparent_20px)]" aria-hidden>
+                <div className="absolute left-0 top-0 w-[250%] origin-top-left scale-[.4]"><PopupView popup={{ ...sample, design: { ...sample.design, overlay: false } }} preview /></div>
+              </div>
+              <div className="p-3"><span className="flex items-center justify-between text-sm font-semibold text-ink">{t.name}{doc.template === t.id && <span className="rounded-full bg-signal px-2 py-0.5 text-[10px] font-medium text-white">Selected</span>}</span><span className="mt-0.5 block text-xs text-muted">{t.desc}</span></div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function PopupPreviewBox({ doc }) {
+/* The popup as it will show: defaults filled in and, for "Fill from", the landing page or product details
+   under anything you typed yourself (the same rule the site uses). */
+export function usePopupForPreview(doc) {
+  const src = doc.content?.source; const ref = doc.content?.sourceRef;
+  const [auto, setAuto] = useState(null);
+  useEffect(() => {
+    if (!src || !ref || doc.contentType === 'html') { setAuto(null); return undefined; }
+    let on = true;
+    fetch(`/api/popups/source?type=${encodeURIComponent(src)}&ref=${encodeURIComponent(ref)}`, { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (on) setAuto(j.auto || null); }).catch(() => {});
+    return () => { on = false; };
+  }, [src, ref, doc.contentType]);
+  const c = { ...POPUP_DEFAULTS.content, ...(doc.content || {}) };
+  const d = { ...POPUP_DEFAULTS.design, ...(doc.design || {}) };
+  if (auto) {
+    const pick = (own, fb) => (String(own || '').trim() ? own : fb || '');
+    Object.assign(c, { heading: pick(c.heading, auto.heading), body: pick(c.body, auto.body), image: pick(c.image, auto.image), logo: pick(c.logo, auto.logo) });
+    if (c.primary?.label && !String(c.primary.href || '').trim()) c.primary = { ...c.primary, href: auto.href };
+  }
+  return { ...POPUP_DEFAULTS, ...doc, content: c, design: d };
+}
+
+export function PopupPreviewBox({ doc, compact = false }) {
+  const popup = usePopupForPreview(doc);
+  const [full, setFull] = useState(false);
+  const [dark, setDark] = useState(false);
   return (
     <div>
-      <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">Live preview<InfoTip text="This is how the popup looks. It updates as you change the settings. Bars, slide-ins and drawers are shown inside this box instead of on the page edge." /></p>
-      <div className="relative min-h-[420px] overflow-x-hidden rounded-2xl border border-line bg-[repeating-linear-gradient(45deg,rgb(var(--raised)/.5),rgb(var(--raised)/.5)_12px,transparent_12px,transparent_24px)]">
-        <PopupView popup={{ ...POPUP_DEFAULTS, ...doc, content: { ...POPUP_DEFAULTS.content, ...(doc.content || {}) }, design: { ...POPUP_DEFAULTS.design, ...(doc.design || {}) } }} preview />
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-sm font-medium text-ink">Live preview<InfoTip text="How the popup looks. It updates as you type. Bars, slide-ins and drawers are shown inside this box; use Preview on the page to see it exactly as visitors do, over the screen." /></p>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setDark(!dark)} className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-body hover:text-ink">{dark ? 'Dark page' : 'Light page'}</button>
+          <button type="button" onClick={() => setFull(true)} className="rounded-full bg-signal px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90">Preview on the page</button>
+        </div>
       </div>
+      <div className={cn('relative overflow-x-hidden rounded-2xl border border-line', compact ? 'min-h-[380px]' : 'min-h-[460px]', dark ? 'bg-[#0C1526]' : 'bg-[#F5F5F7]')}>
+        <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(128,128,128,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,.12)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <PopupView popup={popup} preview />
+      </div>
+      {popup.content?.source && popup.content?.sourceRef && <p className="mt-2 text-xs text-muted">Empty fields are filled from the chosen {popup.content.source === 'app' ? 'product' : 'landing page'}. Type in a field to override it.</p>}
+      {full && <PopupView popup={popup} onClose={() => setFull(false)} onEvent={() => {}} />}
     </div>
   );
 }
@@ -686,5 +727,22 @@ function AiPlanView({ doc }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/* Top-bar button on the popup editor: shows the popup over the screen exactly as a visitor sees it, from any tab. */
+export function PopupFullPreview({ doc }) {
+  const [open, setOpen] = useState(false);
+  const popup = usePopupForPreview(doc || {});
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="btn-ghost btn-sm"><Eye size={14} />Preview popup</button>
+      {open && (
+        <>
+          <PopupView popup={popup} onClose={() => setOpen(false)} onEvent={() => {}} />
+          <button type="button" onClick={() => setOpen(false)} className="fixed bottom-5 left-1/2 z-[200] -translate-x-1/2 rounded-full bg-black/80 px-5 py-2.5 text-sm font-semibold text-white shadow-2xl backdrop-blur hover:bg-black">Close preview</button>
+        </>
+      )}
+    </>
   );
 }
